@@ -1,0 +1,376 @@
+{
+  "name": "TARS: Creative Agent v1 - House Charm",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "creative-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Product Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 500],
+      "webhookId": "creative-input"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const body = $input.item.json.body || $input.item.json;\nconst productData = {\n  product_name: body.product_info?.name || '',\n  category: body.product_info?.category || '',\n  price: body.product_info?.price || 0,\n  sale_price: body.product_info?.sale_price || 0,\n  discount_percent: body.product_info?.discount_percent || 0,\n  main_benefit: body.product_details?.main_benefit || '',\n  problem_solved: body.product_details?.problem_solved || '',\n  usp: body.product_details?.usp || body.product_details?.main_benefit || '',\n  target_audience: body.target_audience?.primary || ''\n};\nreturn { json: productData };"
+      },
+      "id": "extract-data",
+      "name": "Extract Product Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in viral TikTok content for household products from House Charm brand. Create 15-second TikTok video script using HOOK → PROBLEM → SOLUTION → CTA formula. Output ONLY valid JSON without markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create TikTok Before/After transformation script:\\n\\nProduct: {{ $json.product_name }}\\nCategory: {{ $json.category }}\\nBenefit: {{ $json.main_benefit }}\\nProblem: {{ $json.problem_solved }}\\nPrice: ${{ $json.sale_price }}\\nAudience: {{ $json.target_audience }}\\n\\nJSON format:\\n{\\n  \\\"creative_id\\\": \\\"tiktok_001\\\",\\n  \\\"type\\\": \\\"before_after\\\",\\n  \\\"duration\\\": \\\"15 seconds\\\",\\n  \\\"script\\\": {\\n    \\\"hook\\\": {\\\"visual\\\": \\\"\\\", \\\"text_overlay\\\": \\\"\\\", \\\"duration\\\": \\\"0-2 sec\\\", \\\"audio\\\": \\\"\\\"},\\n    \\\"problem\\\": {\\\"visual\\\": \\\"\\\", \\\"text_overlay\\\": \\\"\\\", \\\"duration\\\": \\\"2-7 sec\\\", \\\"audio\\\": \\\"\\\"},\\n    \\\"solution\\\": {\\\"visual\\\": \\\"\\\", \\\"text_overlay\\\": \\\"\\\", \\\"duration\\\": \\\"7-12 sec\\\", \\\"audio\\\": \\\"\\\"},\\n    \\\"cta\\\": {\\\"visual\\\": \\\"\\\", \\\"text_overlay\\\": \\\"\\\", \\\"duration\\\": \\\"12-15 sec\\\", \\\"audio\\\": \\\"\\\"}\\n  },\\n  \\\"production_notes\\\": {\\\"camera\\\": \\\"iPhone handheld\\\", \\\"lighting\\\": \\\"Natural\\\", \\\"editing\\\": \\\"Quick cuts\\\"},\\n  \\\"hashtags\\\": [\\\"#housecharm\\\", \\\"#cleaningtiktok\\\"],\\n  \\\"caption\\\": \\\"\\\",\\n  \\\"music_suggestion\\\": \\\"\\\"\\n}\"\n    }\n  ],\n  \"temperature\": 0.8,\n  \"max_tokens\": 1500\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-1",
+      "name": "GPT: TikTok Before-After",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in viral TikTok content using PAS formula (Problem-Agitation-Solution). Create emotionally compelling script. Output ONLY valid JSON without markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create TikTok Problem-Solution script:\\n\\nProduct: {{ $json.product_name }}\\nProblem: {{ $json.problem_solved }}\\nSolution: {{ $json.main_benefit }}\\nPrice: ${{ $json.sale_price }}\\n\\nUse same JSON format with creative_id: 'tiktok_002'\"\n    }\n  ],\n  \"temperature\": 0.8,\n  \"max_tokens\": 1500\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-2",
+      "name": "GPT: TikTok Problem-Solution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 450],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in ASMR and satisfying TikTok content. Create script with continuous shot, minimal text, focus on visual transformation. Output ONLY valid JSON without markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create TikTok ASMR/Satisfying script:\\n\\nProduct: {{ $json.product_name }}\\nProcess: {{ $json.main_benefit }}\\n\\nJSON format with creative_id: 'tiktok_003', emphasize ASMR sounds and slow motion\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1200\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-3",
+      "name": "GPT: TikTok ASMR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 600],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in Meta Ads performance advertising using STOP-SHOW-SELL formula. Create compelling 10-second ad script. Output ONLY valid JSON without markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create Meta Ads Feed/Reels script:\\n\\nProduct: {{ $json.product_name }}\\nUSP: {{ $json.usp }}\\nPrice: ${{ $json.price }} → ${{ $json.sale_price }} ({{ $json.discount_percent }}% OFF)\\nAudience: {{ $json.target_audience }}\\n\\nJSON format with creative_id: 'meta_001'\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 2000\n}",
+        "options": {}
+      },
+      "id": "gpt-meta-1",
+      "name": "GPT: Meta Feed & Reels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 750],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in Instagram/Facebook Stories ads. Create fast 6-second vertical format script with large text and clear CTA. Output ONLY valid JSON without markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create Meta Stories script:\\n\\nProduct: {{ $json.product_name }}\\nDiscount: {{ $json.discount_percent }}%\\nPrice: ${{ $json.sale_price }}\\n\\nJSON format for 6-second Stories with creative_id: 'meta_002'\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1000\n}",
+        "options": {}
+      },
+      "id": "gpt-meta-2",
+      "name": "GPT: Meta Stories",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 900],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition"
+      },
+      "id": "merge-all",
+      "name": "Merge All Creatives",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst productData = $node['Extract Product Data'].json;\nconst timestamp = new Date().toISOString();\nconst batchId = `creative_${timestamp.split('T')[0].replace(/-/g, '')}_${Math.random().toString(36).substr(2, 6)}`;\n\nconst tiktokScripts = [];\nconst metaScripts = [];\n\nfor (const item of items) {\n  if (!item.json.choices) continue;\n  const content = item.json.choices[0].message.content;\n  \n  try {\n    const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();\n    const parsed = JSON.parse(cleaned);\n    \n    if (parsed.creative_id) {\n      if (parsed.creative_id.includes('tiktok')) {\n        tiktokScripts.push(parsed);\n      } else if (parsed.creative_id.includes('meta')) {\n        metaScripts.push(parsed);\n      }\n    }\n  } catch (e) {\n    console.log('Parse error:', e.message);\n  }\n}\n\nconst finalOutput = {\n  creative_batch_id: batchId,\n  timestamp: timestamp,\n  product_id: productData.product_name.toLowerCase().replace(/\\s+/g, '_'),\n  product_name: productData.product_name,\n  tiktok_creatives: tiktokScripts,\n  meta_ads_creatives: metaScripts,\n  image_prompts: {\n    midjourney_prompts: [\n      {\n        purpose: 'TikTok thumbnail - messy before',\n        prompt: `Chaotic messy ${productData.category} with clutter. Bright natural lighting. iPhone style. --ar 9:16 --style raw --v 6`\n      },\n      {\n        purpose: 'TikTok thumbnail - clean after',\n        prompt: `Perfectly clean ${productData.category}. Sparkling surfaces. --ar 9:16 --style raw --v 6`\n      },\n      {\n        purpose: 'Meta Ads hero image',\n        prompt: `Product photo of ${productData.product_name} on white marble. Split: messy left, clean right. 5 stars. ${productData.discount_percent}% OFF banner. --ar 1:1 --style raw --v 6`\n      }\n    ]\n  },\n  performance_predictions: {\n    tiktok: {\n      estimated_views: '50K-200K',\n      estimated_engagement_rate: '6-8%',\n      viral_potential_score: 8.5,\n      best_creative: tiktokScripts[0]?.creative_id || 'tiktok_001'\n    },\n    meta_ads: {\n      estimated_ctr: '2.5-4%',\n      estimated_cpc: '$0.40-$0.80',\n      estimated_roas: '3.5-5x',\n      best_creative: metaScripts[0]?.creative_id || 'meta_001'\n    }\n  },\n  next_steps: [\n    'Review and approve scripts',\n    'Film content or generate via AI',\n    'Edit videos with production notes',\n    'A/B test TikTok creatives organically',\n    'Launch top performer as paid ad'\n  ],\n  metadata: {\n    generated_by: 'TARS Creative Agent v1',\n    brand: 'House Charm',\n    workflow_version: '1.0'\n  }\n};\n\nreturn { json: finalOutput };"
+      },
+      "id": "assemble-json",
+      "name": "Assemble Final JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}"
+      },
+      "id": "webhook-response",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1340, 600]
+    }
+  ],
+  "connections": {
+    "Webhook: Product Input": {
+      "main": [
+        [
+          {
+            "node": "Extract Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product Data": {
+      "main": [
+        [
+          {
+            "node": "GPT: TikTok Before-After",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: TikTok Problem-Solution",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: TikTok ASMR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: Meta Feed & Reels",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: Meta Stories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok Before-After": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok Problem-Solution": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok ASMR": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "GPT: Meta Feed & Reels": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "GPT: Meta Stories": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Merge All Creatives": {
+      "main": [
+        [
+          {
+            "node": "Assemble Final JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Final JSON": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-21T00:00:00.000Z",
+  "versionId": "1"
+}

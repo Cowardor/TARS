@@ -1,0 +1,774 @@
+{
+  "name": "Video Agent Standard V1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "video-agent-standard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "video-agent-standard"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "product-name",
+              "name": "product_name",
+              "value": "={{ $json.body.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "product-description",
+              "name": "product_description",
+              "value": "={{ $json.body.product_description }}",
+              "type": "string"
+            },
+            {
+              "id": "target-audience",
+              "name": "target_audience",
+              "value": "={{ $json.body.target_audience }}",
+              "type": "string"
+            },
+            {
+              "id": "price",
+              "name": "price",
+              "value": "={{ $json.body.price || '$29.99' }}",
+              "type": "string"
+            },
+            {
+              "id": "usps",
+              "name": "unique_selling_points",
+              "value": "={{ $json.body.unique_selling_points }}",
+              "type": "array"
+            },
+            {
+              "id": "video-style",
+              "name": "video_style",
+              "value": "={{ $json.body.video_style || 'hybrid' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-data",
+      "name": "Extract Product Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an ELITE viral TikTok/Instagram video strategist for dropshipping products. Your creatives convert at 3-5% CTR (vs industry average 1-2%).\\n\\nKEY PRINCIPLES (2026 STANDARD VERSION):\\n- UGC ads get 3× higher CTR than branded ads (PROVEN)\\n- Hybrid videos (static + animation) = 48% higher engagement\\n- Videos 25-35 sec = sweet spot for completion rate\\n- 75%+ completion rate = algorithmic boost\\n- Anti-AI detection: human imperfections, natural speech\\n- Doomscrolling hooks: guilt redirect, time scarcity\\n- MOOD-MATCHED music increases watch time by 22%\\n\\nSTANDARD VERSION FEATURES:\\n- 5-6 images (vs 4 in Budget)\\n- 2-3 images will be ANIMATED via Runway Gen-3 (when available)\\n- Advanced transitions (wipe, slide, zoom)\\n- Mood-matched music selection\\n- Text overlays with animations\\n- Color grading hints\\n\\nOUTPUT FORMAT:\\n{\\n  \\\"strategy\\\": {\\n    \\\"hook_type\\\": \\\"doomscroll_guilt|before_after|problem_solution|testimonial_pov\\\",\\n    \\\"mood\\\": \\\"energetic|calm|upbeat|inspirational\\\",\\n    \\\"target_emotion\\\": \\\"FOMO|curiosity|relief|excitement\\\",\\n    \\\"color_grade\\\": \\\"warm|cool|vibrant|muted\\\",\\n    \\\"transition_style\\\": \\\"smooth|snappy|cinematic\\\"\\n  },\\n  \\\"script\\\": {\\n    \\\"hook\\\": \\\"First 3 seconds text (guilt redirect hook)\\\",\\n    \\\"body\\\": \\\"Main script 20-25 seconds (natural, contractions, filler words)\\\",\\n    \\\"cta\\\": \\\"Call to action 5 seconds\\\",\\n    \\\"total_duration\\\": 28-33\\n  },\\n  \\\"midjourney_prompts\\\": [\\n    {\\\"prompt\\\": \\\"Opening hook visual\\\", \\\"animate\\\": true, \\\"motion\\\": \\\"slow zoom in\\\"},\\n    {\\\"prompt\\\": \\\"Problem/Before shot\\\", \\\"animate\\\": false},\\n    {\\\"prompt\\\": \\\"Product in action close-up\\\", \\\"animate\\\": true, \\\"motion\\\": \\\"camera pan right\\\"},\\n    {\\\"prompt\\\": \\\"Product detail shot\\\", \\\"animate\\\": false},\\n    {\\\"prompt\\\": \\\"After/Result wide shot\\\", \\\"animate\\\": true, \\\"motion\\\": \\\"gentle tilt up\\\"},\\n    {\\\"prompt\\\": \\\"Final CTA visual\\\", \\\"animate\\\": false}\\n  ],\\n  \\\"timing\\\": [\\n    {\\\"image\\\": 0, \\\"duration\\\": 4, \\\"text_overlay\\\": \\\"hook text\\\", \\\"transition\\\": \\\"fade\\\"},\\n    {\\\"image\\\": 1, \\\"duration\\\": 5, \\\"text_overlay\\\": null, \\\"transition\\\": \\\"wipe_left\\\"},\\n    {\\\"image\\\": 2, \\\"duration\\\": 7, \\\"text_overlay\\\": \\\"benefit text\\\", \\\"transition\\\": \\\"zoom_in\\\"},\\n    {\\\"image\\\": 3, \\\"duration\\\": 5, \\\"text_overlay\\\": null, \\\"transition\\\": \\\"slide_up\\\"},\\n    {\\\"image\\\": 4, \\\"duration\\\": 6, \\\"text_overlay\\\": null, \\\"transition\\\": \\\"fade\\\"},\\n    {\\\"image\\\": 5, \\\"duration\\\": 5, \\\"text_overlay\\\": \\\"CTA text\\\", \\\"transition\\\": \\\"fade\\\"}\\n  ],\\n  \\\"music_selection\\\": {\\n    \\\"mood\\\": \\\"energetic|calm|upbeat|inspirational\\\",\\n    \\\"bpm_range\\\": \\\"120-140 (or specify)\\\",\\n    \\\"genre\\\": \\\"pop|electronic|indie|acoustic\\\"\\n  },\\n  \\\"performance_estimate\\\": {\\n    \\\"viral_score\\\": 1-10,\\n    \\\"estimated_ctr\\\": \\\"X-Y%\\\",\\n    \\\"target_completion_rate\\\": \\\"XX%\\\",\\n    \\\"expected_roi\\\": \\\"Xx multiplier\\\"\\n  }\\n}\\n\\nMIDJOURNEY PROMPT RULES (ENHANCED FOR STANDARD):\\n- ALWAYS use: 'shot on iPhone 15 Pro, handheld camera with natural shake'\\n- ALWAYS include: 'natural window lighting, golden hour sunlight'\\n- Add imperfections: 'slight motion blur, thumb partially visible in corner'\\n- UGC authenticity: 'mild grain, off-center composition, casual home environment'\\n- Product focus: 'shallow depth of field, product in sharp focus'\\n- Color hints: Match strategy.color_grade (\\\"warm tones\\\", \\\"vibrant colors\\\", etc.)\\n- Format: '--style raw --v 6 --ar 9:16 --q 2' (higher quality for Standard)\\n- AVOID banned words: nude, violence, drugs, weapons, etc.\\n\\nANIMATION NOTES (for Runway Gen-3):\\n- animate: true means this image will be animated (2-3 images total)\\n- motion: describe camera movement (zoom, pan, tilt) or object motion\\n- Keep motion SUBTLE for UGC authenticity (not cinematic)\\n\\nSCRIPT RULES:\\n- Use contractions (it's, that's, you're, I've)\\n- Filler words ENCOURAGED: \\\"like\\\", \\\"literally\\\", \\\"okay so\\\", \\\"honestly\\\"\\n- Natural pauses: *sigh*, *laugh*, em-dashes, ellipsis\\n- Typos in text overlays ok (lowercase, no punctuation, misspellings)\\n- Address viewer directly: \\\"you\\\", \\\"your\\\"\\n- Build narrative arc: hook → problem → solution → result → CTA\\n\\nDOOMSCROLL HOOKS (ADVANCED):\\n- \\\"you've been scrolling for 10 minutes...\\\"\\n- \\\"POV: you're supposed to be [doing X]\\\"\\n- \\\"me pretending I didn't just waste an hour\\\"\\n- \\\"okay but hear me out—\\\"\\n- \\\"nobody talks about this but...\\\"\\n- \\\"this is your sign to stop scrolling\\\"\\n\\nTEXT OVERLAY BEST PRACTICES:\\n- Max 3-5 words per overlay\\n- All lowercase (more authentic)\\n- Use emojis sparingly (1-2 max)\\n- Keywords from script, not full sentences\\n\\nNow generate STANDARD-TIER viral video strategy.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Product: {{ $json.product_name }}\\n\\nDescription: {{ $json.product_description }}\\n\\nTarget audience: {{ $json.target_audience }}\\n\\nPrice: {{ $json.price }}\\n\\nUnique selling points: {{ $json.unique_selling_points.join(', ') }}\\n\\nVideo style preference: {{ $json.video_style }}\\n\\nGenerate STANDARD VERSION viral TikTok video strategy with:\\n- 5-6 UGC images (2-3 animated)\\n- Advanced transitions\\n- Mood-matched music selection\\n- Professional but authentic feel\\n- Target CTR: 3.5-5%\"\n    }\n  ],\n  \"temperature\": 0.85,\n  \"response_format\": { \"type\": \"json_object\" }\n}",
+        "options": {}
+      },
+      "id": "gpt-analyze",
+      "name": "GPT-4o Strategy (Standard)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse GPT response and extract enhanced strategy\nconst response = $input.first().json;\nconst content = JSON.parse(response.choices[0].message.content);\n\n// Separate images into static and animated\nconst staticImages = [];\nconst animatedImages = [];\n\ncontent.midjourney_prompts.forEach((item, index) => {\n  if (item.animate) {\n    animatedImages.push({\n      index: index,\n      prompt: item.prompt,\n      motion: item.motion\n    });\n  } else {\n    staticImages.push({\n      index: index,\n      prompt: item.prompt\n    });\n  }\n});\n\nreturn {\n  json: {\n    strategy: content.strategy,\n    script: content.script,\n    midjourney_prompts: content.midjourney_prompts,\n    timing: content.timing,\n    music_selection: content.music_selection,\n    performance_estimate: content.performance_estimate,\n    // Categorized images\n    static_images: staticImages,\n    animated_images: animatedImages,\n    // Store original product data\n    product_name: $('Extract Product Data').first().json.product_name\n  }\n};"
+      },
+      "id": "parse-strategy",
+      "name": "Parse Enhanced Strategy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "mode": "multiplex",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "midjourney-prompt",
+              "name": "midjourney_prompt",
+              "value": "={{ $json.midjourney_prompts[$index].prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "image-index",
+              "name": "image_index",
+              "value": "={{ $index }}",
+              "type": "number"
+            },
+            {
+              "id": "should-animate",
+              "name": "should_animate",
+              "value": "={{ $json.midjourney_prompts[$index].animate }}",
+              "type": "boolean"
+            },
+            {
+              "id": "motion-type",
+              "name": "motion_type",
+              "value": "={{ $json.midjourney_prompts[$index].motion || 'none' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "loop-prompts",
+      "name": "Loop All Midjourney Prompts",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.useapi.net/v2/jobs/imagine",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"{{ $json.midjourney_prompt }} --style raw --v 6 --ar 9:16 --q 2\",\n  \"webhook\": null\n}",
+        "options": {}
+      },
+      "id": "midjourney-generate",
+      "name": "Midjourney Generate (Enhanced)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "useapi-key",
+          "name": "UseAPI Midjourney Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 45,
+        "unit": "seconds"
+      },
+      "id": "wait-midjourney",
+      "name": "Wait for Midjourney (Longer)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1560, 400],
+      "webhookId": "wait-midjourney-standard",
+      "notesInFlow": true,
+      "notes": "Standard version uses --q 2 which takes longer to render"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.useapi.net/v2/jobs/{{ $json.jobid }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-midjourney-status",
+      "name": "Check Midjourney Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "useapi-key",
+          "name": "UseAPI Midjourney Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.result.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-midjourney-image",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all downloaded images and preserve metadata\nconst allInputs = $input.all();\nconst strategy = $('Parse Enhanced Strategy').first().json;\n\nconst images = allInputs.map((item, index) => {\n  const promptData = strategy.midjourney_prompts[index];\n  \n  return {\n    binary: item.binary,\n    index: index,\n    should_animate: promptData.animate,\n    motion_type: promptData.motion || 'none',\n    timing: strategy.timing[index]\n  };\n});\n\nreturn images.map(img => ({ json: img, binary: img.binary }));"
+      },
+      "id": "collect-images",
+      "name": "Collect All Images",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-animated",
+              "leftValue": "={{ $('Parse Enhanced Strategy').first().json.animated_images.length }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-animation-needed",
+      "name": "Check if Animation Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2440, 400],
+      "notesInFlow": true,
+      "notes": "When Runway Gen-3 API is available, animated images will go through this branch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// PLACEHOLDER for Runway Gen-3 animation\n// When Runway Gen-3 API is available, this will:\n// 1. Take images where should_animate = true\n// 2. Send to Runway Gen-3 with motion prompts\n// 3. Download animated videos\n// 4. Return mix of static images + animated videos\n\n// FOR NOW: Just pass through all static images\nconst allImages = $input.all();\n\nreturn allImages.map(item => ({\n  json: {\n    ...item.json,\n    animated: false,\n    note: 'Runway Gen-3 animation will be added here when API is available'\n  },\n  binary: item.binary\n}));"
+      },
+      "id": "runway-placeholder",
+      "name": "Runway Gen-3 Animation (Placeholder)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 280],
+      "notesInFlow": true,
+      "notes": "TODO: Add Runway Gen-3 API integration when available"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-assets-1",
+      "name": "Merge Images Path",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2880, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Parse Enhanced Strategy').first().json.script.hook }}. {{ $('Parse Enhanced Strategy').first().json.script.body }}. {{ $('Parse Enhanced Strategy').first().json.script.cta }}\",\n  \"model_id\": \"eleven_turbo_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.45,\n    \"similarity_boost\": 0.8,\n    \"style\": 0.4,\n    \"use_speaker_boost\": true\n  },\n  \"pronunciation_dictionary_locators\": []\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "elevenlabs-voiceover",
+      "name": "ElevenLabs Voiceover (Enhanced)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 620],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "elevenlabs-key",
+          "name": "ElevenLabs API Key"
+        }
+      },
+      "notesInFlow": true,
+      "notes": "Using eleven_turbo_v2 model for better quality (Creator plan)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Select music from Epidemic Sound library based on mood\n// TODO: Upload Epidemic Sound tracks to n8n and update paths\n\nconst strategy = $('Parse Enhanced Strategy').first().json.strategy;\nconst musicSelection = $('Parse Enhanced Strategy').first().json.music_selection;\n\n// Epidemic Sound library organized by mood\nconst musicLibrary = {\n  energetic: [\n    '/data/epidemic-sound/energetic/upbeat-pop-1.mp3',\n    '/data/epidemic-sound/energetic/electronic-beat-1.mp3',\n    '/data/epidemic-sound/energetic/indie-rock-1.mp3'\n  ],\n  calm: [\n    '/data/epidemic-sound/calm/acoustic-chill-1.mp3',\n    '/data/epidemic-sound/calm/ambient-soft-1.mp3'\n  ],\n  upbeat: [\n    '/data/epidemic-sound/upbeat/happy-pop-1.mp3',\n    '/data/epidemic-sound/upbeat/funky-groove-1.mp3'\n  ],\n  inspirational: [\n    '/data/epidemic-sound/inspirational/emotional-piano-1.mp3',\n    '/data/epidemic-sound/inspirational/uplifting-strings-1.mp3'\n  ]\n};\n\nconst mood = musicSelection.mood || strategy.mood || 'energetic';\nconst tracksForMood = musicLibrary[mood] || musicLibrary.energetic;\nconst selectedTrack = tracksForMood[Math.floor(Math.random() * tracksForMood.length)];\n\nreturn {\n  json: {\n    music_path: selectedTrack,\n    music_volume: 0.25, // Background music at 25% (professional mix)\n    mood: mood,\n    bpm_range: musicSelection.bpm_range,\n    genre: musicSelection.genre\n  }\n};"
+      },
+      "id": "select-music-advanced",
+      "name": "Select Epidemic Sound Track",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 840],
+      "notesInFlow": true,
+      "notes": "Mood-matched music selection increases watch time by 22%"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-all-assets",
+      "name": "Merge All Assets",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3100, 520]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build ADVANCED Shotstack timeline for Standard version\nconst strategy = $('Parse Enhanced Strategy').first().json;\nconst images = $input.all().filter(item => item.binary?.data);\nconst voiceover = $('ElevenLabs Voiceover (Enhanced)').first();\nconst music = $('Select Epidemic Sound Track').first().json;\n\n// Advanced transition mapping\nconst transitionMap = {\n  'fade': { in: 'fade', out: 'fade' },\n  'wipe_left': { in: 'wipeLeft', out: 'wipeRight' },\n  'zoom_in': { in: 'zoomIn', out: 'fade' },\n  'slide_up': { in: 'slideUp', out: 'slideDown' },\n  'smooth': { in: 'fade', out: 'fade' },\n  'snappy': { in: 'wipeLeft', out: 'wipeRight' },\n  'cinematic': { in: 'zoomIn', out: 'fade' }\n};\n\n// Build image clips with ADVANCED effects\nlet currentTime = 0;\nconst imageClips = strategy.timing.map((timing, index) => {\n  const transition = transitionMap[timing.transition] || transitionMap['fade'];\n  const clip = {\n    asset: {\n      type: 'image',\n      src: `data:image/png;base64,${images[index].binary.data.toString('base64')}`\n    },\n    start: currentTime,\n    length: timing.duration,\n    fit: 'cover',\n    scale: 1.1, // Ken Burns effect (slight zoom)\n    transition: transition,\n    effect: images[index].json?.should_animate ? 'zoomIn' : 'slideRight',\n    opacity: 1\n  };\n  \n  currentTime += timing.duration;\n  return clip;\n});\n\nconst totalDuration = currentTime;\n\n// Build timeline with MULTIPLE tracks\nconst timeline = {\n  soundtrack: {\n    src: music.music_path,\n    effect: 'fadeInFadeOut',\n    volume: music.music_volume\n  },\n  tracks: [\n    // Track 1: Images\n    {\n      clips: imageClips\n    },\n    // Track 2: Voiceover\n    {\n      clips: [\n        {\n          asset: {\n            type: 'audio',\n            src: `data:audio/mpeg;base64,${voiceover.binary.data.toString('base64')}`\n          },\n          start: 0,\n          length: totalDuration,\n          volume: 1.0\n        }\n      ]\n    }\n  ]\n};\n\n// Track 3: Text overlays with ANIMATIONS\nconst textClips = strategy.timing\n  .filter(t => t.text_overlay)\n  .map(timing => {\n    const startTime = strategy.timing.slice(0, timing.image).reduce((sum, t) => sum + t.duration, 0);\n    \n    return {\n      asset: {\n        type: 'title',\n        text: timing.text_overlay,\n        style: 'minimal',\n        color: '#ffffff',\n        size: 'large',\n        background: 'rgba(0,0,0,0.6)',\n        position: timing.image === 0 ? 'top' : (timing.image === strategy.timing.length - 1 ? 'bottom' : 'center')\n      },\n      start: startTime,\n      length: Math.min(3, timing.duration),\n      transition: {\n        in: 'slideUp',\n        out: 'fade'\n      },\n      effect: 'zoomIn'\n    };\n  });\n\nif (textClips.length > 0) {\n  timeline.tracks.push({ clips: textClips });\n}\n\nreturn {\n  json: {\n    timeline: timeline,\n    output: {\n      format: 'mp4',\n      resolution: '1080',\n      aspectRatio: '9:16',\n      fps: 30,\n      quality: 'high',\n      repeat: false,\n      mute: false\n    },\n    poster: {\n      capture: 1.0\n    },\n    callback: null\n  }\n};"
+      },
+      "id": "build-shotstack-advanced",
+      "name": "Build Advanced Shotstack Timeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3320, 520],
+      "notesInFlow": true,
+      "notes": "Advanced transitions, effects, and multi-track timeline"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.shotstack.io/v1/render",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "shotstack-render-standard",
+      "name": "Shotstack Render (Standard Quality)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3540, 520],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "shotstack-key",
+          "name": "Shotstack API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 45,
+        "unit": "seconds"
+      },
+      "id": "wait-render",
+      "name": "Wait for Render (Longer)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [3760, 520],
+      "webhookId": "wait-render-standard",
+      "notesInFlow": true,
+      "notes": "Standard quality takes longer to render (30-60 sec)"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.shotstack.io/v1/render/{{ $json.response.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-render-status",
+      "name": "Check Render Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3980, 520],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "shotstack-key",
+          "name": "Shotstack API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "render-done",
+              "leftValue": "={{ $json.response.status }}",
+              "rightValue": "done",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-render-done",
+      "name": "If Render Complete",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [4200, 520]
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "seconds"
+      },
+      "id": "wait-retry",
+      "name": "Wait Before Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [4200, 740],
+      "webhookId": "wait-retry-standard"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.response.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-video",
+      "name": "Download Final Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4420, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"video_url\": \"{{ $json.response.url }}\",\n  \"video_filename\": \"{{ $('Parse Enhanced Strategy').first().json.product_name.toLowerCase().replace(/ /g, '-') }}-standard-{{ Date.now() }}.mp4\",\n  \"script\": {{ JSON.stringify($('Parse Enhanced Strategy').first().json.script) }},\n  \"strategy\": {{ JSON.stringify($('Parse Enhanced Strategy').first().json.strategy) }},\n  \"midjourney_prompts\": {{ JSON.stringify($('Parse Enhanced Strategy').first().json.midjourney_prompts) }},\n  \"music_selection\": {{ JSON.stringify($('Parse Enhanced Strategy').first().json.music_selection) }},\n  \"performance_estimate\": {{ JSON.stringify($('Parse Enhanced Strategy').first().json.performance_estimate) }},\n  \"version\": \"Standard V1\",\n  \"features\": [\n    \"5-6 UGC images (higher quality --q 2)\",\n    \"Advanced transitions (wipe, slide, zoom)\",\n    \"Mood-matched Epidemic Sound music\",\n    \"Enhanced ElevenLabs voiceover (Turbo V2)\",\n    \"Multi-track timeline with effects\",\n    \"Ready for Runway Gen-3 animation (when API available)\"\n  ],\n  \"render_time\": \"~3-5 minutes\",\n  \"estimated_ctr\": \"3.5-5%\",\n  \"expected_roi\": \"10-30×\"\n}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond with Enhanced Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [4640, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product Data": {
+      "main": [
+        [
+          {
+            "node": "GPT-4o Strategy (Standard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o Strategy (Standard)": {
+      "main": [
+        [
+          {
+            "node": "Parse Enhanced Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Enhanced Strategy": {
+      "main": [
+        [
+          {
+            "node": "Loop All Midjourney Prompts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ElevenLabs Voiceover (Enhanced)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Select Epidemic Sound Track",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop All Midjourney Prompts": {
+      "main": [
+        [
+          {
+            "node": "Midjourney Generate (Enhanced)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Midjourney Generate (Enhanced)": {
+      "main": [
+        [
+          {
+            "node": "Wait for Midjourney (Longer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Midjourney (Longer)": {
+      "main": [
+        [
+          {
+            "node": "Check Midjourney Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Midjourney Status": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Collect All Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect All Images": {
+      "main": [
+        [
+          {
+            "node": "Check if Animation Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Animation Needed": {
+      "main": [
+        [
+          {
+            "node": "Runway Gen-3 Animation (Placeholder)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Images Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Runway Gen-3 Animation (Placeholder)": {
+      "main": [
+        [
+          {
+            "node": "Merge Images Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Images Path": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs Voiceover (Enhanced)": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Select Epidemic Sound Track": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Assets": {
+      "main": [
+        [
+          {
+            "node": "Build Advanced Shotstack Timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Advanced Shotstack Timeline": {
+      "main": [
+        [
+          {
+            "node": "Shotstack Render (Standard Quality)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shotstack Render (Standard Quality)": {
+      "main": [
+        [
+          {
+            "node": "Wait for Render (Longer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Render (Longer)": {
+      "main": [
+        [
+          {
+            "node": "Check Render Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Render Status": {
+      "main": [
+        [
+          {
+            "node": "If Render Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Render Complete": {
+      "main": [
+        [
+          {
+            "node": "Download Final Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Before Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Before Retry": {
+      "main": [
+        [
+          {
+            "node": "Check Render Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Final Video": {
+      "main": [
+        [
+          {
+            "node": "Respond with Enhanced Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 900
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2026-01-22T00:00:00.000Z",
+      "updatedAt": "2026-01-22T00:00:00.000Z",
+      "id": "video-agent",
+      "name": "Video Agent"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-22T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

@@ -1,0 +1,2973 @@
+// Finance Bot v2.0 - Multi-tenant Telegram Finance Bot
+// Cloudflare Worker with D1 Database
+
+import { UserService } from './services/user.js';
+import { CategoryService } from './services/category.js';
+import { TransactionService } from './services/transaction.js';
+import { StatsService } from './services/stats.js';
+import { FamilyService } from './services/family.js';
+import { ExportService } from './services/export.js';
+import { BudgetService } from './services/budget.js';
+import { BankImportService } from './services/bank-import.js';
+import { NordigenService } from './services/nordigen.js';
+import { SaltEdgeService } from './services/saltedge.js';
+import { sendMessage, editMessage, answerCallback, sendDocument, downloadFile, inlineKeyboard, button, buttonRow } from './utils/telegram.js';
+import { parseMonth } from './utils/db.js';
+import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // Debug endpoint to test connect session creation
+    if (url.pathname === '/debug/session') {
+      try {
+        // First create a customer
+        const identifier = 'test_session_' + Date.now();
+        const customerResp = await fetch('https://www.saltedge.com/api/v6/customers', {
+          method: 'POST',
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID,
+            'Secret': env.SALTEDGE_SECRET,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ data: { identifier } })
+        });
+        const customerData = await customerResp.json();
+        const customerId = customerData?.data?.customer_id;
+
+        if (!customerId) {
+          return new Response(JSON.stringify({ error: 'Failed to create customer', data: customerData }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Now test connect session (v6 uses /connections/connect)
+        const sessionResp = await fetch('https://www.saltedge.com/api/v6/connections/connect', {
+          method: 'POST',
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID,
+            'Secret': env.SALTEDGE_SECRET,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data: {
+              customer_id: customerId,
+              consent: {
+                scopes: ['accounts', 'transactions']
+              },
+              attempt: {
+                return_to: 'https://finance-bot.vishna2003.workers.dev/callback'
+              },
+              provider_code: 'fakebank_simple_xf'
+            }
+          })
+        });
+
+        const sessionText = await sessionResp.text();
+        return new Response(JSON.stringify({
+          customerStatus: customerResp.status,
+          customerId,
+          sessionStatus: sessionResp.status,
+          sessionResponse: sessionText.substring(0, 1000)
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Debug endpoint to test customer creation
+    if (url.pathname === '/debug/customer') {
+      try {
+        const saltEdgeService = new SaltEdgeService(env.DB, env);
+        const identifier = 'test_customer_' + Date.now();
+
+        // Test create customer
+        const response = await fetch('https://www.saltedge.com/api/v6/customers', {
+          method: 'POST',
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID,
+            'Secret': env.SALTEDGE_SECRET,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ data: { identifier } })
+        });
+
+        const text = await response.text();
+        return new Response(JSON.stringify({
+          status: response.status,
+          identifier,
+          response: text.substring(0, 1000)
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Debug endpoint to test getPolishBanks
+    if (url.pathname === '/debug/banks') {
+      try {
+        const saltEdgeService = new SaltEdgeService(env.DB, env);
+        const startTime = Date.now();
+        const banks = await saltEdgeService.getPolishBanks();
+        const elapsed = Date.now() - startTime;
+
+        return new Response(JSON.stringify({
+          elapsed: `${elapsed}ms`,
+          count: banks?.length || 0,
+          banks: banks?.slice(0, 5).map(b => ({ code: b.code, id: b.id, name: b.name }))
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message, stack: e.stack }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Debug endpoint to test Salt Edge API
+    if (url.pathname === '/debug/saltedge') {
+      try {
+        const saltEdgeService = new SaltEdgeService(env.DB, env);
+        const startTime = Date.now();
+
+        // Test API call
+        const response = await fetch('https://www.saltedge.com/api/v6/providers?country_code=XF', {
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID || 'missing',
+            'Secret': env.SALTEDGE_SECRET || 'missing',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const elapsed = Date.now() - startTime;
+        const text = await response.text();
+
+        return new Response(JSON.stringify({
+          status: response.status,
+          elapsed: `${elapsed}ms`,
+          hasAppId: !!env.SALTEDGE_APP_ID,
+          hasSecret: !!env.SALTEDGE_SECRET,
+          sandbox: env.SALTEDGE_SANDBOX,
+          response: text.substring(0, 500)
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Salt Edge callback handler - called after user authorizes bank
+    if (url.pathname === '/callback') {
+      const userId = url.searchParams.get('user');
+      // Salt Edge may send connection_id directly or not - log all params
+      const allParams = Object.fromEntries(url.searchParams.entries());
+      console.log('Callback received, all params:', JSON.stringify(allParams));
+
+      let updated = false;
+      let errorMsg = '';
+
+      if (userId) {
+        try {
+          // Find the pending connection for this user
+          const pending = await env.DB.prepare(`
+            SELECT * FROM bank_connections
+            WHERE user_id = ? AND status = 'pending'
+            ORDER BY created_at DESC LIMIT 1
+          `).bind(userId).first();
+
+          console.log('Pending connection:', JSON.stringify(pending));
+
+          if (pending) {
+            // Try to get connection_id from URL params (Salt Edge may use different names)
+            let realConnectionId = url.searchParams.get('connection_id')
+              || url.searchParams.get('id')
+              || url.searchParams.get('connectionId');
+
+            // If no connection_id in URL, query Salt Edge API for customer's connections
+            if (!realConnectionId && pending.saltedge_customer_id) {
+              console.log('No connection_id in URL, querying Salt Edge API...');
+              try {
+                const resp = await fetch(`https://www.saltedge.com/api/v6/connections?customer_id=${pending.saltedge_customer_id}`, {
+                  headers: {
+                    'App-id': env.SALTEDGE_APP_ID,
+                    'Secret': env.SALTEDGE_SECRET,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                const connectionsData = await resp.json();
+                console.log('Salt Edge connections:', JSON.stringify(connectionsData).substring(0, 500));
+
+                const connections = connectionsData?.data || [];
+                if (connections.length > 0) {
+                  // Use the most recent connection
+                  const latest = connections[connections.length - 1];
+                  realConnectionId = latest.id || latest.connection_id;
+                  console.log('Found connection via API:', realConnectionId);
+                }
+              } catch (apiErr) {
+                console.error('Salt Edge API query failed:', apiErr.message);
+              }
+            }
+
+            if (realConnectionId) {
+              await env.DB.prepare(`
+                UPDATE bank_connections
+                SET requisition_id = ?, status = 'linked', updated_at = datetime('now')
+                WHERE id = ?
+              `).bind(String(realConnectionId), pending.id).run();
+              console.log(`Connection ${pending.id} linked with requisition_id=${realConnectionId}`);
+              updated = true;
+            } else {
+              // Fallback: mark as linked anyway with existing requisition_id
+              // The sync will use this to query Salt Edge
+              console.log('No connection_id found, marking linked with existing requisition_id');
+              await env.DB.prepare(`
+                UPDATE bank_connections
+                SET status = 'linked', updated_at = datetime('now')
+                WHERE id = ?
+              `).bind(pending.id).run();
+              updated = true;
+            }
+          } else {
+            errorMsg = 'No pending connection found for this user';
+            console.log(errorMsg);
+          }
+        } catch (e) {
+          errorMsg = e.message;
+          console.error('Callback DB error:', e);
+        }
+      } else {
+        errorMsg = 'No user ID in callback URL';
+      }
+
+      const statusHtml = updated
+        ? '<h1>&#10003; Банк подключён!</h1><p>Вернись в Telegram и напиши <b>/bank sync</b></p>'
+        : `<h1>&#9888; Ошибка</h1><p>${errorMsg || 'Не удалось обновить подключение'}</p><p>Попробуй /bank connect снова</p>`;
+
+      return new Response(`
+        <html>
+        <head><meta charset="utf-8"><title>Bank Callback</title></head>
+        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+          ${statusHtml}
+          <p><a href="https://t.me/">Открыть Telegram</a></p>
+          <p style="color:#888; font-size:12px;">Params: ${JSON.stringify(allParams)}</p>
+        </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    }
+
+    if (request.method === 'GET') {
+      return new Response('Finance Bot v2.0 is running!');
+    }
+
+    if (request.method === 'POST') {
+      try {
+        const data = await request.json();
+        console.log('Received update:', JSON.stringify(data).substring(0, 200));
+        console.log('TELEGRAM_TOKEN exists:', !!env.TELEGRAM_TOKEN);
+        console.log('DB exists:', !!env.DB);
+
+        // Deduplication via KV
+        const updateId = `upd_${data.update_id}`;
+        const cached = await env.FINANCE_KV.get(updateId);
+        if (cached) {
+          console.log('Duplicate update, skipping');
+          return new Response('OK');
+        }
+        await env.FINANCE_KV.put(updateId, 'true', { expirationTtl: 300 });
+
+        // Initialize services
+        const userService = new UserService(env.DB);
+        const categoryService = new CategoryService(env.DB);
+        const transactionService = new TransactionService(env.DB);
+        const statsService = new StatsService(transactionService);
+        const familyService = new FamilyService(env.DB);
+        const exportService = new ExportService(transactionService);
+        const budgetService = new BudgetService(env.DB, transactionService);
+        const bankImportService = new BankImportService(env.DB, categoryService, transactionService);
+        const nordigenService = new NordigenService(env.DB, env);
+        const saltEdgeService = new SaltEdgeService(env.DB, env);
+
+        // Use Salt Edge if configured, otherwise fall back to Nordigen
+        const openBankingService = env.SALTEDGE_APP_ID ? saltEdgeService : nordigenService;
+        const openBankingProvider = env.SALTEDGE_APP_ID ? 'saltedge' : 'nordigen';
+
+        const services = { userService, categoryService, transactionService, statsService, familyService, exportService, budgetService, bankImportService, nordigenService, saltEdgeService, openBankingService, openBankingProvider };
+
+        if (data.message) {
+          console.log('Processing message...');
+          await handleMessage(data.message, env, services);
+          console.log('Message processed');
+        } else if (data.callback_query) {
+          console.log('Processing callback...');
+          await handleCallback(data.callback_query, env, services);
+          console.log('Callback processed');
+        }
+      } catch (error) {
+        console.error('ERROR:', error.message);
+        console.error('STACK:', error.stack);
+      }
+
+      return new Response('OK');
+    }
+
+    return new Response('Method not allowed', { status: 405 });
+  },
+
+  // Scheduled handler for cron triggers
+  async scheduled(event, env, ctx) {
+    console.log('Cron triggered:', event.cron);
+
+    const userService = new UserService(env.DB);
+    const transactionService = new TransactionService(env.DB);
+    const statsService = new StatsService(transactionService);
+    const categoryService = new CategoryService(env.DB);
+    const nordigenService = new NordigenService(env.DB, env);
+    const saltEdgeService = new SaltEdgeService(env.DB, env);
+
+    // Use Salt Edge if configured, otherwise Nordigen
+    const openBankingService = env.SALTEDGE_APP_ID ? saltEdgeService : nordigenService;
+    const openBankingProvider = env.SALTEDGE_APP_ID ? 'saltedge' : 'nordigen';
+
+    // Daily reminder at 21:00 (20:00 UTC)
+    if (event.cron === '0 20 * * *') {
+      await sendDailyReminders(env, userService);
+    }
+
+    // Monthly report on 1st at 10:00 (09:00 UTC)
+    if (event.cron === '0 9 1 * *') {
+      await sendMonthlyReports(env, userService, statsService);
+    }
+
+    // Bank sync every 6 hours (at 00:00, 06:00, 12:00, 18:00 UTC)
+    if (event.cron === '0 */6 * * *') {
+      await syncAllBankConnections(env, openBankingService, categoryService, openBankingProvider);
+    }
+  }
+};
+
+// ============================================
+// MESSAGE HANDLER
+// ============================================
+
+async function handleMessage(message, env, services) {
+  const chatId = message.chat.id;
+  const telegramId = message.from.id.toString();
+  const text = message.text || '';
+  const textLower = text.toLowerCase().trim();
+
+  const { userService, categoryService, transactionService, statsService } = services;
+
+  // Get or create user
+  const displayName = message.from.first_name || message.from.username || 'User';
+  const username = message.from.username || null;
+  const user = await userService.findOrCreate(telegramId, displayName, username);
+
+  // Get active family (if any)
+  const familyId = await userService.getActiveFamily(telegramId);
+
+  // Command routing
+  if (textLower === '/start') {
+    await handleStart(chatId, user, env, services);
+    return;
+  }
+
+  if (textLower === '/language') {
+    const languages = getLanguages();
+    const buttons = languages.map(l => [button(`${l.flag} ${l.name}`, `lang_${l.code}`)]);
+    await sendMessage(chatId, '🌍 <b>Select language / Выбери язык:</b>', env, { reply_markup: inlineKeyboard(buttons) });
+    return;
+  }
+
+  if (textLower === '/help') {
+    await handleHelp(chatId, env);
+    return;
+  }
+
+  if (textLower === '/menu') {
+    await handleMenu(chatId, user, env);
+    return;
+  }
+
+  if (textLower.startsWith('/income')) {
+    await handleIncome(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/stats')) {
+    await handleStats(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower === '/balance') {
+    await handleBalance(chatId, user, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/history')) {
+    await handleHistory(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower === '/undo') {
+    await handleUndo(chatId, user, env, services);
+    return;
+  }
+
+  if (textLower === '/categories') {
+    await handleCategoryCommand(chatId, user, '/cat', env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/family')) {
+    await handleFamily(chatId, user, text, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/export')) {
+    await handleExport(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower === '/trend') {
+    await handleTrend(chatId, user, familyId, env, services);
+    return;
+  }
+
+  if (textLower === '/notifications' || textLower === '/settings') {
+    await handleNotifications(chatId, user, env, services);
+    return;
+  }
+
+  if (textLower === '/currency') {
+    await handleCurrency(chatId, user, env, services);
+    return;
+  }
+
+  if (textLower === '/budgets') {
+    await handleBudgets(chatId, user, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/budget')) {
+    await handleBudget(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/import')) {
+    await handleImportCommand(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/bank')) {
+    await handleBankCommand(chatId, user, text, familyId, env, services);
+    return;
+  }
+
+  if (textLower.startsWith('/cat')) {
+    await handleCategoryCommand(chatId, user, text, env, services);
+    return;
+  }
+
+  // Handle document (CSV file)
+  if (message.document) {
+    await handleDocument(chatId, user, message.document, familyId, env, services);
+    return;
+  }
+
+  // Check for pending category rename
+  if (text && !text.startsWith('/')) {
+    const renameData = await env.FINANCE_KV.get(`rename_${user.id}`);
+    if (renameData) {
+      const { categoryId } = JSON.parse(renameData);
+      const { categoryService } = services;
+      const newName = text.trim();
+
+      if (newName.length < 2) {
+        await sendMessage(chatId, `❌ Название должно быть минимум 2 символа`, env);
+        return;
+      }
+
+      const result = await categoryService.renameCategory(categoryId, user.id, newName);
+      await env.FINANCE_KV.delete(`rename_${user.id}`);
+
+      if (result.success) {
+        await sendMessage(chatId, `✅ Категория переименована: ${result.emoji} <b>${newName}</b>`, env);
+      } else {
+        await sendMessage(chatId, `❌ ${result.error}`, env);
+      }
+      return;
+    }
+  }
+
+  // Handle /cancel for rename
+  if (textLower === '/cancel') {
+    await env.FINANCE_KV.delete(`rename_${user.id}`);
+    await sendMessage(chatId, `👌 Отменено`, env);
+    return;
+  }
+
+  // Default: try to parse as expense
+  await handleExpense(chatId, user, text, familyId, env, services);
+}
+
+// ============================================
+// COMMAND HANDLERS
+// ============================================
+
+async function handleStart(chatId, user, env, services) {
+  // Check if user already has language set (not first time)
+  if (user.language && user.language !== 'ru') {
+    // Return welcome in user's language
+    await showWelcome(chatId, user, env);
+    return;
+  }
+
+  // First time or Russian default - show language selection
+  const languages = getLanguages();
+  const buttons = languages.map(l => [button(`${l.flag} ${l.name}`, `lang_${l.code}`)]);
+
+  const message = `🌍 <b>Select language / Выбери язык:</b>`;
+  await sendMessage(chatId, message, env, { reply_markup: inlineKeyboard(buttons) });
+}
+
+async function showWelcome(chatId, user, env) {
+  const t = getTranslations(user.language || 'ru');
+
+  const message = `👋 ${t.welcome}, <b>${user.display_name}</b>!
+
+${t.welcomeText}
+
+<b>${t.howToAddExpense}</b>
+<code>${t.expenseFormat}</code>
+${t.errorExample} <code>${t.expenseExample}</code>
+
+<b>${t.commands}</b>
+/stats - ${t.statsTitle}
+/balance - ${t.balanceTitle}
+/income 3400 - ${t.recordedIncome}
+/history - ${t.lastTransactions} ${t.transactionsWord}
+/language - 🌍
+/help - ${t.helpTitle}
+
+💡 ${t.selectCategory}!`;
+
+  await sendMessage(chatId, message, env);
+}
+
+async function handleHelp(chatId, env) {
+  const message = `📚 <b>Команды бота:</b>
+
+<b>Расходы:</b>
+• <code>50 продукты</code> - добавить расход
+• <code>150</code> - добавить с выбором категории
+
+<b>Доходы:</b>
+• <code>/income 3400 зарплата</code>
+
+<b>Статистика:</b>
+• /stats - за текущий месяц
+• /stats январь - за конкретный месяц
+• /balance - баланс месяца
+• /trend - тренд за 6 месяцев
+• /history - последние 10 транзакций
+
+<b>Управление:</b>
+• /menu - главное меню с кнопками
+• /undo - отменить последнюю запись
+• /cat - категории (добавить/удалить/переименовать)
+• /export - скачать Excel файл
+• /import - импорт из банка (CSV)
+• /bank - подключить банк (Open Banking)
+• /bank last - последние банковские транзакции
+• /notifications - настройки уведомлений
+• /currency - сменить валюту
+• /budget продукты 2000 - установить бюджет
+• /budgets - показать бюджеты
+
+<b>Семейный аккаунт:</b>
+• /family - меню семьи
+• /family create Имя - создать
+• /family invite - пригласить
+• /family join КОД - присоединиться
+• /family switch - переключить аккаунт
+
+<b>Категории расходов:</b>
+🛒 продукты, 🍽 заведения, 🚕 транспорт
+🏠 квартира, 📺 регулярные, 👕 шоппинг
+💅 красота, 🏋️ спорт, ✈️ путешествия
+🏡 дом, 📈 trading, 📦 другое`;
+
+  await sendMessage(chatId, message, env);
+}
+
+async function handleMenu(chatId, user, env) {
+  const keyboard = inlineKeyboard([
+    buttonRow(
+      button('📊 Статистика', 'menu:stats'),
+      button('💰 Баланс', 'menu:balance')
+    ),
+    buttonRow(
+      button('📋 История', 'menu:history'),
+      button('📈 Тренд', 'menu:trend')
+    ),
+    buttonRow(
+      button('📂 Категории', 'menu:categories'),
+      button('📁 Экспорт', 'menu:export')
+    ),
+    buttonRow(
+      button('🏦 Банк', 'menu:bank'),
+      button('📥 Импорт CSV', 'menu:import')
+    ),
+    buttonRow(
+      button('💵 Валюта', 'menu:currency'),
+      button('🔔 Уведомления', 'menu:notifications')
+    ),
+    buttonRow(
+      button('👨‍👩‍👧 Семья', 'menu:family'),
+      button('📖 Помощь', 'menu:help')
+    )
+  ]);
+
+  await sendMessage(chatId,
+    `📱 <b>Главное меню</b>\n\nВыбери действие:`,
+    env,
+    { reply_markup: keyboard }
+  );
+}
+
+async function handleExpense(chatId, user, text, familyId, env, services) {
+  const { categoryService, transactionService, statsService, budgetService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const currency = user.currency || 'PLN';
+
+  // Parse: amount [category] [description]
+  const match = text.match(/^(\d+(?:[.,]\d+)?)\s*(\S+)?\s*(.*)$/);
+
+  if (!match) {
+    await sendMessage(chatId, `❌ ${t.errorFormat} <code>${t.expenseFormat}</code>\n${t.errorExample} <code>${t.expenseExample}</code>`, env);
+    return;
+  }
+
+  const amount = parseFloat(match[1].replace(',', '.'));
+  const categoryInput = match[2] || '';
+  const description = match[3] || '';
+
+  // Try to detect category
+  const category = await categoryService.detectCategory(categoryInput, 'expense', user.id);
+
+  if (!category) {
+    // Show category selection keyboard
+    const keyboard = await categoryService.buildCategoryKeyboard(amount, description || categoryInput, 'expense', user.id);
+    await sendMessage(
+      chatId,
+      `💰 ${t.amount}: <b>${amount.toFixed(2)} ${currency}</b>\n📂 ${t.selectCategory}:`,
+      env,
+      { reply_markup: keyboard }
+    );
+    return;
+  }
+
+  // Save expense
+  await transactionService.createExpense(user.id, category.id, amount, description || categoryInput, familyId);
+  const monthTotal = await transactionService.getCategoryTotal(user.id, category.id, new Date(), familyId);
+
+  let message = statsService.generateExpenseConfirmation(amount, category, monthTotal, description, user.language, currency);
+
+  // Check budget warning
+  const budgetWarning = await budgetService.checkBudgetWarning(user.id, category.id, familyId);
+  if (budgetWarning) {
+    if (budgetWarning.type === 'over') {
+      message += `\n\n🔴 <b>${t.budgetExceeded}!</b>\n`;
+      message += `${category.emoji} ${category.name}: ${budgetWarning.spent.toFixed(0)}/${budgetWarning.budget.toFixed(0)} ${currency}`;
+      message += `\n⚠️ ${t.overBudgetBy}: ${Math.abs(budgetWarning.remaining).toFixed(0)} ${currency}`;
+    } else if (budgetWarning.type === 'warning') {
+      message += `\n\n🟡 <b>${t.budgetWarning}!</b>\n`;
+      message += `${category.emoji} ${category.name}: ${budgetWarning.spent.toFixed(0)}/${budgetWarning.budget.toFixed(0)} ${currency} (${budgetWarning.percentUsed.toFixed(0)}%)`;
+    }
+  }
+
+  const keyboard = inlineKeyboard([
+    buttonRow(
+      button(t.btnCancel, `undo:${user.id}`),
+      button(t.btnStats, 'stats')
+    )
+  ]);
+
+  await sendMessage(chatId, message, env, { reply_markup: keyboard });
+}
+
+async function handleIncome(chatId, user, text, familyId, env, services) {
+  const { categoryService, transactionService, statsService } = services;
+  const t = getTranslations(user.language || 'ru');
+
+  const match = text.match(/\/income\s+(\d+(?:[.,]\d+)?)\s*(.*)/i);
+
+  if (!match) {
+    await sendMessage(chatId, `❌ ${t.errorFormat} <code>/income ${t.amount} ${t.description}</code>\n${t.errorExample} <code>/income 3400 salary</code>`, env);
+    return;
+  }
+
+  const amount = parseFloat(match[1].replace(',', '.'));
+  const description = match[2] || t.income;
+
+  // Find or use default income category
+  let category = await categoryService.detectCategory(description, 'income');
+  if (!category) {
+    const incomeCategories = await categoryService.getIncomeCategories();
+    category = incomeCategories.find(c => c.name === 'Другое') || incomeCategories[0];
+  }
+
+  await transactionService.createIncome(user.id, category.id, amount, description, familyId);
+  const monthTotal = await transactionService.getMonthTotal(user.id, 'income', new Date(), familyId);
+
+  const message = statsService.generateIncomeConfirmation(amount, monthTotal, description, user.language, user.currency);
+  await sendMessage(chatId, message, env);
+}
+
+async function handleStats(chatId, user, text, familyId, env, services) {
+  const { statsService } = services;
+  const t = getTranslations(user.language || 'ru');
+
+  // Parse month from command
+  let date = new Date();
+  const monthMatch = text.match(/\/stats\s+(\S+)/i);
+  if (monthMatch) {
+    const parsedDate = parseMonth(monthMatch[1]);
+    if (parsedDate) {
+      date = parsedDate;
+    }
+  }
+
+  const message = await statsService.generateMonthlyStats(user.id, date, familyId, null, user.language, user.currency);
+
+  const keyboard = inlineKeyboard([
+    buttonRow(
+      button(t.btnTrend, 'trend'),
+      button(t.btnExport, 'export')
+    )
+  ]);
+
+  await sendMessage(chatId, message, env, { reply_markup: keyboard });
+}
+
+async function handleTrend(chatId, user, familyId, env, services) {
+  const { statsService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const message = await statsService.generateTrendReport(user.id, familyId, user.language, user.currency);
+
+  const keyboard = inlineKeyboard([
+    buttonRow(
+      button(t.btnStats, 'stats'),
+      button(t.btnExport, 'export')
+    )
+  ]);
+
+  await sendMessage(chatId, message, env, { reply_markup: keyboard });
+}
+
+async function handleBalance(chatId, user, familyId, env, services) {
+  const { statsService } = services;
+  const message = await statsService.generateBalance(user.id, new Date(), familyId, user.language, user.currency);
+  await sendMessage(chatId, message, env);
+}
+
+async function handleHistory(chatId, user, text, familyId, env, services) {
+  const { statsService } = services;
+
+  let limit = 10;
+  const limitMatch = text.match(/\/history\s+(\d+)/i);
+  if (limitMatch) {
+    limit = Math.min(parseInt(limitMatch[1]), 50);
+  }
+
+  const message = await statsService.generateHistory(user.id, limit, familyId, user.language, user.currency);
+  await sendMessage(chatId, message, env);
+}
+
+async function handleUndo(chatId, user, env, services) {
+  const { transactionService } = services;
+  const currency = user.currency || 'PLN';
+
+  const lastTransaction = await transactionService.getLastTransaction(user.id);
+
+  if (!lastTransaction) {
+    await sendMessage(chatId, '📭 Нет транзакций для отмены', env);
+    return;
+  }
+
+  await transactionService.delete(lastTransaction.id, user.id);
+
+  const typeEmoji = lastTransaction.type === 'expense' ? '📉' : '📈';
+  const catEmoji = lastTransaction.category_emoji || '❓';
+  const catName = lastTransaction.category_name || 'Без категории';
+  let msg = `✅ Отменено: ${typeEmoji} ${lastTransaction.amount.toFixed(2)} ${currency} → ${catEmoji} ${catName}`;
+  if (lastTransaction.description) {
+    msg += `\n📝 <i>${lastTransaction.description}</i>`;
+  }
+  if (lastTransaction.source && lastTransaction.source !== 'manual') {
+    const srcLabel = lastTransaction.source === 'saltedge' ? 'Open Banking' : 'CSV';
+    msg += `\n🏦 Источник: ${srcLabel}`;
+  }
+  await sendMessage(chatId, msg, env);
+}
+
+async function handleCategories(chatId, env, services) {
+  const { categoryService } = services;
+
+  const expenseCategories = await categoryService.getExpenseCategories();
+  const incomeCategories = await categoryService.getIncomeCategories();
+
+  let message = '📂 <b>Категории расходов:</b>\n';
+  for (const cat of expenseCategories) {
+    const keywords = cat.keywords ? JSON.parse(cat.keywords).slice(0, 3).join(', ') : '';
+    message += `${cat.emoji} ${cat.name} <i>(${keywords})</i>\n`;
+  }
+
+  message += '\n💰 <b>Категории доходов:</b>\n';
+  for (const cat of incomeCategories) {
+    message += `${cat.emoji} ${cat.name}\n`;
+  }
+
+  await sendMessage(chatId, message, env);
+}
+
+// ============================================
+// EXPORT HANDLER
+// ============================================
+
+async function handleExport(chatId, user, text, familyId, env, services) {
+  const { exportService, familyService } = services;
+  const t = getTranslations(user.language || 'ru');
+
+  // Parse month from command
+  let date = new Date();
+  const monthMatch = text.match(/\/export\s+(\S+)/i);
+  if (monthMatch && monthMatch[1].toLowerCase() !== 'all') {
+    const parsedDate = parseMonth(monthMatch[1]);
+    if (parsedDate) {
+      date = parsedDate;
+    }
+  }
+
+  // Get family name if active
+  let familyName = null;
+  if (familyId) {
+    const family = await familyService.findById(familyId);
+    familyName = family?.name;
+  }
+
+  // Get export info
+  const info = await exportService.getExportInfo(user.id, date, familyId, user.language);
+
+  if (info.count === 0) {
+    await sendMessage(chatId, `📭 ${t.noData} ${info.month} ${info.year}`, env);
+    return;
+  }
+
+  await sendMessage(chatId, `⏳ ${t.generating}`, env);
+
+  try {
+    // Generate Excel XML
+    const excelContent = await exportService.generateExcelXML(user.id, date, familyId, familyName, user.language);
+
+    // Convert to buffer
+    const encoder = new TextEncoder();
+    const buffer = encoder.encode(excelContent);
+
+    // Generate filename
+    const monthLower = info.month.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const filename = `finance_${monthLower}_${info.year}.xls`;
+
+    // Build caption
+    let caption = `📊 <b>${t.exportTitle} ${info.month} ${info.year}</b>\n\n`;
+    if (familyName) {
+      caption += `👨‍👩‍👧 ${familyName}\n`;
+    }
+    caption += `📝 ${info.count} ${t.transactionsWord}\n`;
+    caption += `📉 ${t.expenses}: ${info.expenses.toFixed(2)} PLN\n`;
+    caption += `📈 ${t.income}: ${info.income.toFixed(2)} PLN`;
+
+    // Send document
+    await sendDocument(chatId, buffer, filename, caption, env);
+
+  } catch (error) {
+    console.error('Export error:', error);
+    await sendMessage(chatId, `❌ ${t.exportError}`, env);
+  }
+}
+
+// ============================================
+// FAMILY HANDLER
+// ============================================
+
+async function handleFamily(chatId, user, text, env, services) {
+  const { familyService, userService } = services;
+  const textLower = text.toLowerCase().trim();
+
+  // /family - show menu
+  if (textLower === '/family') {
+    const families = await familyService.getUserFamilies(user.id);
+    const activeFamily = await userService.getActiveFamily(user.telegram_id);
+
+    let message = '👨‍👩‍👧 <b>Семейный аккаунт</b>\n\n';
+
+    if (families.length === 0) {
+      message += 'У тебя нет семейных аккаунтов.\n\n';
+      message += 'Создай семью, чтобы вести общий бюджет с партнёром:\n';
+      message += '<code>/family create Название</code>';
+    } else {
+      message += '<b>Твои семьи:</b>\n';
+      for (const f of families) {
+        const isActive = f.id === activeFamily;
+        const memberCount = await familyService.getMemberCount(f.id);
+        message += `${isActive ? '✅' : '👥'} ${f.name} (${memberCount} чел.)${isActive ? ' - активна' : ''}\n`;
+      }
+      message += '\n<b>Команды:</b>\n';
+      message += '/family create Название - создать\n';
+      message += '/family invite - пригласить\n';
+      message += '/family join КОД - присоединиться\n';
+      message += '/family switch - переключить\n';
+      message += '/family members - участники';
+    }
+
+    const keyboard = families.length === 0
+      ? inlineKeyboard([buttonRow(button('➕ Создать семью', 'family_create_prompt'))])
+      : inlineKeyboard([
+          buttonRow(button('📨 Пригласить', 'family_invite'), button('🔀 Переключить', 'family_switch'))
+        ]);
+
+    await sendMessage(chatId, message, env, { reply_markup: keyboard });
+    return;
+  }
+
+  // /family create <name>
+  const createMatch = text.match(/\/family\s+create\s+(.+)/i);
+  if (createMatch) {
+    const name = createMatch[1].trim();
+    if (name.length < 2 || name.length > 30) {
+      await sendMessage(chatId, '❌ Название должно быть от 2 до 30 символов', env);
+      return;
+    }
+
+    const family = await familyService.create(name, user.id);
+    await userService.setActiveFamily(user.telegram_id, family.id);
+
+    await sendMessage(
+      chatId,
+      `✅ Семья "<b>${name}</b>" создана!\n\nТы - владелец. Теперь можешь пригласить партнёра командой /family invite`,
+      env,
+      { reply_markup: inlineKeyboard([buttonRow(button('📨 Пригласить', 'family_invite'))]) }
+    );
+    return;
+  }
+
+  // /family invite
+  if (textLower === '/family invite') {
+    const activeFamily = await userService.getActiveFamily(user.telegram_id);
+    if (!activeFamily) {
+      await sendMessage(chatId, '❌ Сначала создай или выбери семью: /family', env);
+      return;
+    }
+
+    const family = await familyService.findById(activeFamily);
+    const code = await familyService.generateInvite(activeFamily);
+
+    await sendMessage(
+      chatId,
+      `🔑 <b>Код приглашения:</b> <code>${code}</code>\n\n` +
+      `Семья: ${family.name}\n` +
+      `⏰ Код действует 24 часа\n\n` +
+      `Отправь этот код партнёру. Он должен написать:\n` +
+      `<code>/family join ${code}</code>`,
+      env
+    );
+    return;
+  }
+
+  // /family join <code>
+  const joinMatch = text.match(/\/family\s+join\s+(\S+)/i);
+  if (joinMatch) {
+    const code = joinMatch[1].toUpperCase();
+    const result = await familyService.joinByCode(code, user.id);
+
+    if (!result.success) {
+      await sendMessage(chatId, `❌ ${result.error}`, env);
+      return;
+    }
+
+    await userService.setActiveFamily(user.telegram_id, result.family.id);
+
+    // Notify owner
+    const members = await familyService.getMembers(result.family.id);
+    const owner = members.find(m => m.role === 'owner');
+
+    await sendMessage(
+      chatId,
+      `✅ Ты присоединился к семье "<b>${result.family.name}</b>"!\n\n` +
+      `👤 Владелец: ${owner?.display_name || 'Unknown'}\n` +
+      `👥 Участников: ${members.length}\n\n` +
+      `Теперь все траты идут в общий бюджет.`,
+      env
+    );
+    return;
+  }
+
+  // /family switch
+  if (textLower === '/family switch') {
+    const families = await familyService.getUserFamilies(user.id);
+    const activeFamily = await userService.getActiveFamily(user.telegram_id);
+
+    if (families.length === 0) {
+      await sendMessage(chatId, '❌ У тебя нет семейных аккаунтов. Создай: /family create Название', env);
+      return;
+    }
+
+    const buttons = [
+      [button(`👤 Личный аккаунт${!activeFamily ? ' ✓' : ''}`, 'family_switch_personal')]
+    ];
+
+    for (const f of families) {
+      const isActive = f.id === activeFamily;
+      buttons.push([button(`👨‍👩‍👧 ${f.name}${isActive ? ' ✓' : ''}`, `family_switch_${f.id}`)]);
+    }
+
+    await sendMessage(
+      chatId,
+      '🔀 <b>Выбери активный аккаунт:</b>\n\nВсе новые траты будут записываться в выбранный аккаунт.',
+      env,
+      { reply_markup: inlineKeyboard(buttons) }
+    );
+    return;
+  }
+
+  // /family members
+  if (textLower === '/family members') {
+    const activeFamily = await userService.getActiveFamily(user.telegram_id);
+    if (!activeFamily) {
+      await sendMessage(chatId, '❌ Сначала выбери семью: /family switch', env);
+      return;
+    }
+
+    const family = await familyService.findById(activeFamily);
+    const members = await familyService.getMembers(activeFamily);
+
+    let message = `👥 <b>Участники семьи "${family.name}":</b>\n\n`;
+    for (const m of members) {
+      const roleEmoji = m.role === 'owner' ? '👑' : '👤';
+      message += `${roleEmoji} ${m.display_name} (${m.role})\n`;
+    }
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // /family leave
+  if (textLower === '/family leave') {
+    const activeFamily = await userService.getActiveFamily(user.telegram_id);
+    if (!activeFamily) {
+      await sendMessage(chatId, '❌ Ты не в семье', env);
+      return;
+    }
+
+    const result = await familyService.leave(activeFamily, user.id);
+    if (!result.success) {
+      await sendMessage(chatId, `❌ ${result.error}`, env);
+      return;
+    }
+
+    await userService.setActiveFamily(user.telegram_id, null);
+    await sendMessage(chatId, '✅ Ты покинул семью', env);
+    return;
+  }
+
+  // Unknown family command
+  await sendMessage(chatId, '❌ Неизвестная команда. Напиши /family для списка команд.', env);
+}
+
+// ============================================
+// CALLBACK HANDLER
+// ============================================
+
+async function handleCallback(callback, env, services) {
+  const chatId = callback.message.chat.id;
+  const messageId = callback.message.message_id;
+  const telegramId = callback.from.id.toString();
+  const data = callback.data;
+
+  const { userService, categoryService, transactionService, statsService, familyService, exportService } = services;
+
+  const user = await userService.findByTelegramId(telegramId);
+  if (!user) {
+    await answerCallback(callback.id, env, 'Ошибка: пользователь не найден');
+    return;
+  }
+
+  const familyId = await userService.getActiveFamily(telegramId);
+
+  // Handle category selection: cat:amount:categoryId:description
+  if (data.startsWith('cat:')) {
+    const parts = data.split(':');
+    const amount = parseFloat(parts[1]);
+    const categoryId = parseInt(parts[2]);
+    const description = parts[3] || '';
+
+    const category = await categoryService.findById(categoryId);
+    if (!category) {
+      await answerCallback(callback.id, env, 'Категория не найдена');
+      return;
+    }
+
+    await transactionService.createExpense(user.id, categoryId, amount, description, familyId);
+    const monthTotal = await transactionService.getCategoryTotal(user.id, categoryId, new Date(), familyId);
+
+    const message = statsService.generateExpenseConfirmation(amount, category, monthTotal, description, user.language, user.currency);
+    await editMessage(chatId, messageId, message, env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle undo
+  if (data.startsWith('undo:')) {
+    const lastTransaction = await transactionService.getLastTransaction(user.id);
+    if (lastTransaction) {
+      const currency = user.currency || 'PLN';
+      await transactionService.delete(lastTransaction.id, user.id);
+      const catEmoji = lastTransaction.category_emoji || '❓';
+      const catName = lastTransaction.category_name || 'Без категории';
+      let msg = `✅ Отменено: ${lastTransaction.amount.toFixed(2)} ${currency} → ${catEmoji} ${catName}`;
+      if (lastTransaction.description) {
+        msg += `\n📝 <i>${lastTransaction.description}</i>`;
+      }
+      await editMessage(chatId, messageId, msg, env);
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle stats button
+  if (data === 'stats') {
+    const t = getTranslations(user.language || 'ru');
+    const message = await statsService.generateMonthlyStats(user.id, new Date(), familyId, null, user.language, user.currency);
+    const keyboard = inlineKeyboard([
+      buttonRow(
+        button(t.btnTrend, 'trend'),
+        button(t.btnExport, 'export')
+      )
+    ]);
+    await sendMessage(chatId, message, env, { reply_markup: keyboard });
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle trend button
+  if (data === 'trend') {
+    const t = getTranslations(user.language || 'ru');
+    const message = await statsService.generateTrendReport(user.id, familyId, user.language, user.currency);
+    const keyboard = inlineKeyboard([
+      buttonRow(
+        button(t.btnStats, 'stats'),
+        button(t.btnExport, 'export')
+      )
+    ]);
+    await sendMessage(chatId, message, env, { reply_markup: keyboard });
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle language selection
+  if (data.startsWith('lang_')) {
+    const lang = data.replace('lang_', '');
+    await userService.updateLanguage(user.id, lang);
+    const t = getTranslations(lang);
+    await editMessage(chatId, messageId, `✅ ${t.languageSet}`, env);
+
+    // Show welcome after language selection
+    const updatedUser = { ...user, language: lang };
+    await showWelcome(chatId, updatedUser, env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle family switch to personal
+  if (data === 'family_switch_personal') {
+    await userService.setActiveFamily(telegramId, null);
+    await editMessage(chatId, messageId, '✅ Переключился на <b>личный аккаунт</b>\n\nТеперь траты записываются только для тебя.', env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle family switch to specific family
+  if (data.startsWith('family_switch_')) {
+    const switchFamilyId = parseInt(data.replace('family_switch_', ''));
+    const family = await familyService.findById(switchFamilyId);
+    if (family) {
+      await userService.setActiveFamily(telegramId, switchFamilyId);
+      await editMessage(chatId, messageId, `✅ Переключился на семью "<b>${family.name}</b>"\n\nТеперь траты записываются в общий бюджет.`, env);
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle export button
+  if (data === 'export') {
+    const t = getTranslations(user.language || 'ru');
+    await sendMessage(chatId, `⏳ ${t.generating}`, env);
+    const info = await exportService.getExportInfo(user.id, new Date(), familyId, user.language);
+
+    if (info.count === 0) {
+      await sendMessage(chatId, `📭 ${t.noData} ${info.month} ${info.year}`, env);
+      await answerCallback(callback.id, env);
+      return;
+    }
+
+    try {
+      let familyName = null;
+      if (familyId) {
+        const family = await familyService.findById(familyId);
+        familyName = family?.name;
+      }
+
+      const excelContent = await exportService.generateExcelXML(user.id, new Date(), familyId, familyName, user.language);
+      const encoder = new TextEncoder();
+      const buffer = encoder.encode(excelContent);
+
+      const monthLower = info.month.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const filename = `finance_${monthLower}_${info.year}.xls`;
+
+      let caption = `📊 <b>${t.exportTitle} ${info.month} ${info.year}</b>\n`;
+      if (familyName) caption += `👨‍👩‍👧 ${familyName}\n`;
+      caption += `📝 ${info.count} ${t.transactionsWord}`;
+
+      await sendDocument(chatId, buffer, filename, caption, env);
+    } catch (error) {
+      console.error('Export error:', error);
+      await sendMessage(chatId, `❌ ${t.exportError}`, env);
+    }
+
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle family invite button
+  if (data === 'family_invite') {
+    const activeFamily = await userService.getActiveFamily(telegramId);
+    if (!activeFamily) {
+      await answerCallback(callback.id, env, 'Сначала выбери семью');
+      return;
+    }
+    const family = await familyService.findById(activeFamily);
+    const code = await familyService.generateInvite(activeFamily);
+    await sendMessage(
+      chatId,
+      `🔑 <b>Код приглашения:</b> <code>${code}</code>\n\n` +
+      `Семья: ${family.name}\n⏰ Действует 24 часа\n\n` +
+      `Партнёр должен написать:\n<code>/family join ${code}</code>`,
+      env
+    );
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle currency selection
+  if (data.startsWith('currency_')) {
+    const newCurrency = data.replace('currency_', '');
+    await userService.updateCurrency(user.id, newCurrency);
+    const t = getTranslations(user.language || 'ru');
+    await editMessage(chatId, messageId, `✅ ${t.currencyChanged}: <b>${newCurrency}</b>`, env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle notification toggles
+  if (data === 'notif_daily_toggle') {
+    const newValue = user.daily_reminder ? 0 : 1;
+    await userService.updateNotificationSetting(user.id, 'daily_reminder', newValue);
+    const t = getTranslations(user.language || 'ru');
+    const updatedUser = { ...user, daily_reminder: newValue };
+    const message = generateNotificationSettings(updatedUser, t);
+    await editMessage(chatId, messageId, message, env, { reply_markup: buildNotificationKeyboard(updatedUser, t) });
+    await answerCallback(callback.id, env, newValue ? t.reminderEnabled : t.reminderDisabled);
+    return;
+  }
+
+  if (data === 'notif_monthly_toggle') {
+    const newValue = user.monthly_report ? 0 : 1;
+    await userService.updateNotificationSetting(user.id, 'monthly_report', newValue);
+    const t = getTranslations(user.language || 'ru');
+    const updatedUser = { ...user, monthly_report: newValue };
+    const message = generateNotificationSettings(updatedUser, t);
+    await editMessage(chatId, messageId, message, env, { reply_markup: buildNotificationKeyboard(updatedUser, t) });
+    await answerCallback(callback.id, env, newValue ? t.reportEnabled : t.reportDisabled);
+    return;
+  }
+
+  // Handle import confirmation
+  if (data.startsWith('import_confirm:')) {
+    const importKey = data.replace('import_confirm:', '');
+    const { bankImportService } = services;
+    const t = getTranslations(user.language || 'ru');
+    const currency = user.currency || 'PLN';
+
+    try {
+      // Get stored import data from KV
+      const importDataStr = await env.FINANCE_KV.get(importKey);
+      if (!importDataStr) {
+        await editMessage(chatId, messageId, `❌ Import expired. Please send the file again.`, env);
+        await answerCallback(callback.id, env);
+        return;
+      }
+
+      const importData = JSON.parse(importDataStr);
+      await editMessage(chatId, messageId, `⏳ ${t.bankImportProcessing}`, env);
+
+      // Perform the import
+      const result = await bankImportService.importCSV(
+        importData.content,
+        user.id,
+        importData.bankName,
+        importData.familyId,
+        importData.fileName
+      );
+
+      // Delete the stored data
+      await env.FINANCE_KV.delete(importKey);
+
+      if (!result.success) {
+        await editMessage(chatId, messageId, `❌ ${t.bankImportError}`, env);
+        await answerCallback(callback.id, env);
+        return;
+      }
+
+      // Build success message
+      let message = `✅ <b>${t.bankImportSuccess}</b>\n\n`;
+      message += `📅 ${t.bankImportPeriod}: ${result.dateFrom} → ${result.dateTo}\n`;
+      message += `📥 ${t.bankImportImported}: ${result.imported}\n`;
+      message += `⏭ ${t.bankImportSkipped}: ${result.skipped}\n\n`;
+
+      if (result.categories && Object.keys(result.categories).length > 0) {
+        message += `<b>${t.bankImportByCategory}:</b>\n`;
+        const sorted = Object.entries(result.categories).sort((a, b) => b[1] - a[1]);
+        for (const [cat, amount] of sorted.slice(0, 10)) {
+          message += `${cat}: ${amount.toFixed(2)} ${currency}\n`;
+        }
+      }
+
+      // Show imported transactions list (up to 15)
+      if (result.importedList && result.importedList.length > 0) {
+        message += `\n<b>Импортированные транзакции:</b>\n`;
+        const shown = result.importedList.slice(0, 15);
+        for (const tx of shown) {
+          const typeEmoji = tx.amount < 0 ? '📉' : '📈';
+          const absAmount = Math.abs(tx.amount).toFixed(2);
+          const desc = (tx.description || '').substring(0, 40);
+          message += `${typeEmoji} ${tx.date} | <b>${absAmount} ${currency}</b> | ${tx.category}\n`;
+          if (desc) message += `   <i>${desc}</i>\n`;
+        }
+        if (result.importedList.length > 15) {
+          message += `\n... и ещё ${result.importedList.length - 15} транзакций`;
+        }
+      }
+
+      // Show potential duplicates warning
+      if (result.duplicates && result.duplicates.length > 0) {
+        message += `\n\n⚠️ <b>Возможные дубликаты (${result.duplicates.length}):</b>\n`;
+        message += `<i>Совпадение суммы и даты с ручными записями:</i>\n\n`;
+        for (const dup of result.duplicates.slice(0, 5)) {
+          const absAmt = Math.abs(dup.bankTx.amount).toFixed(2);
+          message += `📄 CSV: ${dup.bankTx.date} | ${absAmt} ${currency}\n`;
+          message += `✋ Ручная: ${dup.manualTx.date} | <i>${(dup.manualTx.description || '').substring(0, 30)}</i>\n\n`;
+        }
+        if (result.duplicates.length > 5) {
+          message += `... и ещё ${result.duplicates.length - 5}\n`;
+        }
+        message += `Удали дубликат: /undo или /history`;
+      }
+
+      await editMessage(chatId, messageId, message, env);
+      await answerCallback(callback.id, env, t.bankImportSuccess);
+
+    } catch (error) {
+      console.error('Import error:', error);
+      await editMessage(chatId, messageId, `❌ ${t.bankImportError}: ${error.message}`, env);
+      await answerCallback(callback.id, env);
+    }
+    return;
+  }
+
+  // Handle import cancellation
+  if (data.startsWith('import_cancel:')) {
+    const importKey = data.replace('import_cancel:', '');
+    const t = getTranslations(user.language || 'ru');
+
+    // Delete the stored data
+    await env.FINANCE_KV.delete(importKey);
+
+    await editMessage(chatId, messageId, `❌ ${t.cancelled}`, env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle bank connect button (from /bank menu)
+  if (data === 'bank_connect') {
+    const { openBankingService } = services;
+    const isSandbox = env.SALTEDGE_SANDBOX === 'true';
+
+    const isConfigured = env.SALTEDGE_APP_ID || env.NORDIGEN_SECRET_ID;
+    if (!isConfigured) {
+      await answerCallback(callback.id, env, 'Open Banking не настроен');
+      return;
+    }
+
+    if (!isSandbox) {
+      // Production: show country picker
+      const countries = [
+        { code: 'PL', flag: '🇵🇱', name: 'Polska' },
+        { code: 'UA', flag: '🇺🇦', name: 'Україна' },
+        { code: 'DE', flag: '🇩🇪', name: 'Deutschland' },
+        { code: 'GB', flag: '🇬🇧', name: 'UK' },
+        { code: 'FR', flag: '🇫🇷', name: 'France' },
+        { code: 'NL', flag: '🇳🇱', name: 'Nederland' },
+      ];
+      const buttons = countries.map(c =>
+        [button(`${c.flag} ${c.name}`, `bank_country:${c.code}`)]
+      );
+      await sendMessage(chatId, `🌍 <b>Выбери страну банка:</b>`, env, { reply_markup: inlineKeyboard(buttons) });
+    } else {
+      // Sandbox: show fake banks directly
+      await sendMessage(chatId, '⏳ Загружаю тестовые банки...', env);
+      try {
+        const banks = await openBankingService.getBanks();
+        const buttons = banks.slice(0, 15).map(bank => {
+          const bankId = bank.code || bank.id;
+          const bankName = (bank.name || bankId).substring(0, 30);
+          return [button(`🏦 ${bankName}`, `bank_select:${bankId}`)];
+        });
+        await sendMessage(chatId, `🏦 <b>Тестовые банки:</b>`, env, { reply_markup: inlineKeyboard(buttons) });
+      } catch (error) {
+        await sendMessage(chatId, `❌ Ошибка: ${error.message}`, env);
+      }
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle country selection for bank connect
+  if (data.startsWith('bank_country:')) {
+    const { openBankingService } = services;
+    const countryCode = data.replace('bank_country:', '');
+
+    await sendMessage(chatId, '⏳ Загружаю список банков...', env);
+    await answerCallback(callback.id, env);
+
+    try {
+      const banks = openBankingService.getBanks
+        ? await openBankingService.getBanks(countryCode)
+        : await openBankingService.getPolishBanks();
+
+      if (!banks || banks.length === 0) {
+        await sendMessage(chatId, `❌ Банки для этой страны не найдены. Попробуй другую.`, env);
+        return;
+      }
+
+      const buttons = banks.slice(0, 15).map(bank => {
+        const bankId = bank.code || bank.id;
+        const bankName = (bank.name || bankId).substring(0, 30);
+        return [button(`🏦 ${bankName}`, `bank_select:${bankId}`)];
+      });
+
+      let msg = `🏦 <b>Банки (${countryCode}, ${banks.length}):</b>\n`;
+      if (banks.length > 15) {
+        msg += `<i>Показаны первые 15</i>\n`;
+      }
+
+      await sendMessage(chatId, msg, env, { reply_markup: inlineKeyboard(buttons) });
+    } catch (error) {
+      console.error('Error fetching banks:', error);
+      await sendMessage(chatId, `❌ Ошибка: ${error.message}`, env);
+    }
+    return;
+  }
+
+  // Handle bank selection
+  if (data.startsWith('bank_select:')) {
+    const { openBankingService, openBankingProvider } = services;
+    const institutionId = data.replace('bank_select:', '');
+
+    // Get bank name from providers list
+    let institutionName = institutionId;
+    try {
+      const banks = await openBankingService.getPolishBanks();
+      const bank = banks.find(b => (b.code || b.id) === institutionId);
+      if (bank) institutionName = bank.name || institutionId;
+    } catch (e) {
+      console.log('Could not fetch bank name:', e.message);
+    }
+
+    try {
+      const redirectUrl = `https://finance-bot.vishna2003.workers.dev/callback?user=${user.id}`;
+
+      let connectUrl, connectionId;
+
+      if (openBankingProvider === 'saltedge') {
+        // Salt Edge flow: get or create customer, then create connect session
+        const customer = await openBankingService.getOrCreateCustomer(user.id);
+        const session = await openBankingService.createConnectSession(customer.id, institutionId, redirectUrl);
+        connectUrl = session.connect_url;
+        connectionId = session.id || `session_${Date.now()}`;
+
+        // Save pending connection
+        await openBankingService.saveBankConnection(user.id, connectionId, institutionId, institutionName, customer.id);
+      } else {
+        // Nordigen flow: create requisition
+        const requisition = await openBankingService.createRequisition(institutionId, redirectUrl, user.id);
+        connectUrl = requisition.link;
+        connectionId = requisition.id;
+
+        await openBankingService.saveBankConnection(user.id, connectionId, institutionId, institutionName);
+      }
+
+      // Send link to user
+      const message = `🔗 <b>Подключение ${institutionName}</b>\n\n` +
+        `Нажми на кнопку ниже, чтобы авторизоваться в банке.\n\n` +
+        `⚠️ Ты будешь перенаправлен на страницу банка для подтверждения доступа.\n\n` +
+        `После авторизации напиши /bank sync`;
+
+      const keyboard = inlineKeyboard([
+        [{ text: '🔐 Авторизоваться в банке', url: connectUrl }],
+        [button('❌ Отмена', `bank_cancel:${connectionId}`)]
+      ]);
+
+      await sendMessage(chatId, message, env, { reply_markup: keyboard });
+    } catch (error) {
+      console.error('Error creating bank connection:', error);
+      await sendMessage(chatId, `❌ Ошибка: ${error.message}`, env);
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle bank sync button
+  if (data === 'bank_sync') {
+    const { openBankingService, openBankingProvider, categoryService } = services;
+    const connections = await openBankingService.getUserConnections(user.id);
+
+    if (connections.length === 0) {
+      await answerCallback(callback.id, env, 'Нет подключённых банков');
+      return;
+    }
+
+    await editMessage(chatId, messageId, `⏳ Синхронизирую транзакции...`, env);
+
+    let totalImported = 0;
+    let totalSkipped = 0;
+
+    for (const conn of connections) {
+      try {
+        if (openBankingProvider === 'saltedge') {
+          // Salt Edge: check connection status
+          const seConn = await openBankingService.getConnection(conn.requisition_id);
+          if (seConn.status === 'active') {
+            const result = await openBankingService.syncTransactions(conn, categoryService);
+            totalImported += result.imported;
+            totalSkipped += result.skipped;
+          }
+        } else {
+          // Nordigen: check requisition status
+          const requisition = await openBankingService.getRequisition(conn.requisition_id);
+          if (requisition.status === 'LN' && requisition.accounts?.length > 0) {
+            if (!conn.account_ids) {
+              await openBankingService.updateConnectionStatus(conn.requisition_id, 'linked', requisition.accounts);
+              conn.account_ids = JSON.stringify(requisition.accounts);
+            }
+            const result = await openBankingService.syncTransactions(conn, categoryService);
+            totalImported += result.imported;
+            totalSkipped += result.skipped;
+          }
+        }
+      } catch (error) {
+        console.error(`Sync error:`, error);
+      }
+    }
+
+    await editMessage(chatId, messageId,
+      `✅ <b>Синхронизация завершена</b>\n\n` +
+      `📥 Импортировано: ${totalImported}\n` +
+      `⏭ Пропущено: ${totalSkipped}`,
+      env
+    );
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle bank disconnect
+  if (data.startsWith('bank_disconnect:')) {
+    const { openBankingService, openBankingProvider } = services;
+    const connectionId = parseInt(data.replace('bank_disconnect:', ''));
+
+    const result = openBankingProvider === 'saltedge'
+      ? await openBankingService.removeConnection(user.id, connectionId)
+      : await openBankingService.deleteConnection(user.id, connectionId);
+
+    if (result.success) {
+      await editMessage(chatId, messageId, `✅ Банк отключён`, env);
+    } else {
+      await editMessage(chatId, messageId, `❌ Ошибка: ${result.error}`, env);
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle bank cancel
+  if (data.startsWith('bank_cancel:')) {
+    const { openBankingService, openBankingProvider } = services;
+    const connectionId = data.replace('bank_cancel:', '');
+
+    try {
+      if (openBankingProvider === 'saltedge') {
+        // Salt Edge: just remove from DB, session will expire
+        await openBankingService.updateConnectionStatus(connectionId, 'cancelled');
+      } else {
+        // Nordigen: delete requisition
+        await openBankingService.deleteRequisition(connectionId);
+      }
+    } catch (e) {
+      console.error('Error cancelling connection:', e);
+    }
+
+    await editMessage(chatId, messageId, `❌ Подключение отменено`, env);
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle category delete button
+  if (data.startsWith('cat_delete:')) {
+    const categoryId = parseInt(data.replace('cat_delete:', ''));
+    const { categoryService } = services;
+
+    const result = await categoryService.deleteCustomCategory(user.id, categoryId);
+
+    if (result.success) {
+      let msg = `✅ Категория удалена`;
+      if (result.movedTransactions > 0) {
+        msg += `\n📦 ${result.movedTransactions} транзакций перемещены в "Другое"`;
+      }
+      await editMessage(chatId, messageId, msg, env);
+    } else {
+      await editMessage(chatId, messageId, `❌ Не удалось удалить`, env);
+    }
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle category rename button
+  if (data.startsWith('cat_rename:')) {
+    const categoryId = parseInt(data.replace('cat_rename:', ''));
+    const { categoryService } = services;
+
+    // Store rename intent in KV (user must send new name next)
+    await env.FINANCE_KV.put(`rename_${user.id}`, JSON.stringify({ categoryId }), { expirationTtl: 300 });
+
+    const cat = await categoryService.findById(categoryId);
+    await editMessage(chatId, messageId,
+      `✏️ Переименование: ${cat?.emoji} <b>${cat?.name}</b>\n\n` +
+      `Отправь новое название (или /cancel для отмены):`,
+      env
+    );
+    await answerCallback(callback.id, env);
+    return;
+  }
+
+  // Handle main menu buttons
+  if (data.startsWith('menu:')) {
+    const action = data.replace('menu:', '');
+    await answerCallback(callback.id, env);
+
+    switch (action) {
+      case 'stats': {
+        const msg = await statsService.generateMonthlyStats(user.id, new Date(), familyId, null, user.language, user.currency);
+        await sendMessage(chatId, msg, env);
+        break;
+      }
+      case 'balance': {
+        const t = getTranslations(user.language || 'ru');
+        const msg = await statsService.generateBalance(user.id, new Date(), familyId, user.language, user.currency);
+        await sendMessage(chatId, msg, env);
+        break;
+      }
+      case 'history': {
+        const msg = await statsService.generateHistory(user.id, 10, familyId, user.language, user.currency);
+        await sendMessage(chatId, msg, env);
+        break;
+      }
+      case 'trend': {
+        const msg = await statsService.generateTrendReport(user.id, familyId, user.language, user.currency);
+        await sendMessage(chatId, msg, env);
+        break;
+      }
+      case 'categories': {
+        await handleCategoryCommand(chatId, user, '/cat', env, services);
+        break;
+      }
+      case 'export': {
+        await handleExport(chatId, user, '/export', familyId, env, services);
+        break;
+      }
+      case 'bank': {
+        await handleBankCommand(chatId, user, '/bank', familyId, env, services);
+        break;
+      }
+      case 'import': {
+        await handleImportCommand(chatId, user, '/import', familyId, env, services);
+        break;
+      }
+      case 'currency': {
+        await handleCurrency(chatId, user, env, services);
+        break;
+      }
+      case 'notifications': {
+        await handleNotifications(chatId, user, env, services);
+        break;
+      }
+      case 'family': {
+        await handleFamily(chatId, user, '/family', env, services);
+        break;
+      }
+      case 'help': {
+        await handleHelp(chatId, env);
+        break;
+      }
+    }
+    return;
+  }
+
+  await answerCallback(callback.id, env);
+}
+
+// ============================================
+// NOTIFICATIONS HANDLER
+// ============================================
+
+async function handleNotifications(chatId, user, env, services) {
+  const t = getTranslations(user.language || 'ru');
+  const message = generateNotificationSettings(user, t);
+  await sendMessage(chatId, message, env, { reply_markup: buildNotificationKeyboard(user, t) });
+}
+
+// ============================================
+// CURRENCY HANDLER
+// ============================================
+
+const CURRENCIES = [
+  { code: 'PLN', symbol: 'zł', flag: '🇵🇱' },
+  { code: 'EUR', symbol: '€', flag: '🇪🇺' },
+  { code: 'USD', symbol: '$', flag: '🇺🇸' },
+  { code: 'UAH', symbol: '₴', flag: '🇺🇦' },
+  { code: 'GBP', symbol: '£', flag: '🇬🇧' },
+  { code: 'RUB', symbol: '₽', flag: '🇷🇺' },
+];
+
+async function handleCurrency(chatId, user, env, services) {
+  const t = getTranslations(user.language || 'ru');
+  const currentCurrency = user.currency || 'PLN';
+
+  let message = `💱 <b>${t.currencyTitle}</b>\n\n`;
+  message += `${t.currentCurrency}: <b>${currentCurrency}</b>\n\n`;
+  message += `${t.selectCurrency}:`;
+
+  const buttons = CURRENCIES.map(c => {
+    const isActive = c.code === currentCurrency ? ' ✓' : '';
+    return [button(`${c.flag} ${c.code} (${c.symbol})${isActive}`, `currency_${c.code}`)];
+  });
+
+  await sendMessage(chatId, message, env, { reply_markup: inlineKeyboard(buttons) });
+}
+
+// ============================================
+// BUDGET HANDLERS
+// ============================================
+
+async function handleBudget(chatId, user, text, familyId, env, services) {
+  const { categoryService, budgetService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const currency = user.currency || 'PLN';
+
+  // /budget delete <category>
+  const deleteMatch = text.match(/\/budget\s+delete\s+(.+)/i);
+  if (deleteMatch) {
+    const categoryName = deleteMatch[1].trim();
+    const category = await categoryService.detectCategory(categoryName);
+
+    if (!category) {
+      await sendMessage(chatId, `❌ ${t.categoryNotFound}: ${categoryName}`, env);
+      return;
+    }
+
+    await budgetService.deleteBudget(user.id, category.id, familyId);
+    await sendMessage(chatId, `✅ ${t.budgetDeleted}: ${category.emoji} ${category.name}`, env);
+    return;
+  }
+
+  // /budget <category> <amount>
+  const setMatch = text.match(/\/budget\s+(\S+)\s+(\d+(?:[.,]\d+)?)/i);
+  if (setMatch) {
+    const categoryName = setMatch[1].trim();
+    const amount = parseFloat(setMatch[2].replace(',', '.'));
+
+    const category = await categoryService.detectCategory(categoryName);
+
+    if (!category) {
+      await sendMessage(chatId, `❌ ${t.categoryNotFound}: ${categoryName}`, env);
+      return;
+    }
+
+    await budgetService.setBudget(user.id, category.id, amount, familyId);
+    await sendMessage(
+      chatId,
+      `✅ ${t.budgetSet}\n\n${category.emoji} ${category.name}: <b>${amount.toFixed(0)} ${currency}</b> ${t.perMonthWord}`,
+      env
+    );
+    return;
+  }
+
+  // /budget - show help
+  await sendMessage(
+    chatId,
+    `📊 <b>${t.budgetTitle}</b>\n\n` +
+    `${t.budgetHelp}\n\n` +
+    `<b>${t.commands}:</b>\n` +
+    `• <code>/budget ${t.category} ${t.amount}</code> - ${t.setBudget}\n` +
+    `• <code>/budget delete ${t.category}</code> - ${t.deleteBudget}\n` +
+    `• <code>/budgets</code> - ${t.viewBudgets}\n\n` +
+    `${t.errorExample} <code>/budget продукты 2000</code>`,
+    env
+  );
+}
+
+async function handleBudgets(chatId, user, familyId, env, services) {
+  const { budgetService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const currency = user.currency || 'PLN';
+
+  const statuses = await budgetService.getAllBudgetStatuses(user.id, familyId);
+
+  if (statuses.length === 0) {
+    await sendMessage(
+      chatId,
+      `📊 <b>${t.budgetsTitle}</b>\n\n` +
+      `${t.noBudgets}\n\n` +
+      `${t.budgetHint}:\n<code>/budget продукты 2000</code>`,
+      env
+    );
+    return;
+  }
+
+  let message = `📊 <b>${t.budgetsTitle}</b>\n\n`;
+
+  for (const s of statuses) {
+    const bar = progressBar(s.spent, s.budget, 10);
+    const statusEmoji = s.isOver ? '🔴' : s.isWarning ? '🟡' : '🟢';
+
+    message += `${s.category_emoji} <b>${s.category_name}</b>\n`;
+    message += `${bar} ${s.spent.toFixed(0)}/${s.budget.toFixed(0)} ${currency} (${s.percentUsed.toFixed(0)}%) ${statusEmoji}\n`;
+
+    if (s.isOver) {
+      message += `⚠️ ${t.overBudgetBy}: ${Math.abs(s.remaining).toFixed(0)} ${currency}\n`;
+    } else {
+      message += `${t.remaining}: ${s.remaining.toFixed(0)} ${currency}\n`;
+    }
+    message += '\n';
+  }
+
+  await sendMessage(chatId, message, env);
+}
+
+// Progress bar helper
+function progressBar(value, max, length = 10) {
+  if (max === 0) return '░'.repeat(length);
+  const percent = Math.min(value / max, 1);
+  const filled = Math.round(percent * length);
+  return '█'.repeat(filled) + '░'.repeat(Math.max(0, length - filled));
+}
+
+function generateNotificationSettings(user, t) {
+  const dailyStatus = user.daily_reminder ? `✅ ${t.enabled}` : `❌ ${t.disabled}`;
+  const monthlyStatus = user.monthly_report ? `✅ ${t.enabled}` : `❌ ${t.disabled}`;
+
+  return `🔔 <b>${t.notificationsTitle}</b>\n\n` +
+    `📝 <b>${t.dailyReminder}</b>\n${t.dailyReminderDesc}\n${t.status}: ${dailyStatus}\n\n` +
+    `📊 <b>${t.monthlyReport}</b>\n${t.monthlyReportDesc}\n${t.status}: ${monthlyStatus}`;
+}
+
+function buildNotificationKeyboard(user, t) {
+  const dailyIcon = user.daily_reminder ? '🔕' : '🔔';
+  const monthlyIcon = user.monthly_report ? '🔕' : '🔔';
+
+  return inlineKeyboard([
+    [button(`${dailyIcon} ${user.daily_reminder ? t.disableReminder : t.enableReminder}`, 'notif_daily_toggle')],
+    [button(`${monthlyIcon} ${user.monthly_report ? t.disableReport : t.enableReport}`, 'notif_monthly_toggle')]
+  ]);
+}
+
+// ============================================
+// BANK IMPORT HANDLERS
+// ============================================
+
+async function handleImportCommand(chatId, user, text, familyId, env, services) {
+  const { bankImportService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const currency = user.currency || 'PLN';
+
+  const parts = text.trim().split(/\s+/);
+  const subCommand = parts[1]?.toLowerCase();
+
+  // /import delete - delete last import
+  if (subCommand === 'delete' || subCommand === 'undo') {
+    const result = await bankImportService.deleteLastImport(user.id);
+
+    if (!result.success) {
+      await sendMessage(chatId, `❌ ${t.bankImportHistory}: нет импортов для удаления`, env);
+      return;
+    }
+
+    const imp = result.importRecord;
+    await sendMessage(
+      chatId,
+      `🗑 <b>Импорт удалён</b>\n\n` +
+      `🏦 ${imp.bank_name}\n` +
+      `📅 ${imp.date_from} → ${imp.date_to}\n` +
+      `📝 Удалено транзакций: ${result.deleted}`,
+      env
+    );
+    return;
+  }
+
+  // /import history - show import history
+  if (subCommand === 'history') {
+    const imports = await bankImportService.getImportHistory(user.id, 5);
+
+    if (imports.length === 0) {
+      await sendMessage(chatId, `📋 ${t.bankImportHistory}\n\nНет импортов`, env);
+      return;
+    }
+
+    let message = `📋 <b>${t.bankImportHistory}</b>\n\n`;
+    for (const imp of imports) {
+      message += `🏦 <b>${imp.bank_name}</b>\n`;
+      message += `📅 ${imp.date_from} → ${imp.date_to}\n`;
+      message += `📥 ${imp.imported_count} | ⏭ ${imp.skipped_count}\n`;
+      message += `📄 ${imp.file_name || 'файл'}\n\n`;
+    }
+    message += `\n<code>/import delete</code> - удалить последний`;
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // /import - show help
+  const banks = bankImportService.getSupportedBanks();
+  const banksList = banks.map(b => `${b.flag} ${b.name}`).join('\n');
+
+  const message = `🏦 <b>${t.bankImportTitle}</b>\n\n` +
+    `${t.bankImportHelp}\n\n` +
+    `<b>${t.supportedBanks}:</b>\n${banksList}\n\n` +
+    `<b>PKO BP:</b>\n` +
+    `1. iPKO → Historia → Zrealizowane\n` +
+    `2. Pobierz zestawienie → CSV\n` +
+    `3. ${t.bankImportSendCSV}\n\n` +
+    `<b>Команды:</b>\n` +
+    `• <code>/import history</code> - история импортов\n` +
+    `• <code>/import delete</code> - удалить последний импорт`;
+
+  await sendMessage(chatId, message, env);
+}
+
+async function handleDocument(chatId, user, document, familyId, env, services) {
+  const { bankImportService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const currency = user.currency || 'PLN';
+
+  // Check if it's a CSV file
+  const fileName = document.file_name || '';
+  const isCSV = fileName.toLowerCase().endsWith('.csv') ||
+                document.mime_type === 'text/csv' ||
+                document.mime_type === 'application/csv';
+
+  if (!isCSV) {
+    await sendMessage(chatId, `❌ ${t.bankImportWrongFormat}\n\n${t.bankImportSendCSV}`, env);
+    return;
+  }
+
+  // Check file size (max 1MB for safety)
+  if (document.file_size > 1024 * 1024) {
+    await sendMessage(chatId, `❌ File too large. Max 1MB.`, env);
+    return;
+  }
+
+  await sendMessage(chatId, `⏳ ${t.bankImportProcessing}`, env);
+
+  try {
+    // Download the file
+    const content = await downloadFile(document.file_id, env);
+    if (!content) {
+      await sendMessage(chatId, `❌ ${t.bankImportError}`, env);
+      return;
+    }
+
+    // Detect bank from file name or content
+    const bankName = detectBankFromFile(fileName, content);
+
+    // Preview the import
+    const preview = await bankImportService.previewCSV(content, bankName);
+
+    if (!preview.success) {
+      await sendMessage(chatId, `❌ ${t.bankImportNoTransactions}`, env);
+      return;
+    }
+
+    // Store content in KV for later import (expires in 10 minutes)
+    const importKey = `import_${user.id}_${Date.now()}`;
+    await env.FINANCE_KV.put(importKey, JSON.stringify({
+      content,
+      bankName,
+      fileName,
+      familyId
+    }), { expirationTtl: 600 });
+
+    // Build preview message
+    let message = `📊 <b>${t.bankImportPreview}</b>\n\n`;
+    message += `🏦 ${bankName}\n`;
+    message += `📅 ${t.bankImportPeriod}: ${preview.dateFrom} → ${preview.dateTo}\n`;
+    message += `📝 ${t.bankImportTransactions}: ${preview.count}\n`;
+    message += `📉 ${t.bankImportExpenses}: ${preview.expenses.toFixed(2)} ${currency}\n`;
+    message += `📈 ${t.bankImportIncome}: ${preview.income.toFixed(2)} ${currency}\n\n`;
+
+    if (preview.sample && preview.sample.length > 0) {
+      message += `<b>${t.bankImportSample}:</b>\n`;
+      for (const s of preview.sample) {
+        const typeEmoji = s.type === 'expense' ? '📉' : '📈';
+        message += `${typeEmoji} ${s.date}: ${s.amount.toFixed(2)} ${currency} - ${s.description}\n`;
+      }
+      message += '\n';
+    }
+
+    message += `${t.bankImportConfirm}`;
+
+    const keyboard = inlineKeyboard([
+      buttonRow(
+        button(t.btnImportConfirm, `import_confirm:${importKey}`),
+        button(t.btnImportCancel, `import_cancel:${importKey}`)
+      )
+    ]);
+
+    await sendMessage(chatId, message, env, { reply_markup: keyboard });
+
+  } catch (error) {
+    console.error('Import error:', error);
+    await sendMessage(chatId, `❌ ${t.bankImportError}: ${error.message}`, env);
+  }
+}
+
+function detectBankFromFile(fileName, content) {
+  const fileNameLower = fileName.toLowerCase();
+  const contentLower = content.toLowerCase().substring(0, 500);
+
+  // PKO BP
+  if (fileNameLower.includes('pko') || fileNameLower.includes('ipko') ||
+      contentLower.includes('pko') || contentLower.includes('data operacji')) {
+    return 'PKO BP';
+  }
+
+  // mBank
+  if (fileNameLower.includes('mbank') ||
+      contentLower.includes('mbank') || contentLower.includes('data księgowania')) {
+    return 'mBank';
+  }
+
+  // ING
+  if (fileNameLower.includes('ing') || contentLower.includes('ing bank')) {
+    return 'ING';
+  }
+
+  // Default to PKO BP (most common in Poland)
+  return 'PKO BP';
+}
+
+// ============================================
+// OPEN BANKING (NORDIGEN) HANDLERS
+// ============================================
+
+// ============================================
+// CATEGORY MANAGEMENT HANDLER
+// ============================================
+
+async function handleCategoryCommand(chatId, user, text, env, services) {
+  const { categoryService } = services;
+  const textLower = text.toLowerCase().trim();
+
+  // /cat or /categories - show all categories with custom ones highlighted
+  if (textLower === '/cat' || textLower === '/categories') {
+    const expenseCategories = await categoryService.getUserCategories(user.id, 'expense');
+    const incomeCategories = await categoryService.getUserCategories(user.id, 'income');
+
+    let message = '📂 <b>Категории расходов:</b>\n';
+    for (const cat of expenseCategories) {
+      const custom = cat.owner_type === 'user' ? ' ✏️' : '';
+      const keywords = cat.keywords ? JSON.parse(cat.keywords).slice(0, 3).join(', ') : '';
+      message += `${cat.emoji} ${cat.name}${custom} <i>(${keywords})</i>\n`;
+    }
+
+    message += '\n💰 <b>Категории доходов:</b>\n';
+    for (const cat of incomeCategories) {
+      const custom = cat.owner_type === 'user' ? ' ✏️' : '';
+      message += `${cat.emoji} ${cat.name}${custom}\n`;
+    }
+
+    message += '\n<b>Команды:</b>\n';
+    message += '• <code>/cat add 🎮 Игры</code> - добавить категорию\n';
+    message += '• <code>/cat rename</code> - переименовать\n';
+    message += '• <code>/cat keywords Игры steam,ps5</code> - ключевые слова\n';
+    message += '• <code>/cat delete</code> - удалить\n';
+    message += '\n<i>✏️ = твоя категория (все можно менять/удалять)</i>';
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // /cat add [income] emoji name [keyword1,keyword2,...]
+  if (textLower.startsWith('/cat add')) {
+    const addText = text.replace(/\/cat\s+add\s*/i, '').trim();
+
+    // Check if it's income type
+    let type = 'expense';
+    let rest = addText;
+    if (rest.toLowerCase().startsWith('income ') || rest.toLowerCase().startsWith('доход ')) {
+      type = 'income';
+      rest = rest.replace(/^(income|доход)\s+/i, '');
+    }
+
+    // Parse: emoji name [keywords]
+    // Emoji is first character(s), then name, optional keywords after comma
+    const emojiMatch = rest.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?)\s+/u);
+    if (!emojiMatch) {
+      await sendMessage(chatId,
+        `❌ Формат: <code>/cat add 🎮 Игры</code>\n` +
+        `Или с ключевыми словами: <code>/cat add 🎮 Игры steam,ps5,xbox</code>`,
+        env
+      );
+      return;
+    }
+
+    const emoji = emojiMatch[1];
+    const afterEmoji = rest.substring(emojiMatch[0].length).trim();
+
+    // Split name and keywords
+    const parts = afterEmoji.split(/\s+/);
+    const name = parts[0];
+    const keywords = parts.length > 1
+      ? parts.slice(1).join(' ').split(',').map(k => k.trim()).filter(k => k)
+      : [name.toLowerCase()];
+
+    if (!name || name.length < 2) {
+      await sendMessage(chatId, `❌ Название должно быть минимум 2 символа`, env);
+      return;
+    }
+
+    const result = await categoryService.addCustomCategory(user.id, name, emoji, type, keywords);
+
+    if (!result.success) {
+      if (result.error === 'exists') {
+        await sendMessage(chatId, `❌ Категория "${name}" уже существует`, env);
+      } else {
+        await sendMessage(chatId, `❌ Ошибка: ${result.error}`, env);
+      }
+      return;
+    }
+
+    const typeLabel = type === 'income' ? 'дохода' : 'расхода';
+    await sendMessage(chatId,
+      `✅ Категория ${typeLabel} добавлена!\n\n` +
+      `${emoji} <b>${name}</b>\n` +
+      `🔑 Ключевые слова: ${keywords.join(', ')}\n\n` +
+      `Теперь при вводе расхода эта категория появится в списке.`,
+      env
+    );
+    return;
+  }
+
+  // /cat rename - show renamable categories or rename by name
+  if (textLower.startsWith('/cat rename') || textLower.startsWith('/cat ren')) {
+    const renameArg = text.replace(/\/cat\s+(rename|ren)\s*/i, '').trim();
+
+    const allCats = await categoryService.getEditableCategories(user.id);
+
+    if (allCats.length === 0) {
+      await sendMessage(chatId, `📂 Нет категорий для переименования`, env);
+      return;
+    }
+
+    if (!renameArg) {
+      // Show all categories as buttons
+      const buttons = allCats.map(c => {
+        const tag = c.owner_type === 'user' ? ' ✏️' : '';
+        return [button(`✏️ ${c.emoji} ${c.name}${tag}`, `cat_rename:${c.id}`)];
+      });
+
+      await sendMessage(chatId,
+        `✏️ <b>Переименовать категорию:</b>\n\nВыбери категорию:`,
+        env,
+        { reply_markup: inlineKeyboard(buttons) }
+      );
+      return;
+    }
+
+    // /cat rename OldName NewName
+    const parts = renameArg.split(/\s+/);
+    if (parts.length < 2) {
+      await sendMessage(chatId,
+        `❌ Формат: <code>/cat rename Старое Новое</code>\n` +
+        `Или просто: <code>/cat rename</code> — для выбора из списка`,
+        env
+      );
+      return;
+    }
+
+    const oldName = parts[0];
+    const newName = parts.slice(1).join(' ');
+    const cat = allCats.find(c => c.name.toLowerCase() === oldName.toLowerCase());
+
+    if (!cat) {
+      await sendMessage(chatId, `❌ Категория "${oldName}" не найдена.`, env);
+      return;
+    }
+
+    const result = await categoryService.renameCategory(cat.id, user.id, newName);
+    if (result.success) {
+      await sendMessage(chatId, `✅ Переименовано: ${result.emoji} <b>${newName}</b>`, env);
+    } else {
+      await sendMessage(chatId, `❌ ${result.error}`, env);
+    }
+    return;
+  }
+
+  // /cat keywords CategoryName keyword1,keyword2
+  if (textLower.startsWith('/cat keywords') || textLower.startsWith('/cat kw')) {
+    const kwText = text.replace(/\/cat\s+(keywords|kw)\s*/i, '').trim();
+    const spaceIdx = kwText.indexOf(' ');
+
+    if (spaceIdx === -1) {
+      await sendMessage(chatId,
+        `❌ Формат: <code>/cat keywords Игры steam,playstation,ps5</code>`,
+        env
+      );
+      return;
+    }
+
+    const catName = kwText.substring(0, spaceIdx);
+    const newKeywords = kwText.substring(spaceIdx + 1).split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+
+    if (newKeywords.length === 0) {
+      await sendMessage(chatId, `❌ Укажи хотя бы одно ключевое слово`, env);
+      return;
+    }
+
+    // Find category by name
+    const allCats = await categoryService.getUserCategories(user.id);
+    const cat = allCats.find(c => c.name.toLowerCase() === catName.toLowerCase());
+
+    if (!cat) {
+      await sendMessage(chatId, `❌ Категория "${catName}" не найдена`, env);
+      return;
+    }
+
+    const result = await categoryService.addKeywordsToCategory(cat.id, user.id, newKeywords);
+
+    if (result.success) {
+      await sendMessage(chatId,
+        `✅ Ключевые слова обновлены!\n\n` +
+        `${cat.emoji} <b>${cat.name}</b>\n` +
+        `🔑 Все слова: ${result.keywords.join(', ')}`,
+        env
+      );
+    } else {
+      await sendMessage(chatId, `❌ Ошибка: ${result.error}`, env);
+    }
+    return;
+  }
+
+  // /cat delete name
+  if (textLower.startsWith('/cat delete') || textLower.startsWith('/cat del')) {
+    const catName = text.replace(/\/cat\s+(delete|del)\s*/i, '').trim();
+
+    if (!catName) {
+      // Show all deletable categories (system + custom, except "Другое")
+      const allCats = await categoryService.getEditableCategories(user.id);
+      const deletable = allCats.filter(c => c.name !== 'Другое');
+
+      if (deletable.length === 0) {
+        await sendMessage(chatId, `📂 Нет категорий для удаления`, env);
+        return;
+      }
+
+      const buttons = deletable.map(c => {
+        const label = c.owner_type === 'user' ? `❌ ${c.emoji} ${c.name} ✏️ (${c.tx_count})` : `❌ ${c.emoji} ${c.name} (${c.tx_count})`;
+        return [button(label, `cat_delete:${c.id}`)];
+      });
+
+      await sendMessage(chatId,
+        `🗑 <b>Удалить категорию:</b>\n\n` +
+        `Транзакции перенесутся в "Другое".\nВыбери категорию:`,
+        env,
+        { reply_markup: inlineKeyboard(buttons) }
+      );
+      return;
+    }
+
+    // Find category by name
+    const allCats = await categoryService.getEditableCategories(user.id);
+    const cat = allCats.find(c => c.name.toLowerCase() === catName.toLowerCase());
+
+    if (!cat) {
+      await sendMessage(chatId, `❌ Категория "${catName}" не найдена.`, env);
+      return;
+    }
+
+    const result = await categoryService.deleteCategory(user.id, cat.id);
+
+    if (result.success) {
+      let msg = `✅ Категория ${cat.emoji} ${cat.name} удалена`;
+      if (result.movedTransactions > 0) {
+        msg += `\n📦 ${result.movedTransactions} транзакций перемещены в "Другое"`;
+      }
+      await sendMessage(chatId, msg, env);
+    } else {
+      await sendMessage(chatId, `❌ ${result.error}`, env);
+    }
+    return;
+  }
+
+  // Unknown /cat command - show help
+  await sendMessage(chatId,
+    `📂 <b>Управление категориями</b>\n\n` +
+    `<b>Команды:</b>\n` +
+    `• <code>/cat</code> - показать все категории\n` +
+    `• <code>/cat add 🎮 Игры</code> - добавить категорию расхода\n` +
+    `• <code>/cat add income 🏦 Аренда</code> - категорию дохода\n` +
+    `• <code>/cat rename</code> - переименовать любую категорию\n` +
+    `• <code>/cat keywords Игры steam,ps5</code> - добавить слова\n` +
+    `• <code>/cat delete</code> - удалить любую категорию\n`,
+    env
+  );
+}
+
+async function handleBankCommand(chatId, user, text, familyId, env, services) {
+  const { openBankingService, openBankingProvider, categoryService } = services;
+  const t = getTranslations(user.language || 'ru');
+  const textLower = text.toLowerCase().trim();
+
+  // Check if Open Banking is configured (either Salt Edge or Nordigen)
+  const isConfigured = env.SALTEDGE_APP_ID || (env.NORDIGEN_SECRET_ID && env.NORDIGEN_SECRET_KEY);
+  if (!isConfigured) {
+    await sendMessage(chatId,
+      `⚠️ Open Banking не настроен.\n\n` +
+      `Для импорта используй CSV:\n<code>/import</code>`,
+      env
+    );
+    return;
+  }
+
+  const providerName = openBankingProvider === 'saltedge' ? 'Salt Edge' : 'Nordigen';
+
+  // /bank - show menu
+  if (textLower === '/bank') {
+    const connections = await openBankingService.getUserConnections(user.id);
+
+    let message = `🏦 <b>Open Banking</b>\n\n`;
+
+    if (connections.length === 0) {
+      message += `Нет подключённых банков.\n\n`;
+      message += `Подключи банк для автоматического импорта транзакций:\n`;
+      message += `<code>/bank connect</code>`;
+    } else {
+      message += `<b>Подключённые банки:</b>\n`;
+      for (const conn of connections) {
+        const lastSync = conn.last_sync_at ? conn.last_sync_at.split('T')[0] : 'никогда';
+        message += `✅ ${conn.institution_name}\n`;
+        message += `   Последняя синхронизация: ${lastSync}\n`;
+      }
+      message += `\n<b>Команды:</b>\n`;
+      message += `/bank sync - синхронизировать\n`;
+      message += `/bank connect - добавить банк\n`;
+      message += `/bank disconnect - отключить`;
+    }
+
+    const buttons = connections.length === 0
+      ? [[button('🔗 Подключить банк', 'bank_connect')]]
+      : [
+          [button('🔄 Синхронизировать', 'bank_sync')],
+          [button('➕ Добавить банк', 'bank_connect')]
+        ];
+
+    await sendMessage(chatId, message, env, { reply_markup: inlineKeyboard(buttons) });
+    return;
+  }
+
+  // /bank connect [country] - show country selection or bank list
+  if (textLower.startsWith('/bank connect')) {
+    const isSandbox = env.SALTEDGE_SANDBOX === 'true';
+    const countryArg = text.replace(/\/bank\s+connect\s*/i, '').trim().toUpperCase();
+
+    // If no country specified and not sandbox, show country picker
+    if (!countryArg && !isSandbox) {
+      const countries = [
+        { code: 'PL', flag: '🇵🇱', name: 'Polska' },
+        { code: 'UA', flag: '🇺🇦', name: 'Україна' },
+        { code: 'DE', flag: '🇩🇪', name: 'Deutschland' },
+        { code: 'GB', flag: '🇬🇧', name: 'United Kingdom' },
+        { code: 'FR', flag: '🇫🇷', name: 'France' },
+        { code: 'NL', flag: '🇳🇱', name: 'Nederland' },
+        { code: 'ES', flag: '🇪🇸', name: 'España' },
+        { code: 'IT', flag: '🇮🇹', name: 'Italia' },
+      ];
+
+      const buttons = countries.map(c =>
+        [button(`${c.flag} ${c.name}`, `bank_country:${c.code}`)]
+      );
+
+      await sendMessage(chatId,
+        `🌍 <b>Выбери страну банка:</b>`,
+        env,
+        { reply_markup: inlineKeyboard(buttons) }
+      );
+      return;
+    }
+
+    // Fetch banks for the selected country (or default)
+    const country = countryArg || null;
+    await sendMessage(chatId, '⏳ Загружаю список банков...', env);
+
+    try {
+      const banks = openBankingService.getBanks
+        ? await openBankingService.getBanks(country)
+        : await openBankingService.getPolishBanks();
+
+      if (!banks || banks.length === 0) {
+        await sendMessage(chatId,
+          `❌ Банки не найдены.\n\n` +
+          (isSandbox
+            ? `В sandbox режиме используются тестовые банки (XF).\nПроверь настройки Salt Edge.`
+            : `Попробуй другую страну или используй /import для CSV импорта.`),
+          env
+        );
+        return;
+      }
+
+      let message = `🏦 <b>Выбери банк (${banks.length}):</b>\n`;
+      if (isSandbox) {
+        message += `<i>(Sandbox режим - тестовые банки)</i>\n`;
+      }
+
+      const buttons = banks.slice(0, 15).map(bank => {
+        const bankId = bank.code || bank.id;
+        const bankName = (bank.name || bankId).substring(0, 30);
+        return [button(`🏦 ${bankName}`, `bank_select:${bankId}`)];
+      });
+
+      if (banks.length > 15) {
+        message += `<i>Показаны первые 15 из ${banks.length}</i>\n`;
+      }
+
+      await sendMessage(chatId, message, env, { reply_markup: inlineKeyboard(buttons) });
+    } catch (error) {
+      console.error('Error fetching banks:', error);
+      await sendMessage(chatId, `❌ Ошибка: ${error.message}`, env);
+    }
+    return;
+  }
+
+  // /bank sync - sync all connections
+  if (textLower === '/bank sync') {
+    const connections = await openBankingService.getUserConnections(user.id);
+
+    if (connections.length === 0) {
+      await sendMessage(chatId, `❌ Нет подключённых банков. Используй /bank connect`, env);
+      return;
+    }
+
+    await sendMessage(chatId, `⏳ Синхронизирую транзакции...`, env);
+
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let allImported = [];
+    let allDuplicates = [];
+    const currency = user.currency || 'PLN';
+
+    for (const conn of connections) {
+      try {
+        const result = await openBankingService.syncTransactions(conn, categoryService);
+        totalImported += result.imported;
+        totalSkipped += result.skipped;
+        if (result.importedList) {
+          allImported = allImported.concat(result.importedList);
+        }
+        if (result.duplicates) {
+          allDuplicates = allDuplicates.concat(result.duplicates);
+        }
+      } catch (error) {
+        console.error(`Sync error for ${conn.institution_name}:`, error);
+      }
+    }
+
+    let message = `✅ <b>Синхронизация завершена</b>\n\n` +
+      `📥 Импортировано: ${totalImported}\n` +
+      `⏭ Пропущено: ${totalSkipped}`;
+
+    // Show imported transactions (up to 15)
+    if (allImported.length > 0) {
+      message += `\n\n<b>Импортированные транзакции:</b>\n`;
+      const shown = allImported.slice(0, 15);
+      for (const tx of shown) {
+        const typeEmoji = tx.amount < 0 ? '📉' : '📈';
+        const absAmount = Math.abs(tx.amount).toFixed(2);
+        const desc = (tx.description || '').substring(0, 40);
+        message += `${typeEmoji} ${tx.date} | <b>${absAmount} ${currency}</b> | ${tx.category}\n`;
+        if (desc) message += `   <i>${desc}</i>\n`;
+      }
+      if (allImported.length > 15) {
+        message += `\n... и ещё ${allImported.length - 15} транзакций`;
+      }
+    }
+
+    // Show potential duplicates warning
+    if (allDuplicates.length > 0) {
+      message += `\n\n⚠️ <b>Возможные дубликаты (${allDuplicates.length}):</b>\n`;
+      message += `<i>Совпадение суммы и даты с ручными записями:</i>\n\n`;
+      for (const dup of allDuplicates.slice(0, 5)) {
+        const absAmt = Math.abs(dup.bankTx.amount).toFixed(2);
+        message += `🏦 Банк: ${dup.bankTx.date} | ${absAmt} ${currency}\n`;
+        message += `✋ Ручная: ${dup.manualTx.date} | <i>${(dup.manualTx.description || '').substring(0, 30)}</i>\n\n`;
+      }
+      if (allDuplicates.length > 5) {
+        message += `... и ещё ${allDuplicates.length - 5}\n`;
+      }
+      message += `Удали дубликат: /undo или /history`;
+    }
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // /bank last - show recently imported bank transactions
+  if (textLower.startsWith('/bank last')) {
+    const currency = user.currency || 'PLN';
+    let limit = 20;
+    const limitMatch = text.match(/\/bank\s+last\s+(\d+)/i);
+    if (limitMatch) limit = Math.min(parseInt(limitMatch[1]), 50);
+
+    // Debug: raw counts by source (no JOIN, no filters)
+    const rawCounts = await env.DB.prepare(`
+      SELECT source, COUNT(*) as cnt FROM transactions
+      WHERE user_id = ? AND source IN ('bank_import', 'saltedge')
+      GROUP BY source
+    `).bind(user.id).all();
+
+    const result = await env.DB.prepare(`
+      SELECT t.*, c.name as category_name, c.emoji as category_emoji
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ? AND t.source IN ('bank_import', 'saltedge')
+      ORDER BY t.transaction_date DESC, t.created_at DESC
+      LIMIT ?
+    `).bind(user.id, limit).all();
+
+    const txList = result.results;
+
+    // Show debug info if mismatch
+    const rawTotal = rawCounts.results.reduce((s, r) => s + r.cnt, 0);
+
+    if (txList.length === 0) {
+      let debugMsg = `📭 Нет банковских транзакций.\n\n`;
+      if (rawTotal > 0) {
+        debugMsg += `⚠️ <b>Но в БД найдено ${rawTotal} транз.:</b>\n`;
+        for (const r of rawCounts.results) {
+          debugMsg += `  ${r.source}: ${r.cnt}\n`;
+        }
+        debugMsg += `\nuser_id=${user.id}, familyId=${familyId || 'null'}\n`;
+        debugMsg += `Попробуй /bank cleanup для исправления`;
+      } else {
+        debugMsg += `Импортируй через:\n• /bank sync - автосинхронизация\n• /import - загрузить CSV`;
+      }
+      await sendMessage(chatId, debugMsg, env);
+      return;
+    }
+
+    let message = `🏦 <b>Последние банковские транзакции (${txList.length}`;
+    if (rawTotal > txList.length) message += ` из ${rawTotal}`;
+    message += `):</b>\n\n`;
+    let currentDate = null;
+
+    for (const tr of txList) {
+      const dateStr = new Date(tr.transaction_date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+      if (dateStr !== currentDate) {
+        if (currentDate !== null) message += '\n';
+        message += `<b>${dateStr}</b>\n`;
+        currentDate = dateStr;
+      }
+
+      const sign = tr.type === 'expense' ? '-' : '+';
+      const srcTag = tr.source === 'saltedge' ? '🔄' : '📄';
+      const catEmoji = tr.category_emoji || '❓';
+      message += `  ${srcTag} ${catEmoji} ${sign}${tr.amount.toFixed(2)} ${currency}`;
+      if (tr.description) message += ` <i>${tr.description.substring(0, 25)}</i>`;
+      message += '\n';
+    }
+
+    message += `\n<i>🔄 = Open Banking, 📄 = CSV импорт</i>`;
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // /bank disconnect
+  if (textLower.startsWith('/bank disconnect')) {
+    const connections = await openBankingService.getUserConnections(user.id);
+
+    if (connections.length === 0) {
+      await sendMessage(chatId, `❌ Нет подключённых банков`, env);
+      return;
+    }
+
+    const buttons = connections.map(conn => [
+      button(`❌ ${conn.institution_name}`, `bank_disconnect:${conn.id}`)
+    ]);
+
+    await sendMessage(chatId,
+      `🗑 <b>Отключить банк:</b>\n\nВыбери банк для отключения:`,
+      env,
+      { reply_markup: inlineKeyboard(buttons) }
+    );
+    return;
+  }
+
+  // /bank debug - show raw DB state for debugging
+  if (textLower === '/bank debug') {
+    const currency = user.currency || 'PLN';
+
+    // 1. All bank_connections for this user (any status)
+    const allConns = await env.DB.prepare(`
+      SELECT id, requisition_id, institution_id, institution_name, status, saltedge_customer_id, last_sync_at, created_at
+      FROM bank_connections WHERE user_id = ?
+    `).bind(user.id).all();
+
+    // 2. Count of transactions by source
+    const txCounts = await env.DB.prepare(`
+      SELECT source, COUNT(*) as cnt, MIN(transaction_date) as min_date, MAX(transaction_date) as max_date
+      FROM transactions WHERE user_id = ?
+      GROUP BY source
+    `).bind(user.id).all();
+
+    // 3. Last 5 bank transactions WITH category_id and family_id for diagnosis
+    const lastBankTx = await env.DB.prepare(`
+      SELECT t.id, t.amount, t.type, t.source, t.transaction_date, t.description,
+             t.category_id, t.family_id, c.name as cat_name
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ? AND t.source IN ('bank_import', 'saltedge')
+      ORDER BY t.created_at DESC LIMIT 5
+    `).bind(user.id).all();
+
+    // 4. User info
+    const userInfo = await env.DB.prepare(`
+      SELECT id, telegram_id, saltedge_customer_id FROM users WHERE id = ?
+    `).bind(user.id).first();
+
+    // 5. Count orphan transactions (category_id not in categories table)
+    const orphanCount = await env.DB.prepare(`
+      SELECT COUNT(*) as cnt FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ? AND c.id IS NULL
+    `).bind(user.id).first();
+
+    let msg = `🔧 <b>Bank Debug (user_id=${user.id})</b>\n\n`;
+
+    msg += `<b>👤 User:</b>\n`;
+    msg += `  DB id: ${userInfo?.id}, tg: ${userInfo?.telegram_id}\n`;
+    msg += `  SE customer: ${userInfo?.saltedge_customer_id || 'none'}\n\n`;
+
+    msg += `<b>🔗 Connections (${allConns.results.length}):</b>\n`;
+    for (const c of allConns.results) {
+      msg += `  #${c.id} | ${c.status} | ${c.institution_name}\n`;
+      msg += `    sync: ${c.last_sync_at || 'never'}\n`;
+    }
+
+    msg += `\n<b>📊 Transactions by source:</b>\n`;
+    for (const tc of txCounts.results) {
+      msg += `  ${tc.source || 'manual'}: ${tc.cnt} (${tc.min_date} → ${tc.max_date})\n`;
+    }
+
+    if (orphanCount?.cnt > 0) {
+      msg += `\n⚠️ <b>Orphan transactions (bad category_id): ${orphanCount.cnt}</b>\n`;
+    }
+
+    if (lastBankTx.results.length > 0) {
+      msg += `\n<b>🏦 Last bank tx:</b>\n`;
+      for (const tx of lastBankTx.results) {
+        msg += `  #${tx.id} | ${tx.type} ${tx.amount} ${currency} | cat_id=${tx.category_id} (${tx.cat_name || 'MISSING!'}) | fam=${tx.family_id || 'null'}\n`;
+      }
+    } else {
+      msg += `\n<i>No bank transactions in DB</i>`;
+    }
+
+    await sendMessage(chatId, msg, env);
+    return;
+  }
+
+  // /bank cleanup - delete old pending connections and fix orphan categories
+  if (textLower === '/bank cleanup') {
+    let msg = `🧹 <b>Cleanup results:</b>\n\n`;
+
+    // 1. Delete pending connections that were never synced
+    const deletedConns = await env.DB.prepare(`
+      DELETE FROM bank_connections
+      WHERE user_id = ? AND status = 'pending'
+      RETURNING id, institution_name
+    `).bind(user.id).all();
+    msg += `🔗 Deleted ${deletedConns.results.length} pending connections\n`;
+    for (const c of deletedConns.results) {
+      msg += `  - #${c.id} ${c.institution_name}\n`;
+    }
+
+    // 2. Fix orphan transactions (category_id not in categories) → set to "Другое"
+    const fallbackExpense = await env.DB.prepare(`
+      SELECT id FROM categories WHERE owner_type = 'system' AND name = 'Другое' AND type = 'expense'
+    `).first();
+    const fallbackIncome = await env.DB.prepare(`
+      SELECT id FROM categories WHERE owner_type = 'system' AND name = 'Другое' AND type = 'income'
+    `).first();
+
+    if (fallbackExpense) {
+      const fixedExpense = await env.DB.prepare(`
+        UPDATE transactions SET category_id = ?
+        WHERE user_id = ? AND type = 'expense' AND category_id NOT IN (SELECT id FROM categories)
+      `).bind(fallbackExpense.id, user.id).run();
+      msg += `\n📦 Fixed ${fixedExpense.meta?.changes || 0} expense transactions with missing category`;
+    }
+
+    if (fallbackIncome) {
+      const fixedIncome = await env.DB.prepare(`
+        UPDATE transactions SET category_id = ?
+        WHERE user_id = ? AND type = 'income' AND category_id NOT IN (SELECT id FROM categories)
+      `).bind(fallbackIncome.id, user.id).run();
+      msg += `\n📦 Fixed ${fixedIncome.meta?.changes || 0} income transactions with missing category`;
+    }
+
+    // 3. Also fix NULL category_id
+    if (fallbackExpense) {
+      const fixedNull = await env.DB.prepare(`
+        UPDATE transactions SET category_id = ?
+        WHERE user_id = ? AND category_id IS NULL
+      `).bind(fallbackExpense.id, user.id).run();
+      msg += `\n📦 Fixed ${fixedNull.meta?.changes || 0} transactions with NULL category`;
+    }
+
+    msg += `\n\n✅ Готово! Попробуй /bank last и /history`;
+    await sendMessage(chatId, msg, env);
+    return;
+  }
+
+  // /bank status
+  if (textLower === '/bank status') {
+    const connections = await openBankingService.getUserConnections(user.id);
+
+    if (connections.length === 0) {
+      await sendMessage(chatId, `📋 Нет подключённых банков`, env);
+      return;
+    }
+
+    let message = `📋 <b>Статус подключений (${providerName}):</b>\n\n`;
+
+    for (const conn of connections) {
+      const health = await openBankingService.checkConnectionHealth(conn);
+      const statusEmoji = health.healthy ? '✅' : '❌';
+      message += `${statusEmoji} <b>${conn.institution_name}</b>\n`;
+      message += `   Статус: ${health.status || health.error}\n`;
+      message += `   Последняя синхронизация: ${conn.last_sync_at || 'никогда'}\n\n`;
+    }
+
+    await sendMessage(chatId, message, env);
+    return;
+  }
+
+  // Unknown bank command
+  await sendMessage(chatId,
+    `❓ Неизвестная команда.\n\n` +
+    `<b>Доступные команды:</b>\n` +
+    `/bank - меню\n` +
+    `/bank connect - подключить банк\n` +
+    `/bank sync - синхронизировать\n` +
+    `/bank disconnect - отключить\n` +
+    `/bank status - статус`,
+    env
+  );
+}
+
+// ============================================
+// SCHEDULED NOTIFICATIONS
+// ============================================
+
+async function sendDailyReminders(env, userService) {
+  console.log('Sending daily reminders...');
+
+  // Get users who have daily_reminder enabled
+  const users = await userService.getUsersWithReminders();
+  console.log(`Found ${users.length} users with reminders enabled`);
+
+  for (const user of users) {
+    try {
+      const t = getTranslations(user.language || 'ru');
+      const message = `⏰ <b>${t.reminderTitle}</b>\n\n${t.reminderText}\n\n💡 ${t.reminderTip}`;
+
+      await sendMessage(user.telegram_id, message, env, {
+        reply_markup: inlineKeyboard([
+          [button(t.btnDisableReminder, 'notif_daily_toggle')]
+        ])
+      });
+
+      // Small delay to avoid rate limits
+      await new Promise(r => setTimeout(r, 100));
+    } catch (error) {
+      console.error(`Failed to send reminder to ${user.telegram_id}:`, error.message);
+    }
+  }
+
+  console.log('Daily reminders sent');
+}
+
+async function sendMonthlyReports(env, userService, statsService) {
+  console.log('Sending monthly reports...');
+
+  // Get users who have monthly_report enabled
+  const users = await userService.getUsersWithReports();
+  console.log(`Found ${users.length} users with reports enabled`);
+
+  // Previous month
+  const prevMonth = new Date();
+  prevMonth.setMonth(prevMonth.getMonth() - 1);
+
+  for (const user of users) {
+    try {
+      const t = getTranslations(user.language || 'ru');
+      const message = await statsService.generateMonthlyStats(user.id, prevMonth, null, null, user.language, user.currency);
+
+      await sendMessage(user.telegram_id, `📬 <b>${t.monthlyReportTitle}</b>\n\n` + message, env, {
+        reply_markup: inlineKeyboard([
+          buttonRow(
+            button(t.btnExport, 'export'),
+            button(t.btnDisableReport, 'notif_monthly_toggle')
+          )
+        ])
+      });
+
+      // Small delay to avoid rate limits
+      await new Promise(r => setTimeout(r, 200));
+    } catch (error) {
+      console.error(`Failed to send report to ${user.telegram_id}:`, error.message);
+    }
+  }
+
+  console.log('Monthly reports sent');
+}
+
+async function syncAllBankConnections(env, openBankingService, categoryService, provider = 'nordigen') {
+  console.log(`Starting automatic bank sync (${provider})...`);
+
+  // Check if Open Banking is configured
+  const isConfigured = env.SALTEDGE_APP_ID || (env.NORDIGEN_SECRET_ID && env.NORDIGEN_SECRET_KEY);
+  if (!isConfigured) {
+    console.log('Open Banking not configured, skipping bank sync');
+    return;
+  }
+
+  try {
+    // Get all active connections
+    const connections = await openBankingService.getActiveConnections();
+    console.log(`Found ${connections.length} active bank connections`);
+
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let syncedUsers = new Set();
+
+    for (const conn of connections) {
+      try {
+        if (provider === 'saltedge') {
+          // Salt Edge flow
+          const seConn = await openBankingService.getConnection(conn.requisition_id);
+
+          if (seConn.status === 'active') {
+            const result = await openBankingService.syncTransactions(conn, categoryService);
+            totalImported += result.imported;
+            totalSkipped += result.skipped;
+
+            if (result.imported > 0) {
+              syncedUsers.add(conn.telegram_id);
+            }
+          } else if (seConn.status === 'inactive' || seConn.status === 'disabled') {
+            await openBankingService.updateConnectionStatus(conn.requisition_id, 'expired');
+            console.log(`Connection ${conn.id} expired`);
+          }
+        } else {
+          // Nordigen flow
+          const requisition = await openBankingService.getRequisition(conn.requisition_id);
+
+          if (requisition.status === 'LN' && requisition.accounts?.length > 0) {
+            if (!conn.account_ids) {
+              await openBankingService.updateConnectionStatus(conn.requisition_id, 'linked', requisition.accounts);
+              conn.account_ids = JSON.stringify(requisition.accounts);
+            }
+
+            const result = await openBankingService.syncTransactions(conn, categoryService);
+            totalImported += result.imported;
+            totalSkipped += result.skipped;
+
+            if (result.imported > 0) {
+              syncedUsers.add(conn.telegram_id);
+            }
+          } else if (requisition.status === 'EXPIRED' || requisition.status === 'REJECTED') {
+            await openBankingService.updateConnectionStatus(conn.requisition_id, 'expired');
+            console.log(`Connection ${conn.id} expired`);
+          }
+        }
+
+        // Small delay between accounts
+        await new Promise(r => setTimeout(r, 500));
+      } catch (error) {
+        console.error(`Sync error for connection ${conn.id}:`, error.message);
+      }
+    }
+
+    console.log(`Bank sync complete: ${totalImported} imported, ${totalSkipped} skipped, ${syncedUsers.size} users synced`);
+
+  } catch (error) {
+    console.error('Bank sync failed:', error);
+  }
+}

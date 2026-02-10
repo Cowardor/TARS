@@ -1,0 +1,412 @@
+{
+  "name": "TARS: Агент-Скаут v1 BUDGET (Product Hunter)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Запуск каждый день в 9:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "search_category",
+              "name": "search_query",
+              "value": "=\"smart home gadgets\"",
+              "type": "string"
+            },
+            {
+              "id": "min_rating",
+              "name": "min_rating",
+              "value": "=4.5",
+              "type": "number"
+            },
+            {
+              "id": "min_reviews",
+              "name": "min_reviews",
+              "value": "=100",
+              "type": "number"
+            },
+            {
+              "id": "max_price",
+              "name": "max_price",
+              "value": "=60",
+              "type": "number"
+            },
+            {
+              "id": "min_price",
+              "name": "min_price",
+              "value": "=15",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "set-parameters",
+      "name": "Установить параметры поиска",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://aliexpress-datahub.p.rapidapi.com/product_search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "keywords",
+              "value": "={{ $json.search_query }}"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            },
+            {
+              "name": "sort",
+              "value": "orders_desc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-RapidAPI-Key",
+              "value": "={{$credentials.rapidApiKey}}"
+            },
+            {
+              "name": "X-RapidAPI-Host",
+              "value": "aliexpress-datahub.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "rapidapi-aliexpress",
+      "name": "RapidAPI: Поиск на AliExpress (БЕСПЛАТНО)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [650, 300],
+      "notes": "Бесплатный tier: 100 запросов/день"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Обработка результатов RapidAPI и фильтрация по критериям\nconst items = $input.item.json.result?.products || [];\nconst minRating = $node[\"Установить параметры поиска\"].json.min_rating;\nconst minReviews = $node[\"Установить параметры поиска\"].json.min_reviews;\nconst minPrice = $node[\"Установить параметры поиска\"].json.min_price;\nconst maxPrice = $node[\"Установить параметры поиска\"].json.max_price;\n\nconst filteredProducts = items\n  .filter(item => {\n    const rating = parseFloat(item.averageStarRate || 0);\n    const reviews = parseInt(item.tradeCount || 0);\n    const price = parseFloat(item.minPrice?.value || 0);\n    \n    return (\n      rating >= minRating &&\n      reviews >= minReviews &&\n      price >= minPrice &&\n      price <= maxPrice\n    );\n  })\n  .map(item => ({\n    product_id: `scout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n    timestamp: new Date().toISOString(),\n    name: item.productTitle,\n    price_aliexpress: parseFloat(item.minPrice?.value || 0),\n    rating: parseFloat(item.averageStarRate || 0),\n    reviews_count: parseInt(item.tradeCount || 0),\n    url: item.productDetailUrl,\n    thumbnail: item.imageUrl,\n    category: $json.search_query,\n    validation_layer_1: 'PASS'\n  }));\n\nreturn filteredProducts.map(product => ({ json: product }));"
+      },
+      "id": "filter-products",
+      "name": "Фильтр: Слой 1 (Базовая валидация)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has_products",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-results",
+      "name": "Есть ли результаты?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://trends.google.com/trends/api/explore?hl=en-US&tz=-120&req={\"comparisonItem\":[{\"keyword\":\"{{ $json.name }}\",\"geo\":\"\",\"time\":\"today 3-m\"}],\"category\":0,\"property\":\"\"}&tz=-120",
+        "options": {}
+      },
+      "id": "google-trends",
+      "name": "Google Trends: Проверка тренда (БЕСПЛАТНО)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 250],
+      "notes": "Полностью бесплатно, без API ключа"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Парсинг Google Trends данных\nconst rawData = $input.item.json.body || '{}';\n\n// Убираем первую строку (защита от парсинга)\nconst jsonData = rawData.replace(/^\\)\\]}'/, '');\n\nlet trendScore = 0;\ntry {\n  const data = JSON.parse(jsonData);\n  const timeline = data.default?.timelineData || [];\n  \n  if (timeline.length > 0) {\n    // Берем последние 12 недель\n    const recentData = timeline.slice(-12);\n    const values = recentData.map(d => d.value?.[0] || 0);\n    const average = values.reduce((a, b) => a + b, 0) / values.length;\n    \n    // Проверяем рост тренда\n    const firstHalf = values.slice(0, 6).reduce((a, b) => a + b, 0) / 6;\n    const secondHalf = values.slice(6).reduce((a, b) => a + b, 0) / 6;\n    const growth = ((secondHalf - firstHalf) / firstHalf) * 100;\n    \n    trendScore = Math.round(average);\n  }\n} catch (e) {\n  trendScore = 0;\n}\n\nreturn {\n  json: {\n    ...($node[\"Фильтр: Слой 1 (Базовая валидация)\"].json),\n    google_trends_score: trendScore,\n    trend_direction: trendScore > 50 ? 'rising' : 'stable',\n    validation_layer_4: trendScore > 30 ? 'PASS' : 'FAIL'\n  }\n};"
+      },
+      "id": "analyze-trends",
+      "name": "Анализ: Слой 4 (Google Trends)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 250]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "content": "=Product: {{ $json.name }}\nPrice: ${{ $json.price_aliexpress }}\nRating: {{ $json.rating }}\nReviews: {{ $json.reviews_count }}\nTrends: {{ $json.google_trends_score }}\n\nScore 1-10:\n1. WOW factor\n2. Problem solution\n3. Video potential\n4. Audience size\n\nJSON output:\n{\n  \"wow\": X,\n  \"solution\": X,\n  \"video\": X,\n  \"audience\": X,\n  \"total\": X,\n  \"verdict\": \"BUY\"/\"PASS\"/\"MAYBE\",\n  \"why\": \"short reason\"\n}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.7
+        }
+      },
+      "id": "gpt-analysis",
+      "name": "GPT-4o-mini: Анализ ($0.15 за 1M токенов)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1650, 250],
+      "notes": "Оптимизирован: короткий промпт + лимит токенов"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Объединяем все данные и создаем финальный отчет\nconst product = $node[\"Анализ: Слой 4 (Google Trends)\"].json;\nconst gptAnalysis = JSON.parse($input.item.json.response || '{}');\n\n// Расчет юнит-экономики\nconst cost = product.price_aliexpress;\nconst shipping = 3;\nconst packaging = 1;\nconst totalCost = cost + shipping + packaging;\n\nconst suggestedPrice = Math.round(totalCost * 3.5); // 3.5x маржа\nconst shopifyFee = suggestedPrice * 0.02;\nconst paymentFee = suggestedPrice * 0.03;\nconst adCost = suggestedPrice * 0.3; // 30% на рекламу\n\nconst profit = suggestedPrice - totalCost - shopifyFee - paymentFee - adCost;\nconst margin = (profit / suggestedPrice) * 100;\nconst roi = (profit / totalCost) * 100;\n\nconst finalScore = (\n  (product.rating / 5) * 10 + // 10 баллов макс\n  (Math.min(product.reviews_count / 100, 10)) + // 10 баллов макс\n  (product.google_trends_score / 10) + // 10 баллов макс\n  (gptAnalysis.total || 5) // 10 баллов макс из GPT\n) / 4;\n\nconst recommendation = \n  finalScore >= 8 && margin >= 25 && roi >= 80 ? 'STRONG BUY' :\n  finalScore >= 6 && margin >= 20 && roi >= 60 ? 'BUY' :\n  finalScore >= 5 ? 'MAYBE' : 'PASS';\n\nreturn {\n  json: {\n    product_id: product.product_id,\n    timestamp: product.timestamp,\n    product_info: {\n      name: product.name,\n      category: product.category,\n      aliexpress_url: product.url,\n      price_aliexpress: product.price_aliexpress,\n      rating: product.rating,\n      reviews_count: product.reviews_count,\n      thumbnail: product.thumbnail\n    },\n    trend_analysis: {\n      google_trends_score: product.google_trends_score,\n      trend_direction: product.trend_direction\n    },\n    economics: {\n      cost: totalCost.toFixed(2),\n      suggested_price: suggestedPrice,\n      profit_per_unit: profit.toFixed(2),\n      margin_percent: margin.toFixed(1),\n      roi_percent: roi.toFixed(1)\n    },\n    creative_analysis: gptAnalysis,\n    validation_score: {\n      layer_1_screening: product.validation_layer_1,\n      layer_4_google_trends: product.validation_layer_4,\n      overall_score: finalScore.toFixed(1),\n      recommendation: recommendation\n    },\n    next_steps: [\n      margin >= 25 ? 'Заказать sample для тестирования' : 'Пересмотреть ценообразование',\n      'Найти поставщика на Alibaba',\n      'Подготовить креативы для тестовой кампании'\n    ]\n  }\n};"
+      },
+      "id": "final-report",
+      "name": "Финальный отчет",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 250]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_SHEET_ID_HERE",
+          "mode": "list",
+          "cachedResultName": "TARS - Scout Results"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "save-to-sheets",
+      "name": "Сохранить в Google Sheets (БЕСПЛАТНО)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2050, 250]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is_buy",
+              "leftValue": "={{ $json.validation_score.recommendation }}",
+              "rightValue": "STRONG BUY",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "check-buy-recommendation",
+      "name": "STRONG BUY?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2250, 250]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🎯 **НОВЫЙ ТОВАР НАЙДЕН!**\n\n📦 **Продукт:** {{ $json.product_info.name }}\n⭐ **Рейтинг:** {{ $json.product_info.rating }}/5 ({{ $json.product_info.reviews_count }} отзывов)\n💰 **Цена AliExpress:** ${{ $json.product_info.price_aliexpress }}\n💵 **Рекомендуемая цена:** ${{ $json.economics.suggested_price }}\n📈 **Прибыль:** ${{ $json.economics.profit_per_unit }} ({{ $json.economics.margin_percent }}%)\n📊 **Google Trends:** {{ $json.trend_analysis.google_trends_score }}\n🎯 **Оценка:** {{ $json.validation_score.overall_score }}/10\n\n✅ **Рекомендация:** {{ $json.validation_score.recommendation }}\n\n🔗 **Ссылка:** {{ $json.product_info.aliexpress_url }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-notification",
+      "name": "Уведомление в Telegram (БЕСПЛАТНО)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2450, 200]
+    }
+  ],
+  "connections": {
+    "Запуск каждый день в 9:00": {
+      "main": [
+        [
+          {
+            "node": "Установить параметры поиска",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Установить параметры поиска": {
+      "main": [
+        [
+          {
+            "node": "RapidAPI: Поиск на AliExpress (БЕСПЛАТНО)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RapidAPI: Поиск на AliExpress (БЕСПЛАТНО)": {
+      "main": [
+        [
+          {
+            "node": "Фильтр: Слой 1 (Базовая валидация)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Фильтр: Слой 1 (Базовая валидация)": {
+      "main": [
+        [
+          {
+            "node": "Есть ли результаты?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Есть ли результаты?": {
+      "main": [
+        [
+          {
+            "node": "Google Trends: Проверка тренда (БЕСПЛАТНО)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Trends: Проверка тренда (БЕСПЛАТНО)": {
+      "main": [
+        [
+          {
+            "node": "Анализ: Слой 4 (Google Trends)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Анализ: Слой 4 (Google Trends)": {
+      "main": [
+        [
+          {
+            "node": "GPT-4o-mini: Анализ ($0.15 за 1M токенов)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o-mini: Анализ ($0.15 за 1M токенов)": {
+      "main": [
+        [
+          {
+            "node": "Финальный отчет",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Финальный отчет": {
+      "main": [
+        [
+          {
+            "node": "Сохранить в Google Sheets (БЕСПЛАТНО)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохранить в Google Sheets (БЕСПЛАТНО)": {
+      "main": [
+        [
+          {
+            "node": "STRONG BUY?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STRONG BUY?": {
+      "main": [
+        [
+          {
+            "node": "Уведомление в Telegram (БЕСПЛАТНО)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-19T00:00:00.000Z",
+  "versionId": "1.0-budget"
+}

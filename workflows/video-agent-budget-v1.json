@@ -1,0 +1,650 @@
+{
+  "name": "Video Agent Budget V1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "video-agent-budget",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "video-agent-budget"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "product-name",
+              "name": "product_name",
+              "value": "={{ $json.body.product_name }}",
+              "type": "string"
+            },
+            {
+              "id": "product-description",
+              "name": "product_description",
+              "value": "={{ $json.body.product_description }}",
+              "type": "string"
+            },
+            {
+              "id": "target-audience",
+              "name": "target_audience",
+              "value": "={{ $json.body.target_audience }}",
+              "type": "string"
+            },
+            {
+              "id": "price",
+              "name": "price",
+              "value": "={{ $json.body.price || '$29.99' }}",
+              "type": "string"
+            },
+            {
+              "id": "usps",
+              "name": "unique_selling_points",
+              "value": "={{ $json.body.unique_selling_points }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-data",
+      "name": "Extract Product Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a viral TikTok/Instagram video strategist for dropshipping products. Your goal: create UGC-style video scripts that convert.\\n\\nKEY PRINCIPLES (2026):\\n- UGC ads get 3× higher CTR than branded ads\\n- Videos <30 sec get 50% engagement rate\\n- 75%+ completion rate = algorithmic boost\\n- Anti-AI detection: use human imperfections, natural speech\\n- Doomscrolling hooks: guilt redirect, time scarcity\\n\\nOUTPUT FORMAT:\\n{\\n  \\\"strategy\\\": {\\n    \\\"hook_type\\\": \\\"doomscroll_guilt|before_after|problem_solution\\\",\\n    \\\"mood\\\": \\\"energetic|calm|upbeat\\\",\\n    \\\"target_emotion\\\": \\\"FOMO|curiosity|relief\\\"\\n  },\\n  \\\"script\\\": {\\n    \\\"hook\\\": \\\"First 3 seconds text (guilt redirect hook)\\\",\\n    \\\"body\\\": \\\"Main script 15-20 seconds (natural, contractions, filler words)\\\",\\n    \\\"cta\\\": \\\"Call to action 3-5 seconds\\\"\\n  },\\n  \\\"midjourney_prompts\\\": [\\n    \\\"Prompt 1: Opening shot (hook visual)\\\",\\n    \\\"Prompt 2: Problem/Before shot\\\",\\n    \\\"Prompt 3: Product in action\\\",\\n    \\\"Prompt 4: After/Result shot\\\"\\n  ],\\n  \\\"timing\\\": [\\n    {\\\"image\\\": 1, \\\"duration\\\": 3, \\\"text_overlay\\\": \\\"hook text\\\"},\\n    {\\\"image\\\": 2, \\\"duration\\\": 5, \\\"text_overlay\\\": null},\\n    {\\\"image\\\": 3, \\\"duration\\\": 7, \\\"text_overlay\\\": null},\\n    {\\\"image\\\": 4, \\\"duration\\\": 5, \\\"text_overlay\\\": \\\"CTA text\\\"}\\n  ],\\n  \\\"performance_estimate\\\": {\\n    \\\"viral_score\\\": 1-10,\\n    \\\"estimated_ctr\\\": \\\"X-Y%\\\",\\n    \\\"target_completion_rate\\\": \\\"XX%\\\"\\n  }\\n}\\n\\nMIDJOURNEY PROMPT RULES:\\n- Always use: 'shot on iPhone 15 Pro, handheld camera with natural shake'\\n- Include: 'natural window lighting, golden hour sunlight'\\n- Add imperfections: 'slight motion blur, thumb partially visible in corner'\\n- UGC authenticity: 'mild grain, off-center composition, casual home environment'\\n- Format: '--style raw --v 6 --ar 9:16'\\n- AVOID banned words: nude, violence, drugs, etc.\\n\\nSCRIPT RULES:\\n- Use contractions (it's, that's, you're)\\n- Filler words ok: \\\"like\\\", \\\"literally\\\", \\\"okay so\\\"\\n- Natural pauses: *sigh*, *laugh*, em-dashes\\n- Typos in text overlays ok (lowercase, no punctuation)\\n- Address viewer directly: \\\"you\\\", \\\"your\\\"\\n\\nDOOMSCROLL HOOKS (examples):\\n- \\\"you've been scrolling for 10 minutes...\\\"\\n- \\\"POV: you're supposed to be working\\\"\\n- \\\"me pretending I didn't just waste an hour\\\"\\n- \\\"okay but hear me out—\\\"\\n\\nNow generate for the product.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Product: {{ $json.product_name }}\\n\\nDescription: {{ $json.product_description }}\\n\\nTarget audience: {{ $json.target_audience }}\\n\\nPrice: {{ $json.price }}\\n\\nUnique selling points: {{ $json.unique_selling_points.join(', ') }}\\n\\nGenerate viral TikTok video strategy + script + Midjourney prompts.\"\n    }\n  ],\n  \"temperature\": 0.9,\n  \"response_format\": { \"type\": \"json_object\" }\n}",
+        "options": {}
+      },
+      "id": "gpt-analyze",
+      "name": "GPT-4o Analyze & Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse GPT response and extract strategy\nconst response = $input.first().json;\nconst content = JSON.parse(response.choices[0].message.content);\n\nreturn {\n  json: {\n    strategy: content.strategy,\n    script: content.script,\n    midjourney_prompts: content.midjourney_prompts,\n    timing: content.timing,\n    performance_estimate: content.performance_estimate,\n    // Store original product data\n    product_name: $('Extract Product Data').first().json.product_name\n  }\n};"
+      },
+      "id": "parse-strategy",
+      "name": "Parse Strategy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "mode": "multiplex",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "midjourney-prompt",
+              "name": "midjourney_prompt",
+              "value": "={{ $json.midjourney_prompts[$index] }}",
+              "type": "string"
+            },
+            {
+              "id": "image-index",
+              "name": "image_index",
+              "value": "={{ $index }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "loop-prompts",
+      "name": "Loop Midjourney Prompts",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.useapi.net/v2/jobs/imagine",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"{{ $json.midjourney_prompt }}\",\n  \"webhook\": null\n}",
+        "options": {}
+      },
+      "id": "midjourney-generate",
+      "name": "Midjourney Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "useapi-key",
+          "name": "UseAPI Midjourney Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait-midjourney",
+      "name": "Wait for Midjourney",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1560, 300],
+      "webhookId": "wait-midjourney"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.useapi.net/v2/jobs/{{ $json.jobid }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-midjourney-status",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "useapi-key",
+          "name": "UseAPI Midjourney Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.result.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-midjourney-image",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-images",
+      "name": "Merge All Images",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Parse Strategy').first().json.script.hook }}. {{ $('Parse Strategy').first().json.script.body }}. {{ $('Parse Strategy').first().json.script.cta }}\",\n  \"model_id\": \"eleven_monolingual_v1\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.3,\n    \"use_speaker_boost\": true\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "elevenlabs-voiceover",
+      "name": "ElevenLabs Voiceover",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 520],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "elevenlabs-key",
+          "name": "ElevenLabs API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Select random music from pre-uploaded library\n// TODO: Upload music files to n8n and update paths here\nconst musicLibrary = [\n  '/data/music/energetic-1.mp3',\n  '/data/music/energetic-2.mp3',\n  '/data/music/upbeat-1.mp3',\n  '/data/music/calm-1.mp3'\n];\n\nconst strategy = $('Parse Strategy').first().json.strategy;\nconst mood = strategy.mood || 'energetic';\n\n// Filter by mood (for now just pick random)\nconst randomIndex = Math.floor(Math.random() * musicLibrary.length);\n\nreturn {\n  json: {\n    music_path: musicLibrary[randomIndex],\n    music_volume: 0.3 // Background music at 30%\n  }\n};"
+      },
+      "id": "select-music",
+      "name": "Select Background Music",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 740]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-assets",
+      "name": "Merge All Assets",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2440, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble Shotstack JSON for video rendering\nconst strategy = $('Parse Strategy').first().json;\nconst images = $input.all().filter(item => item.json.binary?.data);\nconst voiceover = $('ElevenLabs Voiceover').first();\nconst music = $('Select Background Music').first().json;\n\n// Build clips from images\nconst imageClips = strategy.timing.map((timing, index) => ({\n  asset: {\n    type: 'image',\n    src: `data:image/png;base64,${images[index].binary.data.toString('base64')}`\n  },\n  start: timing.duration * index,\n  length: timing.duration,\n  fit: 'cover',\n  scale: 1.05, // Slight zoom for Ken Burns effect\n  transition: {\n    in: 'fade',\n    out: 'fade'\n  },\n  effect: 'zoomIn'\n}));\n\n// Calculate total duration\nconst totalDuration = strategy.timing.reduce((sum, t) => sum + t.duration, 0);\n\n// Build Shotstack timeline\nconst timeline = {\n  soundtrack: {\n    src: music.music_path,\n    effect: 'fadeInFadeOut',\n    volume: music.music_volume\n  },\n  tracks: [\n    {\n      clips: imageClips\n    },\n    {\n      clips: [\n        {\n          asset: {\n            type: 'audio',\n            src: `data:audio/mpeg;base64,${voiceover.binary.data.toString('base64')}`\n          },\n          start: 0,\n          length: totalDuration,\n          volume: 1.0\n        }\n      ]\n    }\n  ]\n};\n\n// Add text overlays if specified\nconst textClips = strategy.timing\n  .filter(t => t.text_overlay)\n  .map(timing => ({\n    asset: {\n      type: 'title',\n      text: timing.text_overlay,\n      style: 'minimal',\n      color: '#ffffff',\n      size: 'medium',\n      background: 'rgba(0,0,0,0.5)',\n      position: 'center'\n    },\n    start: timing.duration * timing.image,\n    length: 2,\n    transition: {\n      in: 'fade',\n      out: 'fade'\n    }\n  }));\n\nif (textClips.length > 0) {\n  timeline.tracks.push({ clips: textClips });\n}\n\nreturn {\n  json: {\n    timeline: timeline,\n    output: {\n      format: 'mp4',\n      resolution: '1080',\n      aspectRatio: '9:16',\n      fps: 30,\n      quality: 'high'\n    }\n  }\n};"
+      },
+      "id": "build-shotstack-json",
+      "name": "Build Shotstack Timeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.shotstack.io/v1/render",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "shotstack-render",
+      "name": "Shotstack Render Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "shotstack-key",
+          "name": "Shotstack API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait-render",
+      "name": "Wait for Initial Render",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [3100, 420],
+      "webhookId": "wait-render"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.shotstack.io/v1/render/{{ $json.response.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-render-status",
+      "name": "Check Render Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3320, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "shotstack-key",
+          "name": "Shotstack API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "render-done",
+              "leftValue": "={{ $json.response.status }}",
+              "rightValue": "done",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-render-done",
+      "name": "If Render Done",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3540, 420]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait-retry",
+      "name": "Wait Before Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [3540, 640],
+      "webhookId": "wait-retry"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.response.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-video",
+      "name": "Download Final Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3760, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"video_url\": \"{{ $json.response.url }}\",\n  \"video_filename\": \"{{ $('Parse Strategy').first().json.product_name.toLowerCase().replace(/ /g, '-') }}-{{ Date.now() }}.mp4\",\n  \"script\": {{ JSON.stringify($('Parse Strategy').first().json.script) }},\n  \"strategy\": {{ JSON.stringify($('Parse Strategy').first().json.strategy) }},\n  \"midjourney_prompts\": {{ JSON.stringify($('Parse Strategy').first().json.midjourney_prompts) }},\n  \"performance_estimate\": {{ JSON.stringify($('Parse Strategy').first().json.performance_estimate) }},\n  \"render_time\": \"~2-3 minutes\",\n  \"version\": \"Budget V1\"\n}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [3980, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product Data": {
+      "main": [
+        [
+          {
+            "node": "GPT-4o Analyze & Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o Analyze & Generate": {
+      "main": [
+        [
+          {
+            "node": "Parse Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Strategy": {
+      "main": [
+        [
+          {
+            "node": "Loop Midjourney Prompts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ElevenLabs Voiceover",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Select Background Music",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Midjourney Prompts": {
+      "main": [
+        [
+          {
+            "node": "Midjourney Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Midjourney Generate": {
+      "main": [
+        [
+          {
+            "node": "Wait for Midjourney",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Midjourney": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Merge All Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Images": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs Voiceover": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Select Background Music": {
+      "main": [
+        [
+          {
+            "node": "Merge All Assets",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Assets": {
+      "main": [
+        [
+          {
+            "node": "Build Shotstack Timeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Shotstack Timeline": {
+      "main": [
+        [
+          {
+            "node": "Shotstack Render Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shotstack Render Video": {
+      "main": [
+        [
+          {
+            "node": "Wait for Initial Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Initial Render": {
+      "main": [
+        [
+          {
+            "node": "Check Render Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Render Status": {
+      "main": [
+        [
+          {
+            "node": "If Render Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Render Done": {
+      "main": [
+        [
+          {
+            "node": "Download Final Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Before Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Before Retry": {
+      "main": [
+        [
+          {
+            "node": "Check Render Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Final Video": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2026-01-22T00:00:00.000Z",
+      "updatedAt": "2026-01-22T00:00:00.000Z",
+      "id": "video-agent",
+      "name": "Video Agent"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-22T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

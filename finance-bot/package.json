@@ -1,0 +1,21 @@
+{
+  "name": "finance-bot",
+  "version": "2.0.0",
+  "description": "Telegram Finance Bot with multi-tenant support",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create finance-bot-db",
+    "db:migrate": "wrangler d1 execute finance-bot-db --file=./schema.sql",
+    "db:migrate:local": "wrangler d1 execute finance-bot-db --local --file=./schema.sql",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARS Creative Agent - Генератор Креативов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e74c3c;
+        }
+
+        label .optional {
+            color: #95a5a6;
+            font-weight: normal;
+            font-size: 12px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .result-header h3 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .creative-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .creative-section h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .creative-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .creative-item h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .script-part {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .script-part strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .script-part p {
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            background: #e8eaf6;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #c33;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .example-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .example-link:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 TARS Creative Agent</h1>
+            <p>Генератор вирусных креативов для TikTok и Meta Ads</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="simple">Простая форма</button>
+                <button class="tab" data-tab="advanced">Расширенная</button>
+                <button class="tab" data-tab="json">JSON</button>
+            </div>
+
+            <!-- Простая форма -->
+            <div class="tab-content active" id="simple">
+                <form id="simpleForm">
+                    <div class="form-section">
+                        <h3>Основная информация</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Название товара <span class="required">*</span></label>
+                                <input type="text" id="simple_name" placeholder="Magic Cleaning Sponge" required>
+                                <div class="helper-text">Как товар называется на AliExpress</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Категория <span class="required">*</span></label>
+                                <input type="text" id="simple_category" placeholder="Home & Garden" required>
+                                <div class="helper-text">Kitchen, Beauty, Health, etc.</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Старая цена ($) <span class="required">*</span></label>
+                                <input type="number" step="0.01" id="simple_price" placeholder="9.99" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Цена со скидкой ($) <span class="required">*</span></label>
+                                <input type="number" step="0.01" id="simple_sale_price" placeholder="4.99" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Скидка (%) <span class="required">*</span></label>
+                            <input type="number" id="simple_discount" placeholder="50" required>
+                            <div class="helper-text">Будет рассчитана автоматически, но можешь указать вручную</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>О товаре</h3>
+
+                        <div class="form-group">
+                            <label>Главная выгода <span class="required">*</span></label>
+                            <textarea id="simple_benefit" placeholder="Removes any stain without chemicals - just add water" required></textarea>
+                            <div class="helper-text">Что делает товар? Какую пользу даёт?</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Какую проблему решает <span class="required">*</span></label>
+                            <textarea id="simple_problem" placeholder="Stubborn stains on walls, floors, shoes" required></textarea>
+                            <div class="helper-text">С какой болью сталкиваются люди?</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Целевая аудитория <span class="required">*</span></label>
+                            <input type="text" id="simple_audience" placeholder="Busy moms 28-45" required>
+                            <div class="helper-text">Кто будет покупать?</div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="fillExample()">
+                            💡 Загрузить пример
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            🚀 Создать креативы
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Расширенная форма -->
+            <div class="tab-content" id="advanced">
+                <form id="advancedForm">
+                    <div class="form-section">
+                        <h3>Информация о товаре</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Название товара <span class="required">*</span></label>
+                                <input type="text" id="adv_name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Категория <span class="required">*</span></label>
+                                <input type="text" id="adv_category" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ссылка на AliExpress <span class="optional">(опционально)</span></label>
+                            <input type="url" id="adv_url" placeholder="https://aliexpress.com/item/...">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Старая цена ($) <span class="required">*</span></label>
+                                <input type="number" step="0.01" id="adv_price" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Цена со скидкой ($) <span class="required">*</span></label>
+                                <input type="number" step="0.01" id="adv_sale_price" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Скидка (%) <span class="required">*</span></label>
+                                <input type="number" id="adv_discount" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Рейтинг <span class="optional">(опционально)</span></label>
+                                <input type="number" step="0.1" min="0" max="5" id="adv_rating" placeholder="4.8">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Количество отзывов <span class="optional">(опционально)</span></label>
+                            <input type="number" id="adv_reviews" placeholder="3240">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Детали товара</h3>
+
+                        <div class="form-group">
+                            <label>Главная выгода <span class="required">*</span></label>
+                            <textarea id="adv_benefit" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Проблема, которую решает <span class="required">*</span></label>
+                            <textarea id="adv_problem" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Уникальное преимущество (USP) <span class="optional">(опционально)</span></label>
+                            <textarea id="adv_usp" placeholder="Works on surfaces other sponges can't clean"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ключевые фичи <span class="optional">(опционально)</span></label>
+                            <textarea id="adv_features" placeholder="- No chemicals needed&#10;- Works on 100+ surfaces&#10;- Lasts 3x longer"></textarea>
+                            <div class="helper-text">По одной фиче на строку (с дефисом или без)</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Целевая аудитория</h3>
+
+                        <div class="form-group">
+                            <label>Основная аудитория <span class="required">*</span></label>
+                            <input type="text" id="adv_audience_primary" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Вторичная аудитория <span class="optional">(опционально)</span></label>
+                            <input type="text" id="adv_audience_secondary" placeholder="Renters who need to clean walls">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Боли аудитории <span class="optional">(опционально)</span></label>
+                            <textarea id="adv_pain_points" placeholder="- Kids drawings on walls&#10;- Coffee stains on counters&#10;- Scuff marks on floors"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="fillAdvancedExample()">
+                            💡 Загрузить пример
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            🚀 Создать креативы
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- JSON форма -->
+            <div class="tab-content" id="json">
+                <div class="form-section">
+                    <h3>JSON формат</h3>
+                    <p style="margin-bottom: 15px; color: #666;">
+                        Если ты знаком с JSON, можешь вставить данные напрямую.
+                        <a href="#" class="example-link" onclick="showJsonExample(); return false;">Показать пример →</a>
+                    </p>
+
+                    <form id="jsonForm">
+                        <div class="form-group">
+                            <label>Вставь JSON данные</label>
+                            <textarea id="json_input" style="min-height: 400px; font-family: 'Courier New', monospace;"></textarea>
+                            <div class="helper-text">Формат должен совпадать с примером</div>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="button" class="btn-secondary" onclick="showJsonExample()">
+                                💡 Показать пример
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                🚀 Создать креативы
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <h3 style="color: #667eea; margin-bottom: 10px;">Генерируем креативы...</h3>
+                <p style="color: #666;">Это займёт 10-30 секунд</p>
+            </div>
+
+            <!-- Error -->
+            <div class="error" id="error"></div>
+
+            <!-- Result -->
+            <div class="result" id="result">
+                <div class="result-header">
+                    <h3>✨ Креативы готовы!</h3>
+                    <button class="copy-btn" onclick="copyAllResults()">📋 Копировать всё</button>
+                </div>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Simple form submit
+        document.getElementById('simpleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                product_info: {
+                    name: document.getElementById('simple_name').value,
+                    category: document.getElementById('simple_category').value,
+                    price: parseFloat(document.getElementById('simple_price').value),
+                    sale_price: parseFloat(document.getElementById('simple_sale_price').value),
+                    discount_percent: parseInt(document.getElementById('simple_discount').value)
+                },
+                product_details: {
+                    main_benefit: document.getElementById('simple_benefit').value,
+                    problem_solved: document.getElementById('simple_problem').value
+                },
+                target_audience: {
+                    primary: document.getElementById('simple_audience').value
+                }
+            };
+
+            await generateCreatives(data);
+        });
+
+        // Advanced form submit
+        document.getElementById('advancedForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const features = document.getElementById('adv_features').value
+                .split('\n')
+                .map(f => f.trim().replace(/^-\s*/, ''))
+                .filter(f => f);
+
+            const painPoints = document.getElementById('adv_pain_points').value
+                .split('\n')
+                .map(p => p.trim().replace(/^-\s*/, ''))
+                .filter(p => p);
+
+            const data = {
+                product_info: {
+                    name: document.getElementById('adv_name').value,
+                    category: document.getElementById('adv_category').value,
+                    aliexpress_url: document.getElementById('adv_url').value || undefined,
+                    price: parseFloat(document.getElementById('adv_price').value),
+                    sale_price: parseFloat(document.getElementById('adv_sale_price').value),
+                    discount_percent: parseInt(document.getElementById('adv_discount').value),
+                    rating: parseFloat(document.getElementById('adv_rating').value) || undefined,
+                    reviews_count: parseInt(document.getElementById('adv_reviews').value) || undefined
+                },
+                product_details: {
+                    main_benefit: document.getElementById('adv_benefit').value,
+                    problem_solved: document.getElementById('adv_problem').value,
+                    usp: document.getElementById('adv_usp').value || undefined,
+                    features: features.length > 0 ? features : undefined
+                },
+                target_audience: {
+                    primary: document.getElementById('adv_audience_primary').value,
+                    secondary: document.getElementById('adv_audience_secondary').value || undefined,
+                    pain_points: painPoints.length > 0 ? painPoints : undefined
+                }
+            };
+
+            await generateCreatives(data);
+        });
+
+        // JSON form submit
+        document.getElementById('jsonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            try {
+                const data = JSON.parse(document.getElementById('json_input').value);
+                await generateCreatives(data);
+            } catch (error) {
+                showError('Ошибка в JSON формате: ' + error.message);
+            }
+        });
+
+        // Generate creatives
+        async function generateCreatives(data) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+
+            loading.classList.add('show');
+            error.classList.remove('show');
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch('http://localhost:5678/webhook/creative-agent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Сервер вернул ошибку: ' + response.status);
+                }
+
+                const json = await response.json();
+                displayResults(json);
+
+                result.classList.add('show');
+
+                // Scroll to results
+                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                showError('Ошибка: ' + err.message + '\n\nУбедись что n8n запущен (http://localhost:5678) и workflow активен.');
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Display results
+        function displayResults(data) {
+            const container = document.getElementById('resultContent');
+            let html = '';
+
+            // Stats
+            if (data.performance_predictions) {
+                html += '<div class="creative-section">';
+                html += '<h4>📊 Прогнозы эффективности</h4>';
+                html += '<div class="stats">';
+
+                if (data.performance_predictions.tiktok) {
+                    const tt = data.performance_predictions.tiktok;
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-value">${tt.estimated_views || 'N/A'}</div>
+                            <div class="stat-label">TikTok Просмотры</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${tt.estimated_engagement_rate || 'N/A'}</div>
+                            <div class="stat-label">Вовлечённость</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${tt.viral_potential_score || 'N/A'}/10</div>
+                            <div class="stat-label">Вирусность</div>
+                        </div>
+                    `;
+                }
+
+                if (data.performance_predictions.meta_ads) {
+                    const meta = data.performance_predictions.meta_ads;
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-value">${meta.estimated_ctr || 'N/A'}</div>
+                            <div class="stat-label">Meta Ads CTR</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${meta.estimated_cpc || 'N/A'}</div>
+                            <div class="stat-label">CPC</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${meta.estimated_roas || 'N/A'}</div>
+                            <div class="stat-label">ROAS</div>
+                        </div>
+                    `;
+                }
+
+                html += '</div></div>';
+            }
+
+            // TikTok Creatives
+            if (data.tiktok_creatives && data.tiktok_creatives.length > 0) {
+                html += '<div class="creative-section">';
+                html += '<h4>🎵 TikTok Креативы (' + data.tiktok_creatives.length + ')</h4>';
+
+                data.tiktok_creatives.forEach((creative, index) => {
+                    html += '<div class="creative-item">';
+                    html += `<h5>${index + 1}. ${creative.type || 'Креатив'} (${creative.duration || '15 сек'})</h5>`;
+
+                    if (creative.script) {
+                        const script = creative.script;
+
+                        if (script.hook) {
+                            html += '<div class="script-part">';
+                            html += '<strong>🎣 Hook (0-2 сек)</strong>';
+                            html += `<p><strong>Визуал:</strong> ${script.hook.visual || 'N/A'}</p>`;
+                            html += `<p><strong>Текст:</strong> ${script.hook.text_overlay || 'N/A'}</p>`;
+                            html += `<p><strong>Звук:</strong> ${script.hook.audio || 'N/A'}</p>`;
+                            html += '</div>';
+                        }
+
+                        if (script.problem) {
+                            html += '<div class="script-part">';
+                            html += '<strong>😰 Problem (2-7 сек)</strong>';
+                            html += `<p><strong>Визуал:</strong> ${script.problem.visual || 'N/A'}</p>`;
+                            html += `<p><strong>Текст:</strong> ${script.problem.text_overlay || 'N/A'}</p>`;
+                            html += '</div>';
+                        }
+
+                        if (script.solution) {
+                            html += '<div class="script-part">';
+                            html += '<strong>✨ Solution (7-12 сек)</strong>';
+                            html += `<p><strong>Визуал:</strong> ${script.solution.visual || 'N/A'}</p>`;
+                            html += `<p><strong>Текст:</strong> ${script.solution.text_overlay || 'N/A'}</p>`;
+                            html += '</div>';
+                        }
+
+                        if (script.cta) {
+                            html += '<div class="script-part">';
+                            html += '<strong>🎯 CTA (12-15 сек)</strong>';
+                            html += `<p><strong>Визуал:</strong> ${script.cta.visual || 'N/A'}</p>`;
+                            html += `<p><strong>Текст:</strong> ${script.cta.text_overlay || 'N/A'}</p>`;
+                            html += '</div>';
+                        }
+                    }
+
+                    if (creative.caption || creative.hashtags || creative.music_suggestion) {
+                        html += '<div class="metadata">';
+                        if (creative.caption) html += `<span class="tag">📝 ${creative.caption}</span>`;
+                        if (creative.hashtags) creative.hashtags.forEach(tag => {
+                            html += `<span class="tag">${tag}</span>`;
+                        });
+                        if (creative.music_suggestion) html += `<span class="tag">🎵 ${creative.music_suggestion}</span>`;
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // Meta Ads Creatives
+            if (data.meta_ads_creatives && data.meta_ads_creatives.length > 0) {
+                html += '<div class="creative-section">';
+                html += '<h4>📱 Meta Ads Креативы (' + data.meta_ads_creatives.length + ')</h4>';
+
+                data.meta_ads_creatives.forEach((creative, index) => {
+                    html += '<div class="creative-item">';
+                    html += `<h5>${index + 1}. ${creative.type || 'Креатив'}</h5>`;
+
+                    if (creative.script) {
+                        html += '<div class="script-part">';
+                        html += '<pre>' + JSON.stringify(creative.script, null, 2) + '</pre>';
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // Image prompts
+            if (data.image_prompts && data.image_prompts.midjourney_prompts) {
+                html += '<div class="creative-section">';
+                html += '<h4>🎨 Промпты для картинок</h4>';
+
+                data.image_prompts.midjourney_prompts.forEach((prompt, index) => {
+                    html += '<div class="creative-item">';
+                    html += `<h5>${prompt.purpose || 'Prompt ' + (index + 1)}</h5>`;
+                    html += `<p style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 13px;">${prompt.prompt}</p>`;
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // Next steps
+            if (data.next_steps && data.next_steps.length > 0) {
+                html += '<div class="creative-section">';
+                html += '<h4>📋 Следующие шаги</h4>';
+                html += '<ol style="margin-left: 20px; line-height: 1.8;">';
+                data.next_steps.forEach(step => {
+                    html += `<li>${step}</li>`;
+                });
+                html += '</ol>';
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+
+            // Store full data for copy
+            window.currentResults = data;
+        }
+
+        // Show error
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('show');
+        }
+
+        // Copy all results
+        function copyAllResults() {
+            if (window.currentResults) {
+                const text = JSON.stringify(window.currentResults, null, 2);
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('✅ Все результаты скопированы в буфер обмена!');
+                });
+            }
+        }
+
+        // Fill simple example
+        function fillExample() {
+            document.getElementById('simple_name').value = 'Magic Cleaning Sponge';
+            document.getElementById('simple_category').value = 'Home & Garden';
+            document.getElementById('simple_price').value = '9.99';
+            document.getElementById('simple_sale_price').value = '4.99';
+            document.getElementById('simple_discount').value = '50';
+            document.getElementById('simple_benefit').value = 'Removes any stain without chemicals - just add water';
+            document.getElementById('simple_problem').value = 'Stubborn stains on walls, floors, and shoes';
+            document.getElementById('simple_audience').value = 'Busy moms 28-45';
+        }
+
+        // Fill advanced example
+        function fillAdvancedExample() {
+            document.getElementById('adv_name').value = 'Magic Cleaning Sponge - Melamine Foam';
+            document.getElementById('adv_category').value = 'Home & Garden';
+            document.getElementById('adv_url').value = 'https://aliexpress.com/item/1234567890.html';
+            document.getElementById('adv_price').value = '9.99';
+            document.getElementById('adv_sale_price').value = '4.99';
+            document.getElementById('adv_discount').value = '50';
+            document.getElementById('adv_rating').value = '4.8';
+            document.getElementById('adv_reviews').value = '3240';
+            document.getElementById('adv_benefit').value = 'Removes any stain without chemicals - just add water';
+            document.getElementById('adv_problem').value = 'Stubborn stains on walls, floors, shoes';
+            document.getElementById('adv_usp').value = 'Works on surfaces other sponges can\'t clean';
+            document.getElementById('adv_features').value = '- No chemicals needed\n- Works on 100+ surfaces\n- Lasts 3x longer than regular sponges';
+            document.getElementById('adv_audience_primary').value = 'Busy moms 28-45';
+            document.getElementById('adv_audience_secondary').value = 'Renters who need to clean walls before moving out';
+            document.getElementById('adv_pain_points').value = '- Kids drawings on walls\n- Coffee stains on counters\n- Scuff marks on floors';
+        }
+
+        // Show JSON example
+        function showJsonExample() {
+            const example = {
+                "product_info": {
+                    "name": "Magic Cleaning Sponge",
+                    "category": "Home & Garden",
+                    "price": 9.99,
+                    "sale_price": 4.99,
+                    "discount_percent": 50,
+                    "rating": 4.8,
+                    "reviews_count": 3240
+                },
+                "product_details": {
+                    "main_benefit": "Removes any stain without chemicals - just add water",
+                    "problem_solved": "Stubborn stains on walls, floors, shoes",
+                    "usp": "Works on surfaces other sponges can't clean",
+                    "features": [
+                        "No chemicals needed",
+                        "Works on 100+ surfaces",
+                        "Lasts 3x longer"
+                    ]
+                },
+                "target_audience": {
+                    "primary": "Busy moms 28-45",
+                    "secondary": "Renters who need to clean walls",
+                    "pain_points": [
+                        "Kids drawings on walls",
+                        "Coffee stains on counters"
+                    ]
+                }
+            };
+
+            document.getElementById('json_input').value = JSON.stringify(example, null, 2);
+        }
+    </script>
+</body>
+</html>

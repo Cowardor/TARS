@@ -1,0 +1,44 @@
+name = "finance-bot"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (set in Cloudflare Dashboard)
+# TELEGRAM_TOKEN = "your-bot-token"
+#
+# Open Banking (choose one):
+# Option 1: Salt Edge (recommended - sandbox available)
+# SALTEDGE_APP_ID = "your-app-id"
+# SALTEDGE_SECRET = "your-secret"
+# SALTEDGE_SANDBOX = "true"  # Set to "false" for production
+#
+# Option 2: Nordigen/GoCardless (50 free connections/month)
+# NORDIGEN_SECRET_ID = "your-secret-id"
+# NORDIGEN_SECRET_KEY = "your-secret-key"
+
+# KV Namespace for deduplication
+[[kv_namespaces]]
+binding = "FINANCE_KV"
+id = "a838536c9d4341839751a72e549d80e0"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "finance-bot-db"
+database_id = "e56797a7-87bf-407c-a063-f5d5efd6399d"
+
+# Cron triggers for scheduled notifications
+[triggers]
+crons = [
+  "0 20 * * *",    # Daily reminder at 21:00 Warsaw (20:00 UTC)
+  "0 9 1 * *",     # Monthly report on 1st at 10:00 Warsaw (09:00 UTC)
+  "0 */6 * * *"    # Bank sync every 6 hours
+]
+
+# Production environment
+[env.production]
+name = "finance-bot"
+
+# Development environment
+[env.dev]
+name = "finance-bot-dev"

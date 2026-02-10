@@ -1,0 +1,77 @@
+# ================================
+# TARS Project - Git Ignore
+# ================================
+
+# Environment variables (CRITICAL - contains API keys)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Build output
+dist/
+build/
+out/
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+
+# TypeScript
+*.tsbuildinfo
+
+# Database files (local n8n data)
+*.db-journal
+*.db.bak
+
+# Temporary files
+temp/
+tmp/
+
+# MCP configuration (contains API keys)
+.mcp.json
+
+# n8n local data
+.n8n/
+
+# Personal configs
+claude_desktop_config.json
+
+# Package tarballs
+*.tgz
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Windows artifacts
+nul

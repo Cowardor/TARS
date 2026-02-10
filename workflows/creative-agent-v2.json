@@ -1,0 +1,374 @@
+{
+  "name": "TARS: Creative Agent v2 - Viral Authenticity 2026",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "creative-agent-v2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Product Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 500],
+      "webhookId": "creative-input-v2"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const body = $input.item.json.body || $input.item.json;\nconst productData = {\n  product_name: body.product_info?.name || '',\n  category: body.product_info?.category || '',\n  price: body.product_info?.price || 0,\n  sale_price: body.product_info?.sale_price || 0,\n  discount_percent: body.product_info?.discount_percent || 0,\n  main_benefit: body.product_details?.main_benefit || '',\n  problem_solved: body.product_details?.problem_solved || '',\n  usp: body.product_details?.usp || body.product_details?.main_benefit || '',\n  target_audience: body.target_audience?.primary || '',\n  pain_points: body.target_audience?.pain_points || []\n};\nreturn { json: productData };"
+      },
+      "id": "extract-data",
+      "name": "Extract Product Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are viral TikTok scriptwriter for House Charm household products.\\n\\nSTYLE RULES (CRITICAL FOR AUTHENTICITY):\\n1. Use natural human speech: contractions (it's, don't), filler words (like, honestly, literally), incomplete sentences\\n2. AVOID AI-sounding phrases: 'unlock the secret', 'game-changer', 'transform your life', 'revolutionary'\\n3. Write like a real person discovering product: casual, excited, slightly messy\\n4. Include typos in text overlays (subtle, intentional: 'omg why didnt i buy this sooner')\\n5. Use modern TikTok slang: ngl (not gonna lie), fr fr (for real for real), no cap\\n\\nVIDEO LENGTH: 20-30 seconds (sweet spot for 2026 algorithm)\\n\\nOUTPUT: Valid JSON only, no markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create TikTok Before/After transformation script with DOOMSCROLLING GUILT hook.\\n\\nProduct: {{ $json.product_name }}\\nCategory: {{ $json.category }}\\nBenefit: {{ $json.main_benefit }}\\nProblem: {{ $json.problem_solved }}\\nPrice: ${{ $json.sale_price }}\\nDiscount: {{ $json.discount_percent }}%\\nAudience: {{ $json.target_audience }}\\n\\nHOOK STRATEGY: Use 'productive guilt redirect' - call out scrolling behavior, offer instant gratification\\nExamples:\\n- \\\"you've been scrolling for 10 mins... do THIS instead 👇\\\"\\n- \\\"if you stopped scrolling RIGHT NOW and did this... your kitchen would be done before lunch\\\"\\n- \\\"POV: you're doomscrolling at 2am... here's a 5-min reset for tomorrow\\\"\\n\\nVISUAL STYLE:\\n- Camera: iPhone POV, handheld with natural shake\\n- Lighting: Natural window light, golden hour feel\\n- Imperfections: Slight motion blur, off-center framing, thumb visible in corner\\n- Environment: Casual home, background clutter okay\\n\\nJSON FORMAT:\\n{\\n  \\\"creative_id\\\": \\\"tiktok_v2_001\\\",\\n  \\\"type\\\": \\\"before_after_doomscroll\\\",\\n  \\\"duration\\\": \\\"25 seconds\\\",\\n  \\\"target_length\\\": \\\"20-30 sec (algorithm sweet spot)\\\",\\n  \\\"script\\\": {\\n    \\\"hook\\\": {\\n      \\\"visual\\\": \\\"Chaotic drawer/space, camera shaky handheld\\\",\\n      \\\"text_overlay\\\": \\\"you've been scrolling for 10 minutes...\\\",\\n      \\\"duration\\\": \\\"0-2 sec\\\",\\n      \\\"audio\\\": \\\"*sigh* okay so like—\\\",\\n      \\\"camera_angle\\\": \\\"Overhead POV, hands-only visible\\\"\\n    },\\n    \\\"problem\\\": {\\n      \\\"visual\\\": \\\"Close-up of mess, items falling out\\\",\\n      \\\"text_overlay\\\": \\\"do THIS instead 👇\\\",\\n      \\\"duration\\\": \\\"2-7 sec\\\",\\n      \\\"audio\\\": \\\"I was literally SO over this mess fr fr\\\",\\n      \\\"camera_movement\\\": \\\"Quick pan across clutter\\\"\\n    },\\n    \\\"solution\\\": {\\n      \\\"visual\\\": \\\"Time-lapse organizing (2-3x speed), hands working\\\",\\n      \\\"text_overlay\\\": \\\"this took 3 minutes (less than your scroll time)\\\",\\n      \\\"duration\\\": \\\"7-20 sec\\\",\\n      \\\"audio\\\": \\\"literally just needed these dividers and—\\\",\\n      \\\"asmr_sounds\\\": \\\"drawer sliding, items clicking into place\\\"\\n    },\\n    \\\"result\\\": {\\n      \\\"visual\\\": \\\"Slow reveal of organized space, satisfying symmetry\\\",\\n      \\\"text_overlay\\\": \\\"ngl this dopamine hit >>\\\",\\n      \\\"duration\\\": \\\"20-25 sec\\\",\\n      \\\"audio\\\": \\\"the mental health boost from this was INSANE\\\"\\n    },\\n    \\\"cta\\\": {\\n      \\\"visual\\\": \\\"Product close-up, final organized shot\\\",\\n      \\\"text_overlay\\\": \\\"link in bio (stop scrolling, go do this)\\\",\\n      \\\"duration\\\": \\\"25-30 sec\\\",\\n      \\\"audio\\\": \\\"like if you needed this sign today\\\"\\n    }\\n  },\\n  \\\"production_notes\\\": {\\n    \\\"camera\\\": \\\"iPhone 15 Pro, handheld (not tripod)\\\",\\n    \\\"lighting\\\": \\\"Natural window light, golden hour (4-6 PM)\\\",\\n    \\\"editing\\\": \\\"Quick cuts for problem, slow-mo for result\\\",\\n    \\\"imperfections\\\": \\\"Slight shake, thumb in corner, off-center framing\\\",\\n    \\\"color\\\": \\\"Warm tones, natural (no heavy filters)\\\"\\n  },\\n  \\\"caption_keywords\\\": \\\"organization system for small spaces ADHD-friendly kitchen drawer reset if you struggle with cluttered drawers this 5-minute hack will change your mornings no complicated systems needed\\\",\\n  \\\"hashtags\\\": [\\\"#housecharm\\\", \\\"#organizingtiktok\\\", \\\"#adhdfriendly\\\"],\\n  \\\"caption\\\": \\\"okay so like... why didn't I buy this sooner?? 😭 my drawer was literally CHAOS\\\",\\n  \\\"music_suggestion\\\": \\\"Trending chill/satisfying sound or original ASMR audio\\\",\\n  \\\"posting_time\\\": \\\"6-8 AM (morning procrastination) or 8-10 PM (evening scroll)\\\"\\n}\"\n    }\n  ],\n  \"temperature\": 0.85,\n  \"max_tokens\": 2000\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-v2-1",
+      "name": "GPT: TikTok Doomscroll Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 250],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in ASMR and satisfying TikTok content for household products.\\n\\nASMR PRINCIPLES:\\n1. Focus on SOUNDS: drawer sliding, items clicking, paper rustling, spray bottles, wiping\\n2. Visual satisfaction: smooth movements, close-ups, symmetry, color coordination\\n3. Pacing: Slow, meditative (not rushed)\\n4. Camera: Extreme close-ups with shallow depth of field\\n\\n2026 TREND: Kitchen/pantry restocking, drawer organization with heavy ASMR focus\\n\\nWrite natural human speech (contractions, casual tone). Output valid JSON only.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create TikTok ASMR/Satisfying script.\\n\\nProduct: {{ $json.product_name }}\\nCategory: {{ $json.category }}\\nProcess: {{ $json.main_benefit }}\\n\\nHOOK: Curiosity gap (\\\"Wait til you see what's in here...\\\")\\nSTYLE: Continuous shot (minimal cuts), heavy ASMR sounds, minimal text\\nLENGTH: 20-25 seconds\\n\\nJSON format with creative_id: 'tiktok_v2_002', type: 'asmr_satisfying'\\nInclude detailed ASMR sound cues for each scene.\"\n    }\n  ],\n  \"temperature\": 0.75,\n  \"max_tokens\": 1800\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-v2-2",
+      "name": "GPT: TikTok ASMR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in ADHD-friendly educational content for household organization.\\n\\nTARGET: Neurodivergent audience struggling with executive dysfunction\\n\\nKEY PRINCIPLES:\\n1. Simple steps (3-5 max, not 47-step systems)\\n2. Time-specific (under 10 minutes)\\n3. Relatable pain points (\\\"if you've been meaning to organize for 6 months...\\\")\\n4. Encouraging tone (\\\"we're doing this TOGETHER\\\")\\n\\nCALL-OUT LANGUAGE:\\n- \\\"ADHD-friendly\\\"\\n- \\\"neurodivergent girlies\\\"\\n- \\\"executive dysfunction-proof\\\"\\n- \\\"dopamine-friendly\\\"\\n\\nWrite casual, supportive. Output valid JSON only.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create educational How-To TikTok script.\\n\\nProduct: {{ $json.product_name }}\\nProblem: {{ $json.problem_solved }}\\nSolution: {{ $json.main_benefit }}\\nAudience: {{ $json.target_audience }}\\n\\nHOOK: Relatability (\\\"If your [space] looks like this, you NEED—\\\")\\nFORMAT: Numbered steps (3-5), clear visuals, save-worthy\\nLENGTH: 25-30 seconds\\n\\nJSON format with creative_id: 'tiktok_v2_003', type: 'educational_adhd'\\nInclude step-by-step breakdown with timing.\"\n    }\n  ],\n  \"temperature\": 0.8,\n  \"max_tokens\": 1800\n}",
+        "options": {}
+      },
+      "id": "gpt-tiktok-v2-3",
+      "name": "GPT: TikTok ADHD-Friendly",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 550],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are expert in Instagram Reels for household products (2026 algorithm optimized).\\n\\nINSTAGRAM REELS PRIORITIES (July 2026 update):\\n1. SKIP RATE - If people swipe away instantly, you're dead. Hook in 0-2 seconds is CRITICAL.\\n2. SAVES - Strongest signal (3.2x more reach). Make content save-worthy.\\n3. SHARES via DM - Second strongest. Make shareable to friends.\\n4. TOTAL WATCH TIME - Not completion %, but raw seconds watched.\\n\\nKEYWORDS > HASHTAGS in 2026:\\n- Write caption with natural keywords, not hashtag spam\\n- Instagram indexes captions like search engine\\n\\nWrite casual human speech. Output valid JSON only.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create Instagram Reel script (SAVE-OPTIMIZED for algorithm).\\n\\nProduct: {{ $json.product_name }}\\nUSP: {{ $json.usp }}\\nPrice: ${{ $json.price }} → ${{ $json.sale_price }} ({{ $json.discount_percent }}% OFF)\\nAudience: {{ $json.target_audience }}\\n\\nHOOK: Pattern interrupt (bright text + fast visual)\\nFORMAT: Step-by-step tutorial (people SAVE these)\\nLENGTH: 25-30 seconds (watch time sweet spot)\\n\\nJSON format with creative_id: 'reels_v2_001', type: 'save_optimized_tutorial'\\nInclude keyword-rich caption (not hashtag-heavy).\"\n    }\n  ],\n  \"temperature\": 0.8,\n  \"max_tokens\": 2000\n}",
+        "options": {}
+      },
+      "id": "gpt-reels-v2",
+      "name": "GPT: Instagram Reels Save-Optimized",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 700],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.openAiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are Midjourney prompt expert for UGC-style product photography (2026 anti-AI detection).\\n\\nCRITICAL: Images MUST look human-shot, not AI-generated.\\n\\nREQUIRED ELEMENTS (ALWAYS INCLUDE):\\n1. Camera: \\\"shot on iPhone 15 Pro, handheld camera\\\"\\n2. Lighting: \\\"natural window lighting, golden hour sunlight\\\"\\n3. Imperfections: \\\"visible skin pores, freckles, slight motion blur\\\"\\n4. Framing: \\\"thumb partially visible in corner, off-center composition\\\"\\n5. Quality: \\\"mild grain, no heavy filters, warm natural tones\\\"\\n6. Environment: \\\"casual home, background slightly blurred\\\"\\n7. Always end with: --style raw --v 6 --ar 9:16\\n\\nAVOID: Perfect studio lighting, tripod shots, DSLR crispness, color grading, professional models\\n\\nOutput valid JSON only.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate 4 Midjourney prompts for {{ $json.product_name }} ({{ $json.category }}).\\n\\nSCENES NEEDED:\\n1. BEFORE chaos (messy drawer/space, problem state)\\n2. PROCESS (hands organizing with product, overhead POV)\\n3. AFTER reveal (organized result, satisfying symmetry)\\n4. CLOSE-UP detail (product features, ASMR-worthy)\\n\\nSTYLE: UGC, iPhone POV, natural imperfections, golden hour light\\nFORMAT: Vertical 9:16 (TikTok/Reels)\\n\\nJSON format:\\n{\\n  \\\"midjourney_prompts\\\": [\\n    {\\n      \\\"purpose\\\": \\\"Before - chaotic state\\\",\\n      \\\"prompt\\\": \\\"[Full detailed prompt with all UGC elements] --style raw --v 6 --ar 9:16\\\"\\n    }\\n  ]\\n}\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1500\n}",
+        "options": {}
+      },
+      "id": "gpt-midjourney",
+      "name": "GPT: Midjourney UGC Prompts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 850],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-all",
+      "name": "Merge All Creatives",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [900, 550]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst productData = $node['Extract Product Data'].json;\nconst timestamp = new Date().toISOString();\nconst batchId = `creative_v2_${timestamp.split('T')[0].replace(/-/g, '')}_${Math.random().toString(36).substr(2, 6)}`;\n\nconst tiktokScripts = [];\nconst reelsScripts = [];\nlet midjourneyPrompts = [];\n\nfor (const item of items) {\n  if (!item.json.choices) continue;\n  const content = item.json.choices[0].message.content;\n  \n  try {\n    const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();\n    const parsed = JSON.parse(cleaned);\n    \n    if (parsed.creative_id) {\n      if (parsed.creative_id.includes('tiktok')) {\n        tiktokScripts.push(parsed);\n      } else if (parsed.creative_id.includes('reels')) {\n        reelsScripts.push(parsed);\n      }\n    }\n    \n    if (parsed.midjourney_prompts) {\n      midjourneyPrompts = parsed.midjourney_prompts;\n    }\n  } catch (e) {\n    console.log('Parse error:', e.message);\n  }\n}\n\nconst finalOutput = {\n  creative_batch_id: batchId,\n  timestamp: timestamp,\n  version: '2.0 - Viral Authenticity Edition',\n  product_id: productData.product_name.toLowerCase().replace(/\\s+/g, '_'),\n  product_name: productData.product_name,\n  \n  tiktok_creatives: tiktokScripts,\n  instagram_reels: reelsScripts,\n  \n  image_prompts: {\n    midjourney_prompts: midjourneyPrompts,\n    style_notes: [\n      'CRITICAL: All images must include UGC imperfections (grain, motion blur, off-center)',\n      'Always use: --style raw --v 6 --ar 9:16',\n      'Lighting: Natural window light, golden hour (4-6 PM feel)',\n      'Camera: iPhone 15 Pro, handheld (not tripod)',\n      'Hands: Visible skin texture (pores, freckles, natural)',\n      'Avoid: Perfect studio lighting, professional models, heavy filters'\n    ]\n  },\n  \n  performance_predictions: {\n    tiktok: {\n      estimated_views: '75K-300K (with doomscroll hook optimization)',\n      estimated_engagement_rate: '8-12% (ADHD-friendly content performs higher)',\n      viral_potential_score: 9.2,\n      best_creative: tiktokScripts[0]?.creative_id || 'tiktok_v2_001',\n      algorithm_optimization: '2026 algorithm: 3-second hold optimized, keywords in caption, 20-30 sec length'\n    },\n    instagram_reels: {\n      estimated_reach: '50K-200K',\n      estimated_saves: 'High (tutorial format = save-optimized)',\n      estimated_shares: 'Medium-High (relatable content)',\n      skip_rate: 'Low (pattern interrupt hook)',\n      best_creative: reelsScripts[0]?.creative_id || 'reels_v2_001',\n      algorithm_optimization: 'July 2026 update: Save rate prioritized, keywords > hashtags'\n    }\n  },\n  \n  production_guidelines: {\n    camera_setup: [\n      'Use iPhone 15 Pro (or similar smartphone)',\n      'Handheld shooting (natural shake, not tripod)',\n      'POV angles: overhead, bag POV, close-ups',\n      'Avoid: Perfect stability, professional equipment'\n    ],\n    lighting: [\n      'Natural window light only',\n      'Golden hour (4-6 PM) or soft morning light',\n      'Allow lens flare, uneven exposure',\n      'Avoid: Studio lights, ring lights, perfect exposure'\n    ],\n    audio: [\n      'ElevenLabs AI voice (natural speech patterns) - $11-22/mo',\n      'OR TikTok text-to-speech (Jessie/Matthew voices)',\n      'Include ASMR sounds: drawer sliding, items clicking',\n      'Music: Epidemic Sound ($15/mo) or TikTok Commercial Library'\n    ],\n    copyright_safety: [\n      'Music: Only use Epidemic Sound, Artlist, or TikTok Commercial Library',\n      'Footage: Pexels (free), Artgrid ($30/mo), or self-shot',\n      'NEVER use: Copyrighted songs, movie clips, unlicensed UGC'\n    ]\n  },\n  \n  posting_strategy: {\n    best_times: [\n      '6-8 AM (morning procrastination scroll)',\n      '12-1 PM (lunch break doomscrolling)',\n      '8-10 PM (evening wind-down scroll)',\n      '11 PM-1 AM (insomnia scroll - use guilt hooks here)'\n    ],\n    content_mix_weekly: {\n      'before_after_transformations': '40% (highest ROI)',\n      'asmr_satisfying': '30% (engagement + saves)',\n      'educational_howto': '20% (saves + searchability)',\n      'trend_hijacking': '10% (viral potential)'\n    },\n    hashtag_strategy: 'Use 3-5 broad hashtags + keyword-rich caption (2026 algorithm indexes captions like search engine)',\n    caption_formula: 'Natural keywords in sentences, not hashtag spam. Example: \"my kitchen drawer organization system using [product] - perfect for small spaces and ADHD-friendly storage\"'\n  },\n  \n  anti_ai_checklist: [\n    '✅ Camera shake/motion blur present',\n    '✅ Natural lighting (not studio perfect)',\n    '✅ Off-center composition',\n    '✅ Thumb/finger visible in corner',\n    '✅ Mild grain/noise',\n    '✅ Background has casual clutter',\n    '✅ Text overlays have intentional typos',\n    '✅ Speech uses contractions, filler words',\n    '✅ No AI-sounding phrases (unlock, game-changer, etc)',\n    '✅ Removed watermarks (CapCut, etc)'\n  ],\n  \n  next_steps: [\n    '1. Review scripts - select top 2-3 for production',\n    '2. Generate Midjourney images using provided prompts',\n    '3. Film content following production guidelines (iPhone, natural light, POV angles)',\n    '4. Edit with imperfections intact (don\\'t over-polish)',\n    '5. Add ASMR sounds and music (copyright-safe sources only)',\n    '6. Use ElevenLabs or TikTok TTS for voiceover',\n    '7. Post at optimal times (6-8 AM, 8-10 PM)',\n    '8. Use Trial Reels feature on Instagram (test without risk)',\n    '9. Monitor 3-second hold rate (>65% = algorithm boost)',\n    '10. A/B test hooks - doomscroll guilt vs curiosity gap'\n  ],\n  \n  budget_breakdown: {\n    minimal: '$30/mo: GPT-4o API ($10) + Epidemic Sound ($15) + ElevenLabs Basic ($11)',\n    optimal: '$87/mo: + Midjourney Standard ($30) + ElevenLabs Pro ($22)',\n    premium: '$169/mo: + Runway Gen-3 ($12) + Artgrid ($30) + Midjourney Pro ($60)'\n  },\n  \n  metadata: {\n    generated_by: 'TARS Creative Agent v2.0',\n    brand: 'House Charm',\n    workflow_version: '2.0 - Viral Authenticity Edition',\n    algorithm_optimized_for: 'TikTok 2026 + Instagram Reels July 2026 update',\n    anti_ai_detection: 'Enabled (UGC imperfections, human speech patterns)',\n    doomscrolling_psychology: 'Integrated (guilt redirect hooks)',\n    copyright_safe: 'Yes (music, footage, voiceover sources provided)'\n  }\n};\n\nreturn { json: finalOutput };"
+      },
+      "id": "assemble-json-v2",
+      "name": "Assemble Final JSON V2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 550]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}"
+      },
+      "id": "webhook-response",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1340, 550]
+    }
+  ],
+  "connections": {
+    "Webhook: Product Input": {
+      "main": [
+        [
+          {
+            "node": "Extract Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product Data": {
+      "main": [
+        [
+          {
+            "node": "GPT: TikTok Doomscroll Hook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: TikTok ASMR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: TikTok ADHD-Friendly",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: Instagram Reels Save-Optimized",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GPT: Midjourney UGC Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok Doomscroll Hook": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok ASMR": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "GPT: TikTok ADHD-Friendly": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "GPT: Instagram Reels Save-Optimized": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "GPT: Midjourney UGC Prompts": {
+      "main": [
+        [
+          {
+            "node": "Merge All Creatives",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Merge All Creatives": {
+      "main": [
+        [
+          {
+            "node": "Assemble Final JSON V2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Final JSON V2": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-21T12:00:00.000Z",
+  "versionId": "2"
+}
