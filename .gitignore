@@ -43,6 +43,8 @@ test-results/
 # Database files (local n8n data)
 *.db-journal
 *.db.bak
+mcp-servers/n8n-mcp/data/nodes.db
+finance-bot/.wrangler/
 
 # Temporary files
 temp/
