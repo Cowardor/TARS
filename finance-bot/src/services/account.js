@@ -161,13 +161,14 @@ export class AccountService {
     return { success: true };
   }
 
-  // Migrate legacy null-account transactions to a specific personal account
-  async migrateNullTransactions(userId, personalAccountId) {
+  // Consolidate: move personal-account transactions back to null (canonical personal = null)
+  // This undoes any previous migration that incorrectly set account_id = personal_id
+  async consolidatePersonalTransactions(userId, personalAccountId) {
     await this.db.prepare(`
       UPDATE transactions
-      SET account_id = ?
-      WHERE user_id = ? AND account_id IS NULL AND family_id IS NULL
-    `).bind(personalAccountId, userId).run();
+      SET account_id = NULL
+      WHERE user_id = ? AND account_id = ?
+    `).bind(userId, personalAccountId).run();
   }
 
   // ─── SESSION ─────────────────────────────────────────────────────────────────

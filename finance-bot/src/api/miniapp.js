@@ -1002,10 +1002,10 @@ async function handleGetAccounts(userId, as) {
     } catch (_) { /* ignore duplicate */ }
     accounts = await as.getAccounts(userId);
   }
-  // Migrate any legacy null-account transactions → Personal account (one-time, idempotent)
+  // Canonical rule: Personal slot = account_id IS NULL. Undo any bad migrations.
   const personalAcc = accounts.find(a => a.type === 'personal');
   if (personalAcc) {
-    await as.migrateNullTransactions(userId, personalAcc.id);
+    await as.consolidatePersonalTransactions(userId, personalAcc.id);
   }
   return json({
     accounts: accounts.map(a => ({

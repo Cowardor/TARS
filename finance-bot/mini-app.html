@@ -4432,24 +4432,18 @@ async function loadAccounts() {
     if (state.activeAccountId) {
         const idx = state.accounts.findIndex(a => a.id === state.activeAccountId);
         if (idx >= 0) {
+            // Carousel: index 0 = Personal (defaultBalanceCard, null), index 1..N = accounts[1..N]
+            // findIndex returns position in state.accounts[] which == carousel index directly
             state.accountIndex = idx;
         } else {
-            // Active account was deleted → fall back to Personal (index 0)
+            // Active account was deleted or not found → reset to Personal slot
             state.accountIndex = 0;
-            state.activeAccountId = state.accounts[0].id;
-            await apiFetch('/api/accounts/switch', {
-                method: 'POST',
-                body: JSON.stringify({ account_id: state.accounts[0].id }),
-            });
+            state.activeAccountId = null;
+            await apiFetch('/api/accounts/switch', { method: 'POST', body: JSON.stringify({ account_id: null }) });
         }
     } else {
-        // Session has no active account — ensure Personal (accounts[0]) is set as active
+        // null = Personal slot (index 0)
         state.accountIndex = 0;
-        state.activeAccountId = state.accounts[0].id;
-        await apiFetch('/api/accounts/switch', {
-            method: 'POST',
-            body: JSON.stringify({ account_id: state.accounts[0].id }),
-        });
     }
 
     renderAccountsCarousel();
@@ -4558,11 +4552,12 @@ function renderAccountsCarousel() {
 }
 
 async function switchToAccountIndex(idx) {
-    if (idx === state.accountIndex && state.activeAccountId === (state.accounts[idx]?.id || null)) return;
+    if (idx === state.accountIndex) return;
     state.accountIndex = idx;
 
-    // Always use the real account ID — Personal account also has a real DB id
-    const newAccountId = state.accounts[idx]?.id || null;
+    // Index 0 = Personal slot → null (account_id IS NULL transactions + family mode work)
+    // Index 1..N = real account IDs for Business/Family/Crypto accounts
+    const newAccountId = idx === 0 ? null : (state.accounts[idx]?.id || null);
     state.activeAccountId = newAccountId;
 
     // Update chip immediately
