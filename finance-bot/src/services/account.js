@@ -71,6 +71,12 @@ export class AccountService {
 
   async createAccount(userId, name, emoji = '💼', type = 'personal', template = null,
                       currency = null, cryptoExchange = null, cryptoKey = null, cryptoSecret = null) {
+    // Check duplicate name for this user
+    const dup = await this.db.prepare(
+      'SELECT id FROM accounts WHERE user_id = ? AND name = ?'
+    ).bind(userId, name).first();
+    if (dup) throw new Error('duplicate_name');
+
     // Determine sort_order: append to end
     const last = await this.db.prepare(`
       SELECT MAX(sort_order) as m FROM accounts WHERE user_id = ?

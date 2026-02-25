@@ -237,24 +237,54 @@ export class CategoryService {
 
   // Get all editable categories for user (system + custom + family + account)
   async getEditableCategories(userId, type = null, familyId = null, accountId = null) {
+    // Template mode: if a specific account is selected AND it has own categories → show ONLY those
+    if (accountId) {
+      const ownCheck = await this.db.prepare(
+        'SELECT COUNT(*) as cnt FROM categories WHERE account_id = ? AND is_active = 1'
+      ).bind(accountId).first();
+
+      if (ownCheck?.cnt > 0) {
+        let query = `
+          SELECT c.*, (SELECT COUNT(*) FROM transactions WHERE category_id = c.id) as tx_count
+          FROM categories c
+          WHERE c.is_active = 1 AND c.account_id = ?
+        `;
+        const params = [accountId];
+        if (type) { query += ' AND c.type = ?'; params.push(type); }
+        query += ' ORDER BY c.type, c.sort_order, c.id';
+        const result = await this.db.prepare(query).bind(...params).all();
+        return result.results;
+      }
+
+      // Personal account (no own cats): show system + user shared (no account_id)
+      let query = `
+        SELECT c.*, (SELECT COUNT(*) FROM transactions WHERE category_id = c.id) as tx_count
+        FROM categories c
+        WHERE c.is_active = 1 AND (
+          c.owner_type = 'system'
+          OR (c.owner_type = 'user' AND c.owner_id = ? AND c.account_id IS NULL)
+        )
+      `;
+      const params = [userId];
+      if (type) { query += ' AND c.type = ?'; params.push(type); }
+      query += ' ORDER BY c.type, c.sort_order, c.id';
+      const result = await this.db.prepare(query).bind(...params).all();
+      return result.results;
+    }
+
+    // No account filter ("Все"): show ALL categories — system + all user (any account_id) + family
     let query = `
       SELECT c.*, (SELECT COUNT(*) FROM transactions WHERE category_id = c.id) as tx_count
       FROM categories c
       WHERE c.is_active = 1 AND (
         c.owner_type = 'system'
-        OR (c.owner_type = 'user' AND c.owner_id = ? AND (c.account_id IS NULL ${accountId ? 'OR c.account_id = ?' : ''}))
+        OR (c.owner_type = 'user' AND c.owner_id = ?)
         ${familyId ? "OR (c.owner_type = 'family' AND c.owner_id = ?)" : ''}
       )
     `;
     const params = [userId];
-    if (accountId) params.push(accountId);
     if (familyId) params.push(familyId);
-
-    if (type) {
-      query += ' AND c.type = ?';
-      params.push(type);
-    }
-
+    if (type) { query += ' AND c.type = ?'; params.push(type); }
     query += ' ORDER BY c.type, c.sort_order, c.id';
     const result = await this.db.prepare(query).bind(...params).all();
     return result.results;

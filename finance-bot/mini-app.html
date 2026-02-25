@@ -427,8 +427,13 @@ body {
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.2s ease,
-                background 0.3s ease;
+                background 0.3s ease,
+                opacity 0.18s ease;
     will-change: transform;
+}
+.nav-fab.fab-hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 .nav-fab:active {
     transform: translateX(-50%) scale(0.87);
@@ -2321,6 +2326,12 @@ select.input-field option {
     flex-shrink: 0;
     background: var(--bg-elevated);
 }
+.account-manage-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke: currentColor;
+}
 .account-manage-info { flex: 1; min-width: 0; }
 .account-manage-name {
     font-size: 14px;
@@ -2826,7 +2837,7 @@ select.input-field option {
                 <div class="settings-group">
                     <div class="settings-group-title" data-i18n="accounts">Счета</div>
                     <div id="settingsAccountsList"></div>
-                    <button class="quick-add-btn" onclick="openActionSheet()" style="margin-top:10px;">
+                    <button class="quick-add-btn" onclick="openNewAccount()" style="margin-top:10px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         <span data-i18n="addAccount">Добавить счёт</span>
                     </button>
@@ -3327,11 +3338,12 @@ select.input-field option {
             <div class="action-sheet-handle"></div>
             <div class="action-sheet-item" onclick="closeActionSheet();openAddModal();">
                 <div class="action-sheet-item-icon">
-                    <!-- Wallet / transaction icon -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="5" width="20" height="14" rx="3"/>
-                        <path d="M16 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/>
-                        <path d="M2 9h20"/>
+                    <!-- Income/Expense arrows icon -->
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="10" y1="2" x2="10" y2="10"/>
+                        <polyline points="7 5 10 2 13 5"/>
+                        <line x1="10" y1="10" x2="10" y2="18"/>
+                        <polyline points="13 15 10 18 7 15"/>
                     </svg>
                 </div>
                 <div>
@@ -3341,11 +3353,12 @@ select.input-field option {
             </div>
             <div class="action-sheet-item" onclick="closeActionSheet();openNewAccount();">
                 <div class="action-sheet-item-icon">
-                    <!-- Account / folder icon -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                        <line x1="12" y1="11" x2="12" y2="17"/>
-                        <line x1="9" y1="14" x2="15" y2="14"/>
+                    <!-- New account icon -->
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="8" cy="7" r="3"/>
+                        <path d="M2 18c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/>
+                        <line x1="16" y1="6" x2="16" y2="12"/>
+                        <line x1="13" y1="9" x2="19" y2="9"/>
                     </svg>
                 </div>
                 <div>
@@ -3407,8 +3420,8 @@ select.input-field option {
                     <div class="account-template-card" data-template="crypto" onclick="selectAccountTemplate('crypto')">
                         <div class="account-template-icon acc-icon-amber">
                             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="1.5 14.5 6 8.5 10 11 14.5 5.5 18.5 8"/>
-                                <polyline points="14.5 5.5 18.5 5.5 18.5 9.5"/>
+                                <polyline points="2 15 6 9 10 12 14 6 18 9"/>
+                                <polyline points="14 6 18 6 18 10"/>
                             </svg>
                         </div>
                         <div class="account-template-label" id="accTplCrypto">Крипто</div>
@@ -3723,7 +3736,7 @@ const T = {
         catSalary: 'Зарплата', catGift: 'Подарок',
         // Settings — new keys
         accounts: 'Счета', addAccount: 'Добавить счёт', noAccounts: 'Нет дополнительных счетов',
-        accountDeleted: 'Счёт удалён',
+        accountDeleted: 'Счёт удалён', duplicateAccountName: 'Счёт с таким именем уже существует',
         sharedAccess: 'Совместный доступ', sharedAccessDesc: 'Семейный и совместный учёт',
         catAndBudgets: 'Категории и бюджеты',
         appearanceLang: 'Вид и язык',
@@ -3811,7 +3824,7 @@ const T = {
         catHome: 'Home & Garden', catOther: 'Other',
         catSalary: 'Salary', catGift: 'Gift',
         accounts: 'Accounts', addAccount: 'Add account', noAccounts: 'No additional accounts',
-        accountDeleted: 'Account deleted',
+        accountDeleted: 'Account deleted', duplicateAccountName: 'Account with this name already exists',
         sharedAccess: 'Shared Access', sharedAccessDesc: 'Family & shared tracking',
         catAndBudgets: 'Categories & Budgets',
         appearanceLang: 'Appearance & Language',
@@ -3897,7 +3910,7 @@ const T = {
         catHome: 'Dom i ogród', catOther: 'Inne',
         catSalary: 'Wynagrodzenie', catGift: 'Prezent',
         accounts: 'Konta', addAccount: 'Dodaj konto', noAccounts: 'Brak dodatkowych kont',
-        accountDeleted: 'Konto usunięte',
+        accountDeleted: 'Konto usunięte', duplicateAccountName: 'Konto o tej nazwie już istnieje',
         sharedAccess: 'Wspólny dostęp', sharedAccessDesc: 'Rodzinne i wspólne konta',
         catAndBudgets: 'Kategorie i budżety',
         appearanceLang: 'Wygląd i język',
@@ -3983,7 +3996,7 @@ const T = {
         catHome: 'Дім і сад', catOther: 'Інше',
         catSalary: 'Зарплата', catGift: 'Подарунок',
         accounts: 'Рахунки', addAccount: 'Додати рахунок', noAccounts: 'Немає додаткових рахунків',
-        accountDeleted: 'Рахунок видалено',
+        accountDeleted: 'Рахунок видалено', duplicateAccountName: 'Рахунок з такою назвою вже існує',
         sharedAccess: 'Спільний доступ', sharedAccessDesc: 'Сімейний та спільний облік',
         catAndBudgets: 'Категорії та бюджети',
         appearanceLang: 'Вигляд і мова',
@@ -4312,6 +4325,13 @@ async function initApp() {
     await loadCategories();
     buildCategoryGrid();
     await Promise.all([loadDashboard(), loadAccounts()]);
+
+    // Auto-hide FAB whenever any modal opens or closes
+    const _fabObserver = new MutationObserver(updateFabVisibility);
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        _fabObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+    updateFabVisibility();
 }
 
 async function loadUser() {
@@ -4400,13 +4420,17 @@ async function loadAccounts() {
     const data = await apiFetch('/api/accounts');
     if (!data) return;
     state.accounts = data.accounts || [];
-    // Sync active index
+
+    // activeAccountId=null → index 0 (Personal/default slot)
+    // activeAccountId=X → find account with id=X (it's at index 1+)
     if (state.activeAccountId) {
         const idx = state.accounts.findIndex(a => a.id === state.activeAccountId);
-        state.accountIndex = idx >= 0 ? idx + 1 : 0; // +1 because index 0 = implicit personal
+        state.accountIndex = idx >= 0 ? idx : 0;
     } else {
         state.accountIndex = 0;
+        // First time ever — silently save Personal as active slot (no API call needed, null = personal)
     }
+
     renderAccountsCarousel();
     renderSettingsAccountsList();
 }
@@ -4421,79 +4445,90 @@ function getAccountTypeIconHTML(type) {
     return icons[type] || icons.personal;
 }
 
+function _renderAccountCard(acc) {
+    if (acc.type === 'crypto') {
+        const balances = acc.crypto_balances || [];
+        const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
+        return `
+        <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
+            <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+            <div class="balance-label">${t('cryptoPortfolio')}</div>
+            <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
+            <div class="crypto-balance-list">
+                ${balances.length === 0
+                    ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">${t('tapToRefresh')}</div>`
+                    : balances.slice(0, 6).map(b => `
+                        <div class="crypto-balance-row">
+                            <span class="crypto-symbol">${b.symbol}</span>
+                            <span class="crypto-amount">${b.amount.toFixed(4)}</span>
+                            <span class="crypto-usd">$${(b.usd_value||0).toFixed(2)}</span>
+                        </div>`).join('')}
+            </div>
+            <button class="crypto-sync-btn" onclick="syncCryptoAccount(${acc.id})" id="cryptoSyncBtn${acc.id}">
+                🔄 Обновить
+            </button>
+        </div>`;
+    }
+    return `
+    <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
+        <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+        <div class="balance-label">${t('monthlyBalance')}</div>
+        <div class="balance-amount positive" id="balAmt${acc.id}">— ${state.userCurrency}</div>
+        <div class="balance-row">
+            <div class="balance-stat">
+                <div class="balance-stat-label">${t('income')}</div>
+                <div class="balance-stat-value income" id="balInc${acc.id}">0</div>
+            </div>
+            <div class="balance-stat">
+                <div class="balance-stat-label">${t('expenses')}</div>
+                <div class="balance-stat-value expense" id="balExp${acc.id}">0</div>
+            </div>
+        </div>
+    </div>`;
+}
+
 function renderAccountsCarousel() {
     const track = document.getElementById('accountsCarouselTrack');
     const dots = document.getElementById('accountDots');
     const extraSlot = document.getElementById('extraAccountCards');
-
-    // Update chip on default card
     const chip = document.getElementById('activeAccountChip');
+    const defaultCard = document.getElementById('defaultBalanceCard');
 
-    // Render extra account cards
-    if (extraSlot) {
-        extraSlot.innerHTML = state.accounts.map(acc => {
-            if (acc.type === 'crypto') {
-                const balances = acc.crypto_balances || [];
-                const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
-                return `
-                <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-                    <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
-                    <div class="balance-label">${t('cryptoPortfolio')}</div>
-                    <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
-                    <div class="crypto-balance-list">
-                        ${balances.length === 0
-                            ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">${t('tapToRefresh')}</div>`
-                            : balances.slice(0, 6).map(b => `
-                                <div class="crypto-balance-row">
-                                    <span class="crypto-symbol">${b.symbol}</span>
-                                    <span class="crypto-amount">${b.amount.toFixed(4)}</span>
-                                    <span class="crypto-usd">$${(b.usd_value||0).toFixed(2)}</span>
-                                </div>`).join('')}
-                    </div>
-                    <button class="crypto-sync-btn" onclick="syncCryptoAccount(${acc.id})" id="cryptoSyncBtn${acc.id}">
-                        🔄 Обновить
-                    </button>
-                </div>`;
-            }
-            return `
-            <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-                <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
-                <div class="balance-label">${t('monthlyBalance')}</div>
-                <div class="balance-amount positive" id="balAmt${acc.id}">— ${state.userCurrency}</div>
-                <div class="balance-row">
-                    <div class="balance-stat">
-                        <div class="balance-stat-label">${t('income')}</div>
-                        <div class="balance-stat-value income" id="balInc${acc.id}">0</div>
-                    </div>
-                    <div class="balance-stat">
-                        <div class="balance-stat-label">${t('expenses')}</div>
-                        <div class="balance-stat-value expense" id="balExp${acc.id}">0</div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+    // index 0 → defaultBalanceCard (shows state.accounts[0] = Personal)
+    // index 1..N → extraAccountCards (state.accounts.slice(1))
+    const firstAcc = state.accounts[0];
+    if (firstAcc) {
+        if (chip) chip.innerHTML = `${getAccountTypeIconHTML(firstAcc.type)} ${firstAcc.name}`;
+        if (state.accountIndex === 0) {
+            defaultCard.style.setProperty('--account-color', firstAcc.color || 'var(--accent-blue)');
+        }
+    } else {
+        if (chip) chip.innerHTML = getAccountTypeIconHTML('personal') + ' ' + t('personalAccounts');
+        defaultCard.style.removeProperty('--account-color');
     }
 
-    // Update default card chip
-    if (state.accountIndex === 0) {
-        if (chip) { chip.innerHTML = getAccountTypeIconHTML('personal') + ' ' + t('personalAccounts'); }
-        document.getElementById('defaultBalanceCard').style.removeProperty('--account-color');
-    } else {
-        const acc = state.accounts[state.accountIndex - 1];
-        if (acc) {
-            if (chip) chip.textContent = `${acc.emoji} ${acc.name}`;
-            document.getElementById('defaultBalanceCard').style.setProperty('--account-color', acc.color);
+    // Extra cards = accounts[1..] + update defaultCard accent on non-zero index
+    if (extraSlot) {
+        const extraAccounts = state.accounts.slice(1);
+        extraSlot.innerHTML = extraAccounts.map(acc => _renderAccountCard(acc)).join('');
+        // If current index > 0, update default card accent to active account color
+        if (state.accountIndex > 0) {
+            const activeAcc = state.accounts[state.accountIndex];
+            if (activeAcc) {
+                defaultCard.style.setProperty('--account-color', activeAcc.color);
+                if (chip) chip.innerHTML = `${activeAcc.emoji} ${activeAcc.name}`;
+            }
         }
     }
 
-    // Render dots
-    const total = state.accounts.length + 1; // +1 for implicit personal slot
+    // Dots: one per account in state.accounts
+    const total = state.accounts.length;
     if (total <= 1) {
         dots.style.display = 'none';
     } else {
         dots.style.display = 'flex';
         dots.innerHTML = Array.from({ length: total }, (_, i) =>
-            `<div class="account-dot${i === state.accountIndex ? ' active' : ''}" data-idx="${i}" onclick="switchToAccountIndex(${i})"></div>`
+            `<div class="account-dot${i === state.accountIndex ? ' active' : ''}" onclick="switchToAccountIndex(${i})"></div>`
         ).join('');
     }
 
@@ -4502,11 +4537,13 @@ function renderAccountsCarousel() {
 }
 
 async function switchToAccountIndex(idx) {
-    if (idx === state.accountIndex) return;
+    if (idx === state.accountIndex && state.activeAccountId !== undefined) return;
     state.accountIndex = idx;
 
-    const newAccountId = idx === 0 ? null : state.accounts[idx - 1]?.id;
-    state.activeAccountId = newAccountId || null;
+    // Index 0 = Personal (null account_id for transactions = backward compat)
+    // Index 1..N = specific accounts
+    const newAccountId = idx === 0 ? null : (state.accounts[idx]?.id || null);
+    state.activeAccountId = newAccountId;
 
     // Update chip immediately
     renderAccountsCarousel();
@@ -4514,7 +4551,7 @@ async function switchToAccountIndex(idx) {
     // POST to switch account on server
     await apiFetch('/api/accounts/switch', {
         method: 'POST',
-        body: JSON.stringify({ account_id: newAccountId || null }),
+        body: JSON.stringify({ account_id: newAccountId }),
     });
 
     // Reload dashboard data
@@ -4560,10 +4597,7 @@ function carouselTouchMove(e) {
     if (!_carouselDragging) return;
     e.stopPropagation();
     _carouselMoveX = e.touches[0].clientX - _carouselStartX;
-    // Visual drag feedback
-    const total = state.accounts.length + 1;
     const baseOffset = state.accountIndex * 100;
-    const pct = (_carouselMoveX / window.innerWidth) * 100;
     document.getElementById('accountsCarouselTrack').style.transform =
         `translateX(calc(-${baseOffset}% + ${_carouselMoveX}px))`;
 }
@@ -4572,7 +4606,7 @@ function carouselTouchEnd(e) {
     if (!_carouselDragging) return;
     e.stopPropagation();
     _carouselDragging = false;
-    const total = state.accounts.length + 1;
+    const total = state.accounts.length; // no +1: accounts[0] = Personal
     const threshold = 50; // px
     if (_carouselMoveX < -threshold && state.accountIndex < total - 1) {
         switchToAccountIndex(state.accountIndex + 1);
@@ -4609,15 +4643,11 @@ function openNewAccount() {
     document.getElementById('newAccountApiSecret').value = '';
     selectAccountTemplate('personal');
     document.getElementById('newAccountModal').classList.add('show');
-    const fab = document.getElementById('mainFab');
-    if (fab) { fab.style.opacity = '0'; fab.style.pointerEvents = 'none'; }
     haptic('medium');
 }
 
 function closeNewAccount() {
     document.getElementById('newAccountModal').classList.remove('show');
-    const fab = document.getElementById('mainFab');
-    if (fab) { fab.style.opacity = ''; fab.style.pointerEvents = ''; }
 }
 
 function selectAccountTemplate(template) {
@@ -4700,10 +4730,14 @@ async function submitNewAccount() {
     if (data?.success) {
         closeNewAccount();
         await loadAccounts();
-        // Switch to new account
+        // Switch to new account (no +1: index 0 = first account, 1 = second, ...)
         const newIdx = state.accounts.findIndex(a => a.id === data.account.id);
-        if (newIdx >= 0) await switchToAccountIndex(newIdx + 1);
+        if (newIdx >= 0) await switchToAccountIndex(newIdx);
         haptic('success');
+    } else if (data?.error === 'duplicate_name') {
+        haptic('error');
+        showToast(t('duplicateAccountName'));
+        document.getElementById('newAccountName').focus();
     }
 }
 
@@ -4720,17 +4754,28 @@ function renderSettingsAccountsList() {
         return;
     }
 
-    el.innerHTML = state.accounts.map(acc => {
+        const TYPE_COLORS = {
+        personal:      { bg: 'rgba(79,70,229,0.13)',  fg: '#4f46e5' },
+        business:      { bg: 'rgba(139,92,246,0.13)', fg: '#8b5cf6' },
+        family_shared: { bg: 'rgba(16,185,129,0.13)', fg: '#10b981' },
+        crypto:        { bg: 'rgba(245,158,11,0.13)',  fg: '#f59e0b' },
+    };
+    el.innerHTML = state.accounts.map((acc, i) => {
         const typeKey = { personal: 'accPersonal', business: 'accBusiness', family_shared: 'accFamily', crypto: 'accCrypto' }[acc.type];
         const typeLabel = typeKey ? t(typeKey) : acc.type;
+        const tc = TYPE_COLORS[acc.type] || { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' };
+        // First account (Personal) is primary — no delete button
+        const deleteBtn = i === 0
+            ? `<div style="width:32px;"></div>`
+            : `<button class="category-action-btn delete" onclick="deleteAccount(${acc.id}, '${acc.name.replace(/'/g, "\\'")}')">🗑️</button>`;
         return `
         <div class="account-manage-item" data-acc-id="${acc.id}">
-            <div class="account-manage-icon" style="background:${acc.color}22;color:${acc.color};">${acc.emoji}</div>
+            <div class="account-manage-icon" style="background:${tc.bg};color:${tc.fg};">${getAccountTypeIconHTML(acc.type)}</div>
             <div class="account-manage-info">
                 <div class="account-manage-name">${acc.name}</div>
                 <div class="account-manage-meta">${typeLabel}</div>
             </div>
-            <button class="category-action-btn delete" onclick="deleteAccount(${acc.id}, '${acc.name.replace(/'/g, "\\'")}')">🗑️</button>
+            ${deleteBtn}
         </div>`;
     }).join('');
 }
@@ -4835,6 +4880,14 @@ const SCREEN_MAP = {
     settings:  'screenSettings',
 };
 
+function updateFabVisibility() {
+    const fab = document.getElementById('mainFab');
+    if (!fab) return;
+    const inSettings = state.currentTab === 'settings';
+    const anyModal = !!document.querySelector('.modal-overlay.show');
+    fab.classList.toggle('fab-hidden', inSettings || anyModal);
+}
+
 function switchTab(tab, fromSwipe = false) {
     const prevIndex = TAB_ORDER.indexOf(state.currentTab);
     const newIndex  = TAB_ORDER.indexOf(tab);
@@ -4865,6 +4918,7 @@ function switchTab(tab, fromSwipe = false) {
     if (tab === 'stats')   renderStats();
     if (tab === 'history') renderHistory();
 
+    updateFabVisibility();
     haptic('light');
 }
 
@@ -5210,8 +5264,8 @@ function renderDashboard() {
     alarCountUp(incEl);
     alarCountUp(expEl);
 
-    // Also populate active extra account card (if on non-personal account)
-    if (state.activeAccountId) {
+    // Also populate active extra account card (index > 0 = non-personal account)
+    if (state.accountIndex > 0 && state.activeAccountId) {
         const xBalEl = document.getElementById(`balAmt${state.activeAccountId}`);
         if (xBalEl) {
             xBalEl.textContent = `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} ${curr}`;

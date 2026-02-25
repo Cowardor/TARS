@@ -994,7 +994,14 @@ async function handleUpdateTransaction(request, userId, ts) {
 // ============================================
 
 async function handleGetAccounts(userId, as) {
-  const accounts = await as.getAccounts(userId);
+  let accounts = await as.getAccounts(userId);
+  // Auto-create Personal account for new users
+  if (accounts.length === 0) {
+    try {
+      await as.createAccount(userId, 'Personal', '👤', 'personal', 'personal');
+    } catch (_) { /* ignore duplicate */ }
+    accounts = await as.getAccounts(userId);
+  }
   return json({
     accounts: accounts.map(a => ({
       id: a.id,
@@ -1028,17 +1035,25 @@ async function handleCreateAccount(request, userId, as) {
     return error('crypto_exchange is required for crypto accounts');
   }
 
-  const account = await as.createAccount(
-    userId,
-    name.trim(),
-    emoji || '💼',
-    accountType,
-    template || accountType,
-    currency || null,
-    crypto_exchange || null,
-    crypto_api_key || null,
-    crypto_api_secret || null
-  );
+  let account;
+  try {
+    account = await as.createAccount(
+      userId,
+      name.trim(),
+      emoji || '💼',
+      accountType,
+      template || accountType,
+      currency || null,
+      crypto_exchange || null,
+      crypto_api_key || null,
+      crypto_api_secret || null
+    );
+  } catch (err) {
+    if (err.message === 'duplicate_name') {
+      return json({ success: false, error: 'duplicate_name' }, { status: 409 });
+    }
+    return error(err.message || 'Failed to create account');
+  }
 
   return json({ success: true, account: {
     id: account.id,
