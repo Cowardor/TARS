@@ -399,10 +399,20 @@ body {
     transform: scale(1.12);
 }
 
-/* ── FAB — центральная кнопка добавления ── */
+/* ── FAB slot (placeholder in nav flex layout) ── */
+.nav-fab-slot {
+    width: 64px;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* ── FAB — центральная кнопка добавления (fixed, always on top) ── */
 .nav-fab {
-    align-self: flex-start;
-    margin-top: -28px;
+    position: fixed;
+    bottom: calc(34px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 250;
     width: 64px;
     height: 64px;
     border-radius: 50%;
@@ -414,32 +424,43 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.2s ease;
+                box-shadow 0.2s ease,
+                background 0.3s ease;
     will-change: transform;
 }
 .nav-fab:active {
-    transform: scale(0.87);
+    transform: translateX(-50%) scale(0.87);
     box-shadow: 0 3px 10px rgba(79,70,229,0.3);
     transition-duration: 0.06s;
     transition-timing-function: ease-in;
 }
-.nav-fab svg {
+
+/* FAB icon: plus and close (×) */
+.fab-icon-plus,
+.fab-icon-close {
+    position: absolute;
     width: 26px;
     height: 26px;
     stroke: white;
     stroke-width: 2.5;
     stroke-linecap: round;
     fill: none;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: opacity 0.28s ease,
+                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.nav-fab:active svg {
-    transform: rotate(45deg) scale(0.9);
-    transition-duration: 0.06s;
-    transition-timing-function: ease-in;
+.fab-icon-plus  { opacity: 1; transform: rotate(0deg) scale(1); }
+.fab-icon-close { opacity: 0; transform: rotate(-45deg) scale(0.4); }
+
+/* When action sheet is open: FAB shows white × */
+.nav-fab.is-open {
+    background: #ffffff;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+    border-color: transparent;
 }
+.nav-fab.is-open .fab-icon-plus  { opacity: 0; transform: rotate(45deg) scale(0.4); }
+.nav-fab.is-open .fab-icon-close { opacity: 1; transform: rotate(0deg)  scale(1); stroke: #09090b; }
 
 /* ============================================
    SCREENS & ALAR TAB TRANSITIONS
@@ -678,6 +699,13 @@ body {
     color: var(--text-muted);
     margin-bottom: 6px;
 }
+.account-name-chip svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    display: block;
+    stroke: var(--text-muted);
+}
 
 /* Dots indicator */
 .account-dots {
@@ -785,16 +813,36 @@ body {
 }
 
 .action-sheet-menu {
-    width: 100%;
+    width: calc(100% - 32px);
+    margin: 0 16px calc(88px + var(--safe-bottom));
     background: var(--bg-card);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    padding: 8px 16px calc(16px + var(--safe-bottom));
-    transform: translateY(100%);
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 24px;        /* all four corners rounded — floating card */
+    padding: 8px 16px 28px;
+    transform: translateY(calc(100% + 120px));
+    transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;           /* clips the notch-hole circle */
 }
 
 .action-sheet-overlay.show .action-sheet-menu {
     transform: translateY(0);
+}
+
+/* Notch hole — sector ~26% of circle (gentle scoop, not 50%) */
+.action-sheet-notch-hole {
+    position: absolute;
+    bottom: -56px;              /* visible arc = 76-56 = 20px ≈ 26% sector */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.82);  /* approximate overlay color behind the sheet */
+    pointer-events: none;
+    z-index: 1;
+}
+:root[data-theme="light"] .action-sheet-notch-hole {
+    background: rgba(0,0,0,0.38);
 }
 
 .action-sheet-handle {
@@ -823,36 +871,35 @@ body {
 .action-sheet-item:hover, .action-sheet-item:active { background: var(--bg-elevated); }
 
 .action-sheet-item-icon {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
     flex-shrink: 0;
+}
+.action-sheet-item-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
 }
 
 .action-sheet-item:first-of-type .action-sheet-item-icon {
     background: var(--accent-blue-soft);
+    color: var(--accent-blue);
 }
 .action-sheet-item:nth-of-type(2) .action-sheet-item-icon {
     background: rgba(139, 92, 246, 0.12);
+    color: #8b5cf6;
 }
 
-.action-sheet-cancel {
-    text-align: center;
-    padding: 14px;
-    color: var(--danger);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: var(--radius-lg);
-    margin-top: 4px;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease;
-}
-.action-sheet-cancel:hover { background: var(--danger-soft); }
+/* Cancel removed – FAB × closes the sheet */
 
 /* ============================================
    NEW ACCOUNT MODAL
@@ -883,10 +930,32 @@ body {
 
 .account-template-card:active { transform: scale(0.94); transition-duration: 0.06s; }
 
-.account-template-emoji {
-    font-size: 26px;
-    margin-bottom: 6px;
+/* SVG icon container for account type cards */
+.account-template-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
 }
+.account-template-icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+.acc-icon-indigo  { background: rgba(79,70,229,0.13);  color: var(--accent-blue); }
+.acc-icon-violet  { background: rgba(139,92,246,0.13); color: #8b5cf6; }
+.acc-icon-emerald { background: rgba(16,185,129,0.13); color: var(--accent-emerald); }
+.acc-icon-amber   { background: rgba(245,158,11,0.13); color: var(--accent-amber); }
+
+/* selected card adjusts icon bg */
+.account-template-card.selected .acc-icon-indigo  { background: rgba(79,70,229,0.22); }
+.account-template-card.selected .acc-icon-violet  { background: rgba(139,92,246,0.22); }
+.account-template-card.selected .acc-icon-emerald { background: rgba(16,185,129,0.22); }
+.account-template-card.selected .acc-icon-amber   { background: rgba(245,158,11,0.22); }
 
 .account-template-label {
     font-size: 12px;
@@ -926,6 +995,43 @@ body {
 }
 .crypto-fields.visible {
     display: block;
+}
+
+/* ── Input fields for modals (account creation etc.) ── */
+.input-field {
+    width: 100%;
+    height: 48px;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    padding: 0 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.input-field:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.13);
+}
+.input-field::placeholder { color: var(--text-muted); }
+
+/* Select — custom arrow */
+select.input-field {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23818cf8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+select.input-field option {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
 }
 
 /* ============================================
@@ -2149,6 +2255,85 @@ body {
 }
 
 /* ============================================
+   ACCOUNT CHIP FILTER (category manager)
+   ============================================ */
+
+.account-chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 0 12px 0;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 4px;
+}
+.account-chip-row::-webkit-scrollbar { display: none; }
+
+.account-chip {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.account-chip.active {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-soft);
+    color: var(--accent-blue);
+}
+.account-chip:active { transform: scale(0.95); }
+
+/* ============================================
+   ACCOUNT MANAGE LIST (settings)
+   ============================================ */
+
+.account-manage-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.account-manage-item:first-child {
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-md) var(--radius-md);
+}
+.account-manage-item:last-child {
+    border-radius: var(--radius-md) var(--radius-md) var(--radius-lg) var(--radius-lg);
+    border-bottom: none;
+}
+.account-manage-item:only-child { border-radius: var(--radius-lg); }
+
+.account-manage-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: var(--bg-elevated);
+}
+.account-manage-info { flex: 1; min-width: 0; }
+.account-manage-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.account-manage-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ============================================
    EXPORT TABLE
    ============================================ */
 
@@ -2618,6 +2803,75 @@ body {
                                 <div class="settings-desc">Telegram</div>
                             </div>
                         </div>
+                        <!-- Shared Access -->
+                        <div class="settings-item" onclick="openFamilyManager()">
+                            <div class="settings-icon si-soft">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="7" cy="6.5" r="2.8"/>
+                                    <path d="M1 17.5c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+                                    <circle cx="15" cy="6.5" r="2.3"/>
+                                    <path d="M14 13.5c2 .7 3.5 2.5 3.5 5"/>
+                                </svg>
+                            </div>
+                            <div class="settings-text">
+                                <div class="settings-label" id="settingsFamily" data-i18n="sharedAccess">Совместный доступ</div>
+                                <div class="settings-desc" data-i18n="sharedAccessDesc">Семейный и совместный учёт</div>
+                            </div>
+                            <div class="settings-chevron">&#8250;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Счета ── -->
+                <div class="settings-group">
+                    <div class="settings-group-title" data-i18n="accounts">Счета</div>
+                    <div id="settingsAccountsList"></div>
+                    <button class="quick-add-btn" onclick="openActionSheet()" style="margin-top:10px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span data-i18n="addAccount">Добавить счёт</span>
+                    </button>
+                </div>
+
+                <!-- ── Категории и бюджеты ── -->
+                <div class="settings-group">
+                    <div class="settings-group-title" data-i18n="catAndBudgets">Категории и бюджеты</div>
+                    <div class="settings-list">
+                        <!-- Categories -->
+                        <div class="settings-item" onclick="openCategoryManager()">
+                            <div class="settings-icon si-amber">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3.5 3.5h6.7l6.3 6.3a1.5 1.5 0 010 2.1l-4.1 4.1a1.5 1.5 0 01-2.1 0L3.5 9.3V3.5z"/>
+                                    <circle cx="7.8" cy="7.8" r="1.4" style="fill:currentColor;stroke:none"/>
+                                </svg>
+                            </div>
+                            <div class="settings-text">
+                                <div class="settings-label" data-i18n="manageCategories">Управление категориями</div>
+                                <div class="settings-desc" data-i18n="addEditDelete">Добавить, изменить или удалить</div>
+                            </div>
+                            <div class="settings-chevron">&#8250;</div>
+                        </div>
+                        <!-- Budgets -->
+                        <div class="settings-item" onclick="openBudgetManager()">
+                            <div class="settings-icon si-amber">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="10" cy="10" r="7.5"/>
+                                    <circle cx="10" cy="10" r="4"/>
+                                    <circle cx="10" cy="10" r="1.4" style="fill:currentColor;stroke:none"/>
+                                </svg>
+                            </div>
+                            <div class="settings-text">
+                                <div class="settings-label" data-i18n="budgetLimits">Лимиты по категориям</div>
+                                <div class="settings-desc" id="budgetSummary" data-i18n="noBudgets">Нет установленных лимитов</div>
+                            </div>
+                            <div class="settings-chevron">&#8250;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Вид и язык ── -->
+                <div class="settings-group">
+                    <div class="settings-group-title" data-i18n="appearanceLang">Вид и язык</div>
+                    <div class="settings-list">
                         <!-- Currency -->
                         <div class="settings-item" id="currencySettingItem" onclick="openCurrencyPicker()">
                             <div class="settings-icon si-indigo">
@@ -2630,22 +2884,6 @@ body {
                             <div class="settings-text">
                                 <div class="settings-label" id="settingsCurrency">USD (Dollar)</div>
                                 <div class="settings-desc" data-i18n="currency">Валюта</div>
-                            </div>
-                            <div class="settings-chevron">&#8250;</div>
-                        </div>
-                        <!-- Family -->
-                        <div class="settings-item" onclick="openFamilyManager()">
-                            <div class="settings-icon si-soft">
-                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="7" cy="6.5" r="2.8"/>
-                                    <path d="M1 17.5c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-                                    <circle cx="15" cy="6.5" r="2.3"/>
-                                    <path d="M14 13.5c2 .7 3.5 2.5 3.5 5"/>
-                                </svg>
-                            </div>
-                            <div class="settings-text">
-                                <div class="settings-label" id="settingsFamily" data-i18n="personalAccount">Личный аккаунт</div>
-                                <div class="settings-desc" data-i18n="familyAccount">Семейный учет</div>
                             </div>
                             <div class="settings-chevron">&#8250;</div>
                         </div>
@@ -2665,42 +2903,13 @@ body {
                             </div>
                             <div class="settings-chevron">&#8250;</div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- ── Категории ── -->
-                <div class="settings-group">
-                    <div class="settings-group-title" data-i18n="categories">Категории</div>
-                    <div class="settings-list">
-                        <div class="settings-item" onclick="openCategoryManager()">
-                            <div class="settings-icon si-amber">
-                                <!-- Tag icon with hole -->
-                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3.5 3.5h6.7l6.3 6.3a1.5 1.5 0 010 2.1l-4.1 4.1a1.5 1.5 0 01-2.1 0L3.5 9.3V3.5z"/>
-                                    <circle cx="7.8" cy="7.8" r="1.4" style="fill:currentColor;stroke:none"/>
-                                </svg>
-                            </div>
-                            <div class="settings-text">
-                                <div class="settings-label" data-i18n="manageCategories">Управление категориями</div>
-                                <div class="settings-desc" data-i18n="addEditDelete">Добавить, изменить или удалить</div>
-                            </div>
-                            <div class="settings-chevron">&#8250;</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── Внешний вид ── -->
-                <div class="settings-group">
-                    <div class="settings-group-title">Внешний вид</div>
-                    <div class="settings-list">
+                        <!-- Theme -->
                         <div class="settings-item" onclick="toggleTheme()">
                             <div class="settings-icon si-indigo" id="themeSettingsIcon">
                                 <div class="theme-icon-inner">
-                                    <!-- Moon — dark mode -->
                                     <svg class="icon-moon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 13A8 8 0 117 3a6 6 0 0010 10z"/>
                                     </svg>
-                                    <!-- Sun — light mode -->
                                     <svg class="icon-sun" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="10" cy="10" r="3.5"/>
                                         <path d="M10 2.5v1.5M10 16v1.5M2.5 10H4M16 10h1.5M4.9 4.9l1.1 1.1M14 14l1.1 1.1M4.9 15.1l1.1-1.1M14 6l1.1-1.1"/>
@@ -2709,7 +2918,7 @@ body {
                             </div>
                             <div class="settings-text">
                                 <div class="settings-label" id="themeSettingsLabel">Тёмная тема</div>
-                                <div class="settings-desc">Переключить цветовую схему</div>
+                                <div class="settings-desc" id="themeDesc" data-i18n="themeDesc">Переключить цветовую схему</div>
                             </div>
                             <div id="themeToggleSwitch" style="width:44px;height:24px;border-radius:12px;background:var(--accent-blue);position:relative;cursor:pointer;flex-shrink:0;transition:background 0.3s;">
                                 <div id="themeToggleKnob" style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;right:2px;transition:all 0.3s;"></div>
@@ -2755,28 +2964,6 @@ body {
                             <div id="monthlyReportToggle" style="width:44px;height:24px;border-radius:12px;background:var(--accent-blue);position:relative;cursor:pointer;flex-shrink:0;">
                                 <div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;right:2px;transition:all 0.2s;"></div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── Бюджеты ── -->
-                <div class="settings-group">
-                    <div class="settings-group-title" data-i18n="budgets">Бюджеты</div>
-                    <div class="settings-list">
-                        <div class="settings-item" onclick="openBudgetManager()">
-                            <div class="settings-icon si-amber">
-                                <!-- Target / crosshair -->
-                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="10" cy="10" r="7.5"/>
-                                    <circle cx="10" cy="10" r="4"/>
-                                    <circle cx="10" cy="10" r="1.4" style="fill:currentColor;stroke:none"/>
-                                </svg>
-                            </div>
-                            <div class="settings-text">
-                                <div class="settings-label" data-i18n="budgetLimits">Лимиты по категориям</div>
-                                <div class="settings-desc" id="budgetSummary" data-i18n="noBudgets">Нет установленных лимитов</div>
-                            </div>
-                            <div class="settings-chevron">&#8250;</div>
                         </div>
                     </div>
                 </div>
@@ -2856,6 +3043,12 @@ body {
         </div><!-- /screenTrack -->
         </div><!-- /appContent -->
 
+        <!-- FAB: fixed position, always above everything -->
+        <button class="nav-fab" id="mainFab" onclick="openActionSheet()" aria-label="Действия">
+            <svg class="fab-icon-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <svg class="fab-icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
         <!-- BOTTOM NAV -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-tab="dashboard">
@@ -2867,10 +3060,8 @@ body {
                 <span data-i18n="tabStats">Статистика</span>
             </button>
 
-            <!-- FAB: центральная кнопка добавления -->
-            <button class="nav-fab" onclick="openActionSheet()" aria-label="Действия">
-                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
+            <!-- FAB slot — preserves flex layout space -->
+            <div class="nav-fab-slot"></div>
 
             <button class="nav-item" data-tab="history">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2934,6 +3125,11 @@ body {
             <div class="modal-header">
                 <div class="modal-title" data-i18n="manageCategories">Управление категориями</div>
                 <button class="modal-close" onclick="closeCategoryManager()">&times;</button>
+            </div>
+
+            <!-- Account chip filter -->
+            <div class="account-chip-row" id="catAccountChips">
+                <div class="account-chip active" data-account-id="" onclick="setCatAccountFilter(null)">Все</div>
             </div>
 
             <div class="settings-group">
@@ -3130,20 +3326,35 @@ body {
         <div class="action-sheet-menu" onclick="event.stopPropagation()">
             <div class="action-sheet-handle"></div>
             <div class="action-sheet-item" onclick="closeActionSheet();openAddModal();">
-                <div class="action-sheet-item-icon">💸</div>
+                <div class="action-sheet-item-icon">
+                    <!-- Wallet / transaction icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="3"/>
+                        <path d="M16 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/>
+                        <path d="M2 9h20"/>
+                    </svg>
+                </div>
                 <div>
-                    <div style="font-weight:600;">Расход / Доход</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Добавить транзакцию</div>
+                    <div style="font-weight:600;" id="actionSheetTxLabel">Расход / Доход</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetTxDesc">Добавить транзакцию</div>
                 </div>
             </div>
             <div class="action-sheet-item" onclick="closeActionSheet();openNewAccount();">
-                <div class="action-sheet-item-icon">🗂️</div>
+                <div class="action-sheet-item-icon">
+                    <!-- Account / folder icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        <line x1="12" y1="11" x2="12" y2="17"/>
+                        <line x1="9" y1="14" x2="15" y2="14"/>
+                    </svg>
+                </div>
                 <div>
-                    <div style="font-weight:600;">Новый счёт</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Личный, Бизнес, Семья, Крипто</div>
+                    <div style="font-weight:600;" id="actionSheetAccLabel">Новый счёт</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetAccDesc">Личный, Бизнес, Семья, Крипто</div>
                 </div>
             </div>
-            <div class="action-sheet-cancel" onclick="closeActionSheet()">Отмена</div>
+            <!-- Notch hole — clipped by overflow:hidden, creates concave arc -->
+            <div class="action-sheet-notch-hole"></div>
         </div>
     </div>
 
@@ -3154,61 +3365,75 @@ body {
         <div class="modal-sheet" style="max-height:92vh;">
             <div class="modal-handle"></div>
             <div class="modal-header">
-                <div class="modal-title">🗂️ Новый счёт</div>
+                <div class="modal-title" id="newAccountModalTitle">Новый счёт</div>
                 <button class="modal-close" onclick="closeNewAccount()">&times;</button>
             </div>
 
             <!-- Step 1: Template -->
             <div style="margin-bottom:16px;">
-                <div class="category-label" style="margin-bottom:10px;">Тип счёта</div>
+                <div class="category-label" style="margin-bottom:10px;" id="newAccountTypeLabel">Тип счёта</div>
                 <div class="account-templates">
                     <div class="account-template-card selected" data-template="personal" onclick="selectAccountTemplate('personal')">
-                        <div class="account-template-emoji">👤</div>
-                        <div class="account-template-label">Личный</div>
-                        <div class="account-template-desc">Обычные расходы</div>
+                        <div class="account-template-icon acc-icon-indigo">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="10" cy="6.5" r="3.5"/>
+                                <path d="M3 18c0-3.6 3.1-6 7-6s7 2.4 7 6"/>
+                            </svg>
+                        </div>
+                        <div class="account-template-label" id="accTplPersonal">Личный</div>
+                        <div class="account-template-desc" id="accTplPersonalDesc">Обычные расходы</div>
                     </div>
                     <div class="account-template-card" data-template="business" onclick="selectAccountTemplate('business')">
-                        <div class="account-template-emoji">💼</div>
-                        <div class="account-template-label">Бизнес</div>
-                        <div class="account-template-desc">Реклама, налоги, ЗП</div>
+                        <div class="account-template-icon acc-icon-violet">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="16" height="10" rx="2.5"/>
+                                <path d="M6.5 7V5.5A1.5 1.5 0 0 1 8 4h4A1.5 1.5 0 0 1 13.5 5.5V7"/>
+                                <line x1="2" y1="12" x2="18" y2="12"/>
+                            </svg>
+                        </div>
+                        <div class="account-template-label" id="accTplBusiness">Бизнес</div>
+                        <div class="account-template-desc" id="accTplBusinessDesc">Реклама, налоги, ЗП</div>
                     </div>
                     <div class="account-template-card" data-template="family_shared" onclick="selectAccountTemplate('family_shared')">
-                        <div class="account-template-emoji">👨‍👩‍👧</div>
-                        <div class="account-template-label">Семейный</div>
-                        <div class="account-template-desc">Продукты, ЖКХ, дети</div>
+                        <div class="account-template-icon acc-icon-emerald">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2.5 8.5L10 2.5l7.5 6V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z"/>
+                                <path d="M7.5 19V13.5h5V19"/>
+                            </svg>
+                        </div>
+                        <div class="account-template-label" id="accTplFamily">Семейный</div>
+                        <div class="account-template-desc" id="accTplFamilyDesc">Продукты, ЖКХ, дети</div>
                     </div>
                     <div class="account-template-card" data-template="crypto" onclick="selectAccountTemplate('crypto')">
-                        <div class="account-template-emoji">₿</div>
-                        <div class="account-template-label">Крипто</div>
-                        <div class="account-template-desc">Портфель биржи</div>
+                        <div class="account-template-icon acc-icon-amber">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1.5 14.5 6 8.5 10 11 14.5 5.5 18.5 8"/>
+                                <polyline points="14.5 5.5 18.5 5.5 18.5 9.5"/>
+                            </svg>
+                        </div>
+                        <div class="account-template-label" id="accTplCrypto">Крипто</div>
+                        <div class="account-template-desc" id="accTplCryptoDesc">Портфель биржи</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Template category preview -->
+            <div id="templatePreviewBlock" style="margin-bottom:16px;background:var(--bg-card);border-radius:var(--radius-md);padding:12px 14px;">
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;" id="tplPreviewLabel">Категории шаблона</div>
+                <div id="tplPreviewContent" style="font-size:13px;color:var(--text-secondary);line-height:1.7;"></div>
             </div>
 
             <!-- Step 2: Name -->
-            <div class="input-group" style="margin-bottom:16px;">
-                <div class="input-label">Название</div>
-                <input type="text" class="input-field" id="newAccountName" placeholder="Мой бизнес" maxlength="32">
-            </div>
-
-            <!-- Step 3: Color -->
-            <div style="margin-bottom:16px;">
-                <div class="category-label" style="margin-bottom:8px;">Цвет</div>
-                <div class="account-color-row" id="accountColorRow">
-                    <div class="account-color-swatch selected" style="background:#3b82f6;" data-color="#3b82f6" onclick="selectAccountColor('#3b82f6')"></div>
-                    <div class="account-color-swatch" style="background:#8b5cf6;" data-color="#8b5cf6" onclick="selectAccountColor('#8b5cf6')"></div>
-                    <div class="account-color-swatch" style="background:#10b981;" data-color="#10b981" onclick="selectAccountColor('#10b981')"></div>
-                    <div class="account-color-swatch" style="background:#f59e0b;" data-color="#f59e0b" onclick="selectAccountColor('#f59e0b')"></div>
-                    <div class="account-color-swatch" style="background:#ef4444;" data-color="#ef4444" onclick="selectAccountColor('#ef4444')"></div>
-                    <div class="account-color-swatch" style="background:#ec4899;" data-color="#ec4899" onclick="selectAccountColor('#ec4899')"></div>
-                </div>
+            <div class="input-group" style="margin-bottom:20px;">
+                <div class="input-label" id="newAccountNameLabel">Название</div>
+                <input type="text" class="input-field" id="newAccountName" placeholder="Мой счёт" maxlength="32">
             </div>
 
             <!-- Crypto fields (shown only for crypto template) -->
             <div class="crypto-fields" id="cryptoFields">
                 <div class="input-group" style="margin-bottom:12px;">
-                    <div class="input-label">Биржа</div>
-                    <select class="input-field" id="newAccountExchange" style="background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border);">
+                    <div class="input-label" id="newAccountExchangeLabel">Биржа</div>
+                    <select class="input-field" id="newAccountExchange">
                         <option value="binance">Binance</option>
                         <option value="okx">OKX</option>
                         <option value="bybit">Bybit</option>
@@ -3217,19 +3442,21 @@ body {
                 </div>
                 <div class="input-group" style="margin-bottom:12px;">
                     <div class="input-label">API Key</div>
-                    <input type="password" class="input-field" id="newAccountApiKey" placeholder="Вставьте API Key">
+                    <input type="password" class="input-field" id="newAccountApiKey" placeholder="Paste API Key">
                 </div>
                 <div class="input-group" style="margin-bottom:16px;">
                     <div class="input-label">API Secret</div>
-                    <input type="password" class="input-field" id="newAccountApiSecret" placeholder="Вставьте API Secret">
+                    <input type="password" class="input-field" id="newAccountApiSecret" placeholder="Paste API Secret">
                 </div>
-                <div style="background:var(--warning-soft);border-radius:var(--radius-md);padding:10px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:16px;">
-                    ⚠️ Ключи шифруются AES-256-GCM и хранятся только на вашем аккаунте. Используй ключи только с правом на <strong>чтение</strong>.
+                <div style="background:var(--warning-soft);border-radius:var(--radius-md);padding:10px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;color:var(--accent-amber)"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="6.5" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+                    <span id="cryptoKeyWarning">Ключи шифруются AES-256-GCM. Используй ключи только с правом на <strong>чтение</strong>.</span>
                 </div>
             </div>
 
             <button class="submit-btn income-mode" id="newAccountSubmitBtn" onclick="submitNewAccount()">
-                ✨ Создать счёт
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:-3px;margin-right:6px;"><path d="M10 2v16M2 10h16"/></svg>
+                <span id="newAccountSubmitLabel">Создать счёт</span>
             </button>
         </div>
     </div>
@@ -3400,6 +3627,15 @@ const CURRENCIES = [
 let CATEGORIES = { expense: [], income: [] };
 const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
+// Map system category names (Russian DB names) → i18n key for live translation
+const CAT_NAME_KEY_MAP = {
+    'Продукты': 'catGroceries', 'Заведения': 'catDining', 'Транспорт': 'catTransport',
+    'Квартира': 'catHousing', 'Регулярные': 'catSubscriptions', 'Шоппинг': 'catShopping',
+    'Красота': 'catBeauty', 'Спорт': 'catSport', 'Путешествия': 'catTravel',
+    'Дом и сад': 'catHome', 'Другое': 'catOther',
+    'Зарплата': 'catSalary', 'Подарок': 'catGift',
+};
+
 // ============================================
 // TRANSLATIONS
 // ============================================
@@ -3469,6 +3705,44 @@ const T = {
         familyNamePrompt: 'Название семьи:', inviteCodePrompt: 'Код приглашения (6 символов):',
         deleteLimitConfirm: 'Удалить лимит?', leaveFamilyConfirm: 'Покинуть семью?',
         chooseAmount: 'Введите сумму', chooseCat: 'Выберите категорию',
+        // New account modal
+        newAccount: 'Новый счёт', accountType: 'Тип счёта', accountName: 'Название',
+        accPersonal: 'Личный', accPersonalDesc: 'Обычные расходы',
+        accBusiness: 'Бизнес', accBusinessDesc: 'Реклама, налоги, ЗП',
+        accFamily: 'Семейный', accFamilyDesc: 'Продукты, ЖКХ, дети',
+        accCrypto: 'Крипто', accCryptoDesc: 'Портфель биржи',
+        accExchange: 'Биржа', createAccount: 'Создать счёт',
+        // Action sheet
+        txLabel: 'Расход / Доход', txDesc: 'Добавить транзакцию',
+        accLabel: 'Новый счёт', accDesc: 'Личный, Бизнес, Семья, Крипто',
+        // Categories (system — for translation)
+        catGroceries: 'Продукты', catDining: 'Заведения', catTransport: 'Транспорт',
+        catHousing: 'Квартира', catSubscriptions: 'Регулярные', catShopping: 'Шоппинг',
+        catBeauty: 'Красота', catSport: 'Спорт', catTravel: 'Путешествия',
+        catHome: 'Дом и сад', catOther: 'Другое',
+        catSalary: 'Зарплата', catGift: 'Подарок',
+        // Settings — new keys
+        accounts: 'Счета', addAccount: 'Добавить счёт', noAccounts: 'Нет дополнительных счетов',
+        accountDeleted: 'Счёт удалён',
+        sharedAccess: 'Совместный доступ', sharedAccessDesc: 'Семейный и совместный учёт',
+        catAndBudgets: 'Категории и бюджеты',
+        appearanceLang: 'Вид и язык',
+        themeDark: 'Тёмная тема', themeLight: 'Светлая тема',
+        themeDesc: 'Переключить цветовую схему',
+        importCsv: 'Импорт CSV', importDesc: 'Загрузить транзакции из файла',
+        signOut: 'Выйти',
+        personalAccounts: 'Личные',
+        cryptoPortfolio: 'Крипто портфель',
+        tapToRefresh: 'Нажмите Обновить для загрузки',
+        monthlyBalance: 'Баланс за месяц',
+        // Template preview
+        tplPreview: 'Категории шаблона',
+        tplBizExpense: '💻 ПО, 🏢 Офис, 📢 Реклама, 💸 Налоги, 👔 ЗП',
+        tplBizIncome: '💰 Продажи, 🤝 Услуги, 📊 Инвестиции',
+        tplFamExpense: '🛒 Продукты, 🏠 ЖКХ, 👶 Дети, 🚗 Авто, 💊 Здоровье',
+        tplFamIncome: '💼 ЗП партнёра, 💰 ЗП, 🎁 Подарки',
+        tplPersonalPreview: 'Стандартные категории',
+        tplCryptoPreview: 'Только баланс биржи (read-only)',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -3523,6 +3797,39 @@ const T = {
         familyNamePrompt: 'Family name:', inviteCodePrompt: 'Invite code (6 characters):',
         deleteLimitConfirm: 'Delete limit?', leaveFamilyConfirm: 'Leave family?',
         chooseAmount: 'Enter amount', chooseCat: 'Choose category',
+        newAccount: 'New Account', accountType: 'Account type', accountName: 'Name',
+        accPersonal: 'Personal', accPersonalDesc: 'Daily expenses',
+        accBusiness: 'Business', accBusinessDesc: 'Ads, taxes, payroll',
+        accFamily: 'Family', accFamilyDesc: 'Groceries, utilities, kids',
+        accCrypto: 'Crypto', accCryptoDesc: 'Exchange portfolio',
+        accExchange: 'Exchange', createAccount: 'Create Account',
+        txLabel: 'Expense / Income', txDesc: 'Add a transaction',
+        accLabel: 'New Account', accDesc: 'Personal, Business, Family, Crypto',
+        catGroceries: 'Groceries', catDining: 'Dining', catTransport: 'Transport',
+        catHousing: 'Housing', catSubscriptions: 'Subscriptions', catShopping: 'Shopping',
+        catBeauty: 'Beauty', catSport: 'Sport', catTravel: 'Travel',
+        catHome: 'Home & Garden', catOther: 'Other',
+        catSalary: 'Salary', catGift: 'Gift',
+        accounts: 'Accounts', addAccount: 'Add account', noAccounts: 'No additional accounts',
+        accountDeleted: 'Account deleted',
+        sharedAccess: 'Shared Access', sharedAccessDesc: 'Family & shared tracking',
+        catAndBudgets: 'Categories & Budgets',
+        appearanceLang: 'Appearance & Language',
+        themeDark: 'Dark theme', themeLight: 'Light theme',
+        themeDesc: 'Toggle color scheme',
+        importCsv: 'Import CSV', importDesc: 'Import transactions from file',
+        signOut: 'Sign Out',
+        personalAccounts: 'Personal',
+        cryptoPortfolio: 'Crypto portfolio',
+        tapToRefresh: 'Tap Refresh to load',
+        monthlyBalance: 'Monthly balance',
+        tplPreview: 'Template categories',
+        tplBizExpense: '💻 Software, 🏢 Office, 📢 Ads, 💸 Taxes, 👔 Payroll',
+        tplBizIncome: '💰 Sales, 🤝 Services, 📊 Investments',
+        tplFamExpense: '🛒 Groceries, 🏠 Utilities, 👶 Kids, 🚗 Car, 💊 Health',
+        tplFamIncome: '💼 Partner salary, 💰 Salary, 🎁 Gifts',
+        tplPersonalPreview: 'Default categories',
+        tplCryptoPreview: 'Exchange balance only (read-only)',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -3576,6 +3883,39 @@ const T = {
         familyNamePrompt: 'Nazwa rodziny:', inviteCodePrompt: 'Kod zaproszenia (6 znaków):',
         deleteLimitConfirm: 'Usunąć limit?', leaveFamilyConfirm: 'Opuścić rodzinę?',
         chooseAmount: 'Wprowadź kwotę', chooseCat: 'Wybierz kategorię',
+        newAccount: 'Nowe konto', accountType: 'Typ konta', accountName: 'Nazwa',
+        accPersonal: 'Osobiste', accPersonalDesc: 'Codzienne wydatki',
+        accBusiness: 'Biznesowe', accBusinessDesc: 'Reklamy, podatki, wypłaty',
+        accFamily: 'Rodzinne', accFamilyDesc: 'Zakupy, media, dzieci',
+        accCrypto: 'Krypto', accCryptoDesc: 'Portfel giełdowy',
+        accExchange: 'Giełda', createAccount: 'Utwórz konto',
+        txLabel: 'Wydatek / Przychód', txDesc: 'Dodaj transakcję',
+        accLabel: 'Nowe konto', accDesc: 'Osobiste, Biznesowe, Rodzinne, Krypto',
+        catGroceries: 'Zakupy spożywcze', catDining: 'Restauracje', catTransport: 'Transport',
+        catHousing: 'Mieszkanie', catSubscriptions: 'Subskrypcje', catShopping: 'Zakupy',
+        catBeauty: 'Uroda', catSport: 'Sport', catTravel: 'Podróże',
+        catHome: 'Dom i ogród', catOther: 'Inne',
+        catSalary: 'Wynagrodzenie', catGift: 'Prezent',
+        accounts: 'Konta', addAccount: 'Dodaj konto', noAccounts: 'Brak dodatkowych kont',
+        accountDeleted: 'Konto usunięte',
+        sharedAccess: 'Wspólny dostęp', sharedAccessDesc: 'Rodzinne i wspólne konta',
+        catAndBudgets: 'Kategorie i budżety',
+        appearanceLang: 'Wygląd i język',
+        themeDark: 'Ciemny motyw', themeLight: 'Jasny motyw',
+        themeDesc: 'Przełącz schemat kolorów',
+        importCsv: 'Import CSV', importDesc: 'Importuj transakcje z pliku',
+        signOut: 'Wyloguj się',
+        personalAccounts: 'Osobiste',
+        cryptoPortfolio: 'Portfel krypto',
+        tapToRefresh: 'Kliknij Odśwież, aby załadować',
+        monthlyBalance: 'Saldo miesięczne',
+        tplPreview: 'Kategorie szablonu',
+        tplBizExpense: '💻 Oprogramowanie, 🏢 Biuro, 📢 Reklamy, 💸 Podatki, 👔 Wypłaty',
+        tplBizIncome: '💰 Sprzedaż, 🤝 Usługi, 📊 Inwestycje',
+        tplFamExpense: '🛒 Zakupy, 🏠 Media, 👶 Dzieci, 🚗 Auto, 💊 Zdrowie',
+        tplFamIncome: '💼 Wynagrodzenie partnera, 💰 Wynagrodzenie, 🎁 Prezenty',
+        tplPersonalPreview: 'Standardowe kategorie',
+        tplCryptoPreview: 'Tylko saldo giełdy (tylko do odczytu)',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -3629,6 +3969,39 @@ const T = {
         familyNamePrompt: 'Назва сім\'ї:', inviteCodePrompt: 'Код запрошення (6 символів):',
         deleteLimitConfirm: 'Видалити ліміт?', leaveFamilyConfirm: 'Покинути сім\'ю?',
         chooseAmount: 'Введіть суму', chooseCat: 'Оберіть категорію',
+        newAccount: 'Новий рахунок', accountType: 'Тип рахунку', accountName: 'Назва',
+        accPersonal: 'Особистий', accPersonalDesc: 'Звичайні витрати',
+        accBusiness: 'Бізнес', accBusinessDesc: 'Реклама, податки, ЗП',
+        accFamily: 'Сімейний', accFamilyDesc: 'Продукти, ЖКГ, діти',
+        accCrypto: 'Крипто', accCryptoDesc: 'Портфель біржі',
+        accExchange: 'Біржа', createAccount: 'Створити рахунок',
+        txLabel: 'Витрата / Дохід', txDesc: 'Додати транзакцію',
+        accLabel: 'Новий рахунок', accDesc: 'Особистий, Бізнес, Сімейний, Крипто',
+        catGroceries: 'Продукти', catDining: 'Заклади', catTransport: 'Транспорт',
+        catHousing: 'Квартира', catSubscriptions: 'Регулярні', catShopping: 'Шопінг',
+        catBeauty: 'Краса', catSport: 'Спорт', catTravel: 'Подорожі',
+        catHome: 'Дім і сад', catOther: 'Інше',
+        catSalary: 'Зарплата', catGift: 'Подарунок',
+        accounts: 'Рахунки', addAccount: 'Додати рахунок', noAccounts: 'Немає додаткових рахунків',
+        accountDeleted: 'Рахунок видалено',
+        sharedAccess: 'Спільний доступ', sharedAccessDesc: 'Сімейний та спільний облік',
+        catAndBudgets: 'Категорії та бюджети',
+        appearanceLang: 'Вигляд і мова',
+        themeDark: 'Темна тема', themeLight: 'Світла тема',
+        themeDesc: 'Перемкнути кольорову схему',
+        importCsv: 'Імпорт CSV', importDesc: 'Завантажити транзакції з файлу',
+        signOut: 'Вийти',
+        personalAccounts: 'Особисті',
+        cryptoPortfolio: 'Крипто портфель',
+        tapToRefresh: 'Натисніть Оновити для завантаження',
+        monthlyBalance: 'Баланс за місяць',
+        tplPreview: 'Категорії шаблону',
+        tplBizExpense: '💻 ПЗ, 🏢 Офіс, 📢 Реклама, 💸 Податки, 👔 ЗП',
+        tplBizIncome: '💰 Продажі, 🤝 Послуги, 📊 Інвестиції',
+        tplFamExpense: '🛒 Продукти, 🏠 ЖКГ, 👶 Діти, 🚗 Авто, 💊 Здоров\'я',
+        tplFamIncome: '💼 ЗП партнера, 💰 ЗП, 🎁 Подарунки',
+        tplPersonalPreview: 'Стандартні категорії',
+        tplCryptoPreview: 'Тільки баланс біржі (read-only)',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -3658,7 +4031,8 @@ let state = {
     activeAccountId: null,
     accountIndex: 0,      // carousel position (0 = implicit personal)
     newAccountTemplate: 'personal',
-    newAccountColor: '#3b82f6',
+    newAccountColor: '#4f46e5',
+    _usingFallbackCategories: false,
 };
 
 // ============================================
@@ -3679,6 +4053,71 @@ function applyLanguage() {
             el.textContent = val;
         }
     });
+
+    // Action sheet items
+    setText('actionSheetTxLabel',  t('txLabel'));
+    setText('actionSheetTxDesc',   t('txDesc'));
+    setText('actionSheetAccLabel', t('accLabel'));
+    setText('actionSheetAccDesc',  t('accDesc'));
+
+    // New account modal
+    setText('newAccountModalTitle',  t('newAccount'));
+    setText('newAccountTypeLabel',   t('accountType'));
+    setText('newAccountNameLabel',   t('accountName'));
+    setText('accTplPersonal',        t('accPersonal'));
+    setText('accTplPersonalDesc',    t('accPersonalDesc'));
+    setText('accTplBusiness',        t('accBusiness'));
+    setText('accTplBusinessDesc',    t('accBusinessDesc'));
+    setText('accTplFamily',          t('accFamily'));
+    setText('accTplFamilyDesc',      t('accFamilyDesc'));
+    setText('accTplCrypto',          t('accCrypto'));
+    setText('accTplCryptoDesc',      t('accCryptoDesc'));
+    setText('newAccountExchangeLabel', t('accExchange'));
+    setText('newAccountSubmitLabel', t('createAccount'));
+
+    // Re-translate system category names already loaded
+    CATEGORIES.expense.forEach(cat => {
+        if (cat.i18nKey) { cat.name = t(cat.i18nKey); cat.value = `${cat.emoji} ${cat.name}`; }
+    });
+    CATEGORIES.income.forEach(cat => {
+        if (cat.i18nKey) { cat.name = t(cat.i18nKey); cat.value = `${cat.emoji} ${cat.name}`; }
+    });
+
+    // Update fallback categories with translated names if no server categories
+    rebuildFallbackCategoryNames();
+    buildCategoryGrid();
+
+    // Update theme label
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    setText('themeSettingsLabel', t(isDark ? 'themeDark' : 'themeLight'));
+    setText('themeDesc', t('themeDesc'));
+
+    // Re-render account chips in category manager
+    renderCatAccountChips();
+}
+
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+function rebuildFallbackCategoryNames() {
+    // Only re-apply translated names if using fallback (no server categories)
+    const expFallbackKeys = ['catGroceries','catDining','catTransport','catHousing','catSubscriptions','catShopping','catBeauty','catSport','catTravel','catHome','catOther'];
+    const expEmojis       = ['🛒','🍽','🚕','🏠','📺','👕','💅','🏋️','✈️','🏡','📦'];
+    const incFallbackKeys = ['catSalary','catGift','catOther'];
+    const incEmojis       = ['💼','🎁','💰'];
+
+    if (state._usingFallbackCategories) {
+        CATEGORIES.expense = expFallbackKeys.map((key, i) => {
+            const name = t(key);
+            return { id: i+1, key: String(i+1), emoji: expEmojis[i], name, i18nKey: key, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], css: `cat-${i}`, value: `${expEmojis[i]} ${name}` };
+        });
+        CATEGORIES.income = incFallbackKeys.map((key, i) => {
+            const name = t(key);
+            return { id: 13+i, key: String(13+i), emoji: incEmojis[i], name, i18nKey: key, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], css: `cat-inc-${i}`, value: `${incEmojis[i]} ${name}` };
+        });
+    }
 }
 
 // ============================================
@@ -3904,50 +4343,44 @@ async function loadUser() {
 async function loadCategories() {
     const data = await apiFetch('/api/categories');
     if (data) {
-        CATEGORIES.expense = (data.expense || []).map((cat, i) => ({
-            id: cat.id,
-            key: cat.id.toString(),
-            emoji: cat.emoji,
-            name: cat.name,
-            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-            css: `cat-${i}`,
-            value: `${cat.emoji} ${cat.name}`,
-        }));
+        CATEGORIES.expense = (data.expense || []).map((cat, i) => {
+            const i18nKey = CAT_NAME_KEY_MAP[cat.name] || null;
+            const name = i18nKey ? t(i18nKey) : cat.name;
+            return { id: cat.id, key: cat.id.toString(), emoji: cat.emoji, name, i18nKey,
+                color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], css: `cat-${i}`,
+                value: `${cat.emoji} ${name}` };
+        });
 
-        CATEGORIES.income = (data.income || []).map((cat, i) => ({
-            id: cat.id,
-            key: cat.id.toString(),
-            emoji: cat.emoji,
-            name: cat.name,
-            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-            css: `cat-${i}`,
-            value: `${cat.emoji} ${cat.name}`,
-        }));
+        CATEGORIES.income = (data.income || []).map((cat, i) => {
+            const i18nKey = CAT_NAME_KEY_MAP[cat.name] || null;
+            const name = i18nKey ? t(i18nKey) : cat.name;
+            return { id: cat.id, key: cat.id.toString(), emoji: cat.emoji, name, i18nKey,
+                color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], css: `cat-${i}`,
+                value: `${cat.emoji} ${name}` };
+        });
     }
 
-    // Fallback
+    // Fallback — translated by current language
+    state._usingFallbackCategories = false;
     if (CATEGORIES.expense.length === 0) {
-        CATEGORIES.expense = [
-            { id: 1,  key: '1',  emoji: '🛒', name: 'Продукты',    color: '#10b981', css: 'cat-groceries', value: '🛒 Продукты' },
-            { id: 2,  key: '2',  emoji: '🍽',  name: 'Заведения',   color: '#f59e0b', css: 'cat-dining',    value: '🍽 Заведения' },
-            { id: 3,  key: '3',  emoji: '🚕', name: 'Транспорт',   color: '#4f46e5', css: 'cat-transport', value: '🚕 Транспорт' },
-            { id: 4,  key: '4',  emoji: '🏠', name: 'Квартира',    color: '#818cf8', css: 'cat-house',     value: '🏠 Квартира' },
-            { id: 5,  key: '5',  emoji: '📺', name: 'Регулярные',  color: '#22d3ee', css: 'cat-regular',   value: '📺 Регулярные' },
-            { id: 6,  key: '6',  emoji: '👕', name: 'Шоппинг',     color: '#4f46e5', css: 'cat-shopping',  value: '👕 Шоппинг' },
-            { id: 7,  key: '7',  emoji: '💅', name: 'Красота',     color: '#f59e0b', css: 'cat-beauty',    value: '💅 Красота' },
-            { id: 8,  key: '8',  emoji: '🏋️', name: 'Спорт',       color: '#10b981', css: 'cat-sport',     value: '🏋️ Спорт' },
-            { id: 9,  key: '9',  emoji: '✈️',  name: 'Путешествия', color: '#22d3ee', css: 'cat-travel',    value: '✈️ Путешествия' },
-            { id: 10, key: '10', emoji: '🏡', name: 'Дом и сад',   color: '#818cf8', css: 'cat-home',      value: '🏡 Дом и сад' },
-            { id: 11, key: '11', emoji: '📦', name: 'Другое',      color: '#94a3b8', css: 'cat-other',     value: '📦 Другое' },
-        ];
+        state._usingFallbackCategories = true;
+        const expEmojis  = ['🛒','🍽','🚕','🏠','📺','👕','💅','🏋️','✈️','🏡','📦'];
+        const expKeys    = ['catGroceries','catDining','catTransport','catHousing','catSubscriptions','catShopping','catBeauty','catSport','catTravel','catHome','catOther'];
+        const expColors  = ['#10b981','#f59e0b','#4f46e5','#818cf8','#22d3ee','#4f46e5','#f59e0b','#10b981','#22d3ee','#818cf8','#94a3b8'];
+        CATEGORIES.expense = expKeys.map((key, i) => {
+            const name = t(key);
+            return { id: i+1, key: String(i+1), emoji: expEmojis[i], name, color: expColors[i], css: `cat-${i}`, value: `${expEmojis[i]} ${name}` };
+        });
     }
 
     if (CATEGORIES.income.length === 0) {
-        CATEGORIES.income = [
-            { id: 13, key: '13', emoji: '💼', name: 'Зарплата',    color: '#10b981', css: 'cat-salary',    value: '💼 Зарплата' },
-            { id: 14, key: '14', emoji: '🎁', name: 'Подарок',     color: '#f59e0b', css: 'cat-gift',      value: '🎁 Подарок' },
-            { id: 15, key: '15', emoji: '💰', name: 'Другое',      color: '#94a3b8', css: 'cat-other',     value: '💰 Другое' },
-        ];
+        if (!state._usingFallbackCategories) state._usingFallbackCategories = true;
+        const incEmojis = ['💼','🎁','💰'];
+        const incKeys   = ['catSalary','catGift','catOther'];
+        CATEGORIES.income = incKeys.map((key, i) => {
+            const name = t(key);
+            return { id: 13+i, key: String(13+i), emoji: incEmojis[i], name, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], css: `cat-inc-${i}`, value: `${incEmojis[i]} ${name}` };
+        });
     }
 }
 
@@ -3975,6 +4408,17 @@ async function loadAccounts() {
         state.accountIndex = 0;
     }
     renderAccountsCarousel();
+    renderSettingsAccountsList();
+}
+
+function getAccountTypeIconHTML(type) {
+    const icons = {
+        personal: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.5"/><path d="M3 18c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>',
+        business: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2.5"/><path d="M6.5 7V5.5A1.5 1.5 0 0 1 8 4h4A1.5 1.5 0 0 1 13.5 5.5V7"/><line x1="2" y1="12" x2="18" y2="12"/></svg>',
+        family_shared: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5L10 2.5l7.5 6V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z"/><path d="M7.5 19V13.5h5V19"/></svg>',
+        crypto: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 14.5 6 8.5 10 11 14.5 5.5 18.5 8"/><polyline points="14.5 5.5 18.5 5.5 18.5 9.5"/></svg>',
+    };
+    return icons[type] || icons.personal;
 }
 
 function renderAccountsCarousel() {
@@ -3993,12 +4437,12 @@ function renderAccountsCarousel() {
                 const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
                 return `
                 <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-                    <div class="account-name-chip">${acc.emoji} ${acc.name}</div>
-                    <div class="balance-label">Крипто портфель</div>
+                    <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+                    <div class="balance-label">${t('cryptoPortfolio')}</div>
                     <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
                     <div class="crypto-balance-list">
                         ${balances.length === 0
-                            ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">Нажмите Обновить для загрузки</div>`
+                            ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">${t('tapToRefresh')}</div>`
                             : balances.slice(0, 6).map(b => `
                                 <div class="crypto-balance-row">
                                     <span class="crypto-symbol">${b.symbol}</span>
@@ -4013,16 +4457,16 @@ function renderAccountsCarousel() {
             }
             return `
             <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-                <div class="account-name-chip">${acc.emoji} ${acc.name}</div>
-                <div class="balance-label">Баланс за месяц</div>
+                <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+                <div class="balance-label">${t('monthlyBalance')}</div>
                 <div class="balance-amount positive" id="balAmt${acc.id}">— ${state.userCurrency}</div>
                 <div class="balance-row">
                     <div class="balance-stat">
-                        <div class="balance-stat-label">Доходы</div>
+                        <div class="balance-stat-label">${t('income')}</div>
                         <div class="balance-stat-value income" id="balInc${acc.id}">0</div>
                     </div>
                     <div class="balance-stat">
-                        <div class="balance-stat-label">Расходы</div>
+                        <div class="balance-stat-label">${t('expenses')}</div>
                         <div class="balance-stat-value expense" id="balExp${acc.id}">0</div>
                     </div>
                 </div>
@@ -4032,7 +4476,7 @@ function renderAccountsCarousel() {
 
     // Update default card chip
     if (state.accountIndex === 0) {
-        if (chip) { chip.textContent = '💼 Личные'; }
+        if (chip) { chip.innerHTML = getAccountTypeIconHTML('personal') + ' ' + t('personalAccounts'); }
         document.getElementById('defaultBalanceCard').style.removeProperty('--account-color');
     } else {
         const acc = state.accounts[state.accountIndex - 1];
@@ -4106,6 +4550,7 @@ let _carouselMoveX = 0;
 let _carouselDragging = false;
 
 function carouselTouchStart(e) {
+    e.stopPropagation();
     _carouselStartX = e.touches[0].clientX;
     _carouselMoveX = 0;
     _carouselDragging = true;
@@ -4113,6 +4558,7 @@ function carouselTouchStart(e) {
 
 function carouselTouchMove(e) {
     if (!_carouselDragging) return;
+    e.stopPropagation();
     _carouselMoveX = e.touches[0].clientX - _carouselStartX;
     // Visual drag feedback
     const total = state.accounts.length + 1;
@@ -4124,6 +4570,7 @@ function carouselTouchMove(e) {
 
 function carouselTouchEnd(e) {
     if (!_carouselDragging) return;
+    e.stopPropagation();
     _carouselDragging = false;
     const total = state.accounts.length + 1;
     const threshold = 50; // px
@@ -4142,11 +4589,17 @@ function carouselTouchEnd(e) {
 // ── Action Sheet ──────────────────────────────────────────────────────────
 function openActionSheet() {
     document.getElementById('actionSheet').classList.add('show');
+    const fab = document.getElementById('mainFab');
+    fab.classList.add('is-open');
+    fab.onclick = closeActionSheet;
     haptic('light');
 }
 
 function closeActionSheet() {
     document.getElementById('actionSheet').classList.remove('show');
+    const fab = document.getElementById('mainFab');
+    fab.classList.remove('is-open');
+    fab.onclick = openActionSheet;
 }
 
 // ── New Account Modal ────────────────────────────────────────────────────
@@ -4155,13 +4608,16 @@ function openNewAccount() {
     document.getElementById('newAccountApiKey').value = '';
     document.getElementById('newAccountApiSecret').value = '';
     selectAccountTemplate('personal');
-    selectAccountColor('#3b82f6');
     document.getElementById('newAccountModal').classList.add('show');
+    const fab = document.getElementById('mainFab');
+    if (fab) { fab.style.opacity = '0'; fab.style.pointerEvents = 'none'; }
     haptic('medium');
 }
 
 function closeNewAccount() {
     document.getElementById('newAccountModal').classList.remove('show');
+    const fab = document.getElementById('mainFab');
+    if (fab) { fab.style.opacity = ''; fab.style.pointerEvents = ''; }
 }
 
 function selectAccountTemplate(template) {
@@ -4172,22 +4628,39 @@ function selectAccountTemplate(template) {
     // Show/hide crypto fields
     const cryptoFields = document.getElementById('cryptoFields');
     cryptoFields.classList.toggle('visible', template === 'crypto');
-    // Suggest a color
-    const colorMap = { personal: '#3b82f6', business: '#8b5cf6', family_shared: '#10b981', crypto: '#f59e0b' };
-    if (colorMap[template]) selectAccountColor(colorMap[template]);
-    // Suggest a name
-    const nameMap = { personal: 'Личный', business: 'Бизнес', family_shared: 'Семья', crypto: 'Крипто' };
+    // Set color by template type
+    const colorMap = { personal: '#4f46e5', business: '#8b5cf6', family_shared: '#10b981', crypto: '#f59e0b' };
+    state.newAccountColor = colorMap[template] || '#4f46e5';
+
+    // Update category preview
+    const previewBlock = document.getElementById('templatePreviewBlock');
+    const previewContent = document.getElementById('tplPreviewContent');
+    const tplPreviewLabel = document.getElementById('tplPreviewLabel');
+    if (tplPreviewLabel) tplPreviewLabel.textContent = t('tplPreview');
+    if (previewContent) {
+        const previewMap = {
+            personal: `<div style="color:var(--text-muted);">${t('tplPersonalPreview')}</div>`,
+            crypto:   `<div style="color:var(--text-muted);">${t('tplCryptoPreview')}</div>`,
+            business: `<div>📤 ${t('expensesFilter')}: <span style="color:var(--danger);">${t('tplBizExpense')}</span></div>` +
+                      `<div style="margin-top:4px;">📥 ${t('incomeFilter')}: <span style="color:var(--success);">${t('tplBizIncome')}</span></div>`,
+            family_shared: `<div>📤 ${t('expensesFilter')}: <span style="color:var(--danger);">${t('tplFamExpense')}</span></div>` +
+                           `<div style="margin-top:4px;">📥 ${t('incomeFilter')}: <span style="color:var(--success);">${t('tplFamIncome')}</span></div>`,
+        };
+        previewContent.innerHTML = previewMap[template] || '';
+    }
+    if (previewBlock) previewBlock.style.display = (template === 'personal' || template === 'crypto') ? 'none' : 'block';
+
+    // Suggest a name (translated)
+    const nameMap = {
+        personal: t('accPersonal'), business: t('accBusiness'),
+        family_shared: t('accFamily'), crypto: t('accCrypto')
+    };
     const nameInput = document.getElementById('newAccountName');
-    if (!nameInput.value || Object.values(nameMap).includes(nameInput.value)) {
+    // Replace only if it's currently a known template name
+    const existingNames = Object.keys(nameMap).map(k => nameMap[k]);
+    if (!nameInput.value || existingNames.some(n => nameInput.value === n)) {
         nameInput.value = nameMap[template] || '';
     }
-}
-
-function selectAccountColor(color) {
-    state.newAccountColor = color;
-    document.querySelectorAll('.account-color-swatch').forEach(el => {
-        el.classList.toggle('selected', el.dataset.color === color);
-    });
 }
 
 async function submitNewAccount() {
@@ -4195,8 +4668,9 @@ async function submitNewAccount() {
     if (!name) { haptic('error'); return; }
 
     const btn = document.getElementById('newAccountSubmitBtn');
+    const lbl = document.getElementById('newAccountSubmitLabel');
     btn.disabled = true;
-    btn.textContent = '⏳ Создаём...';
+    if (lbl) lbl.textContent = '⏳';
 
     const body = {
         name,
@@ -4212,7 +4686,7 @@ async function submitNewAccount() {
         body.crypto_api_secret = document.getElementById('newAccountApiSecret').value.trim();
         if (!body.crypto_api_key || !body.crypto_api_secret) {
             btn.disabled = false;
-            btn.textContent = '✨ Создать счёт';
+            if (lbl) lbl.textContent = t('createAccount');
             haptic('error');
             return;
         }
@@ -4221,7 +4695,7 @@ async function submitNewAccount() {
     const data = await apiFetch('/api/accounts', { method: 'POST', body: JSON.stringify(body) });
 
     btn.disabled = false;
-    btn.textContent = '✨ Создать счёт';
+    if (lbl) lbl.textContent = t('createAccount');
 
     if (data?.success) {
         closeNewAccount();
@@ -4231,6 +4705,83 @@ async function submitNewAccount() {
         if (newIdx >= 0) await switchToAccountIndex(newIdx + 1);
         haptic('success');
     }
+}
+
+// ============================================
+// SETTINGS — ACCOUNTS LIST
+// ============================================
+
+function renderSettingsAccountsList() {
+    const el = document.getElementById('settingsAccountsList');
+    if (!el) return;
+
+    if (state.accounts.length === 0) {
+        el.innerHTML = `<div style="padding:12px 16px;color:var(--text-muted);font-size:13px;">${t('noAccounts')}</div>`;
+        return;
+    }
+
+    el.innerHTML = state.accounts.map(acc => {
+        const typeKey = { personal: 'accPersonal', business: 'accBusiness', family_shared: 'accFamily', crypto: 'accCrypto' }[acc.type];
+        const typeLabel = typeKey ? t(typeKey) : acc.type;
+        return `
+        <div class="account-manage-item" data-acc-id="${acc.id}">
+            <div class="account-manage-icon" style="background:${acc.color}22;color:${acc.color};">${acc.emoji}</div>
+            <div class="account-manage-info">
+                <div class="account-manage-name">${acc.name}</div>
+                <div class="account-manage-meta">${typeLabel}</div>
+            </div>
+            <button class="category-action-btn delete" onclick="deleteAccount(${acc.id}, '${acc.name.replace(/'/g, "\\'")}')">🗑️</button>
+        </div>`;
+    }).join('');
+}
+
+async function deleteAccount(accountId, accountName) {
+    const confirmed = confirm(`Удалить счёт "${accountName}"?\n\nТранзакции сохранятся, но потеряют привязку к счёту.`);
+    if (!confirmed) return;
+
+    const result = await apiFetch('/api/accounts', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: accountId }),
+    });
+
+    if (result?.success) {
+        haptic('success');
+        showToast(t('accountDeleted'));
+        // If deleted active account — reset to personal
+        if (state.activeAccountId === accountId) {
+            state.activeAccountId = null;
+            state.accountIndex = 0;
+        }
+        await loadAccounts();
+        await loadDashboard();
+    } else {
+        showToast(result?.error || 'Ошибка удаления счёта');
+    }
+}
+
+// ============================================
+// CATEGORY MANAGER — ACCOUNT CHIP FILTER
+// ============================================
+
+let catManagerAccountId = null; // null = show all
+
+function renderCatAccountChips() {
+    const row = document.getElementById('catAccountChips');
+    if (!row) return;
+
+    const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">Все</div>`;
+    const accountChips = state.accounts.map(acc =>
+        `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${acc.emoji} ${acc.name}</div>`
+    ).join('');
+
+    row.innerHTML = allChip + accountChips;
+}
+
+async function setCatAccountFilter(accountId) {
+    catManagerAccountId = accountId;
+    renderCatAccountChips();
+    await loadEditableCategories();
+    haptic('light');
 }
 
 function updateCurrencyDisplay() {
@@ -4659,6 +5210,20 @@ function renderDashboard() {
     alarCountUp(incEl);
     alarCountUp(expEl);
 
+    // Also populate active extra account card (if on non-personal account)
+    if (state.activeAccountId) {
+        const xBalEl = document.getElementById(`balAmt${state.activeAccountId}`);
+        if (xBalEl) {
+            xBalEl.textContent = `${balance >= 0 ? '+' : ''}${balance.toFixed(2)} ${curr}`;
+            xBalEl.className = 'balance-amount ' + (balance >= 0 ? 'positive' : 'negative');
+            alarCountUp(xBalEl);
+        }
+        const xIncEl = document.getElementById(`balInc${state.activeAccountId}`);
+        if (xIncEl) xIncEl.textContent = `+${totalInc.toFixed(2)} ${curr}`;
+        const xExpEl = document.getElementById(`balExp${state.activeAccountId}`);
+        if (xExpEl) xExpEl.textContent = `-${totalExp.toFixed(2)} ${curr}`;
+    }
+
     document.getElementById('progressFill').style.width = pct.toFixed(0) + '%';
     document.getElementById('progressPercent').textContent = pct.toFixed(0) + '%';
 
@@ -4955,6 +5520,8 @@ async function openCategoryManager() {
     modal.classList.add('show');
     haptic('medium');
 
+    catManagerAccountId = null; // reset to "All"
+    renderCatAccountChips();
     await loadEditableCategories();
 }
 
@@ -4964,7 +5531,8 @@ function closeCategoryManager() {
 }
 
 async function loadEditableCategories() {
-    const data = await apiFetch('/api/categories/editable');
+    const qs = catManagerAccountId !== null ? `?account_id=${catManagerAccountId}` : '';
+    const data = await apiFetch(`/api/categories/editable${qs}`);
     if (!data) {
         showToast('Ошибка загрузки категорий');
         return;
@@ -4983,9 +5551,15 @@ async function loadEditableCategories() {
 
 function renderCategoryManagerItem(cat, type) {
     const txCountText = cat.tx_count ? `${cat.tx_count} ${cat.tx_count === 1 ? 'операция' : cat.tx_count < 5 ? 'операции' : 'операций'}` : 'Не использовалась';
-    const badge = cat.owner_type === 'user' ? '<span class="category-badge">Своя</span>'
-        : cat.owner_type === 'family' ? '<span class="category-badge" style="background:rgba(34,211,238,0.12);color:#22d3ee;">Семья</span>'
-        : '';
+    let badge = '';
+    if (cat.account_id) {
+        const acc = state.accounts.find(a => a.id === cat.account_id);
+        badge = acc ? `<span class="category-badge" style="background:${acc.color}22;color:${acc.color};">${acc.emoji} ${acc.name}</span>` : '<span class="category-badge">Счёт</span>';
+    } else if (cat.owner_type === 'user') {
+        badge = '<span class="category-badge">Своя</span>';
+    } else if (cat.owner_type === 'family') {
+        badge = '<span class="category-badge" style="background:rgba(34,211,238,0.12);color:#22d3ee;">Семья</span>';
+    }
 
     return `
         <div class="category-manager-item" data-id="${cat.id}">
@@ -5067,6 +5641,7 @@ async function addCategory() {
         type: newCategoryType,
         keywords: [],
         scope: newCategoryScope,
+        account_id: catManagerAccountId || undefined,
     };
 
     const result = await apiFetch('/api/category', {
@@ -5328,12 +5903,19 @@ function initTabSwipe() {
     let startTime = 0;
     let decided   = null;   // 'h' (horizontal) | 'v' (vertical) | null
     let baseOffset = 0;     // translateX% at touchstart
+    let tabSwipeActive = false; // false when touch started in carousel
 
     function currentOffset() {
         return -TAB_ORDER.indexOf(state.currentTab) * 25;
     }
 
     appContent.addEventListener('touchstart', e => {
+        // Don't intercept swipes that start inside the accounts carousel
+        if (e.target.closest('#accountsCarouselWrapper')) {
+            tabSwipeActive = false;
+            return;
+        }
+        tabSwipeActive = true;
         startX     = e.touches[0].clientX;
         startY     = e.touches[0].clientY;
         startTime  = Date.now();
@@ -5343,6 +5925,7 @@ function initTabSwipe() {
     }, { passive: true });
 
     appContent.addEventListener('touchmove', e => {
+        if (!tabSwipeActive) return;
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
 
@@ -5369,7 +5952,7 @@ function initTabSwipe() {
     }, { passive: false });  // non-passive required for preventDefault
 
     appContent.addEventListener('touchend', e => {
-        if (decided !== 'h') {
+        if (!tabSwipeActive || decided !== 'h') {
             track.style.transition = '';
             return;
         }
@@ -5826,6 +6409,8 @@ async function setLanguage(lang) {
         }
         applyLanguage();
         setGreeting();
+        // Rebuild category grid with new language names
+        buildCategoryGrid();
         showToast(langNames[lang] || lang);
         haptic('success');
         closeLanguagePicker();

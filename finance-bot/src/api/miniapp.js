@@ -178,7 +178,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/undo':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleUndo(userId, transactionService, currency);
+      return handleUndo(userId, activeAccountId, transactionService, currency);
 
     case '/api/currency':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -212,7 +212,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
       return error('Method not allowed', 405);
 
     case '/api/categories/editable':
-      return handleEditableCategories(userId, familyId, activeAccountId, categoryService);
+      return handleEditableCategories(request, userId, familyId, activeAccountId, categoryService);
 
     // ── Accounts ────────────────────────────────────────
     case '/api/accounts':
@@ -503,8 +503,8 @@ async function handleDeleteTransaction(request, userId, ts) {
 // POST /api/undo — delete last transaction
 // ============================================
 
-async function handleUndo(userId, ts, currency) {
-  const last = await ts.getLastTransaction(userId);
+async function handleUndo(userId, accountId, ts, currency) {
+  const last = await ts.getLastTransaction(userId, accountId);
   if (!last) return error('No transactions to undo', 404);
 
   await ts.delete(last.id, userId);
@@ -609,8 +609,12 @@ async function handleExport(request, userId, familyId, ts, exportService, family
 // GET /api/categories/editable
 // ============================================
 
-async function handleEditableCategories(userId, familyId, accountId, cs) {
-  const categories = await cs.getEditableCategories(userId, null, familyId, accountId);
+async function handleEditableCategories(request, userId, familyId, accountId, cs) {
+  // Allow overriding accountId via query param (for category manager account filter)
+  const url = new URL(request.url);
+  const qAccountId = url.searchParams.get('account_id');
+  const effectiveAccountId = qAccountId !== null ? (qAccountId === '' ? null : Number(qAccountId)) : accountId;
+  const categories = await cs.getEditableCategories(userId, null, familyId, effectiveAccountId);
 
   return json({
     expense: categories.filter(c => c.type === 'expense').map(c => ({
@@ -618,6 +622,7 @@ async function handleEditableCategories(userId, familyId, accountId, cs) {
       name: c.name,
       emoji: c.emoji,
       owner_type: c.owner_type,
+      account_id: c.account_id || null,
       tx_count: c.tx_count || 0,
     })),
     income: categories.filter(c => c.type === 'income').map(c => ({
@@ -625,6 +630,7 @@ async function handleEditableCategories(userId, familyId, accountId, cs) {
       name: c.name,
       emoji: c.emoji,
       owner_type: c.owner_type,
+      account_id: c.account_id || null,
       tx_count: c.tx_count || 0,
     })),
   });
@@ -642,7 +648,7 @@ async function handleAddCategory(request, userId, familyId, cs) {
     return error('Invalid JSON');
   }
 
-  const { name, emoji, type, keywords, scope } = body;
+  const { name, emoji, type, keywords, scope, account_id } = body;
 
   if (!name || !name.trim()) return error('name is required');
   if (!emoji) return error('emoji is required');
@@ -651,7 +657,7 @@ async function handleAddCategory(request, userId, familyId, cs) {
   // scope='personal' forces user-owned category; scope='family' (or default when in family) uses familyId
   const effectiveFamilyId = (scope === 'personal') ? null : familyId;
 
-  const result = await cs.addCustomCategory(userId, name.trim(), emoji, type, keywords || [], effectiveFamilyId);
+  const result = await cs.addCustomCategory(userId, name.trim(), emoji, type, keywords || [], effectiveFamilyId, account_id || null);
 
   if (!result.success) {
     if (result.error === 'exists') return error('Категория с таким именем уже существует');

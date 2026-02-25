@@ -26,6 +26,24 @@ export class CategoryService {
 
   // Get all categories visible to a user (system + user's custom + family + account-specific)
   async getUserCategories(userId, type = null, familyId = null, accountId = null) {
+    // If accountId is set, check if account has its own template categories
+    if (accountId) {
+      const ownCheck = await this.db.prepare(
+        'SELECT COUNT(*) as cnt FROM categories WHERE account_id = ? AND is_active = 1'
+      ).bind(accountId).first();
+
+      if (ownCheck?.cnt > 0) {
+        // Account has own categories — show ONLY those (template mode)
+        let query = `SELECT * FROM categories WHERE is_active = 1 AND account_id = ?`;
+        const params = [accountId];
+        if (type) { query += ' AND type = ?'; params.push(type); }
+        query += ' ORDER BY sort_order, id';
+        const result = await this.db.prepare(query).bind(...params).all();
+        return result.results;
+      }
+    }
+
+    // Default: system + user personal + family + account-specific (if any)
     let query = `
       SELECT * FROM categories
       WHERE is_active = 1 AND (
@@ -128,7 +146,7 @@ export class CategoryService {
   // CUSTOM CATEGORY MANAGEMENT
   // ============================================
 
-  async addCustomCategory(userId, name, emoji, type = 'expense', keywords = [], familyId = null) {
+  async addCustomCategory(userId, name, emoji, type = 'expense', keywords = [], familyId = null, accountId = null) {
     const ownerType = familyId ? 'family' : 'user';
     const ownerId = familyId || userId;
 
@@ -155,10 +173,10 @@ export class CategoryService {
     const sortOrder = (maxOrder?.max_order || 10) + 1;
 
     const result = await this.db.prepare(`
-      INSERT INTO categories (owner_type, owner_id, name, emoji, type, keywords, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO categories (owner_type, owner_id, name, emoji, type, keywords, sort_order, account_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *
-    `).bind(ownerType, ownerId, name, emoji, type, JSON.stringify(keywords), sortOrder).first();
+    `).bind(ownerType, ownerId, name, emoji, type, JSON.stringify(keywords), sortOrder, accountId || null).first();
 
     return { success: true, category: result };
   }
