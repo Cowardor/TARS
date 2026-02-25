@@ -161,6 +161,15 @@ export class AccountService {
     return { success: true };
   }
 
+  // Migrate legacy null-account transactions to a specific personal account
+  async migrateNullTransactions(userId, personalAccountId) {
+    await this.db.prepare(`
+      UPDATE transactions
+      SET account_id = ?
+      WHERE user_id = ? AND account_id IS NULL AND family_id IS NULL
+    `).bind(personalAccountId, userId).run();
+  }
+
   // ─── SESSION ─────────────────────────────────────────────────────────────────
 
   async getActiveAccountId(telegramId) {

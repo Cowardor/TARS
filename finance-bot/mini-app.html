@@ -3363,7 +3363,7 @@ select.input-field option {
                 </div>
                 <div>
                     <div style="font-weight:600;" id="actionSheetAccLabel">Новый счёт</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetAccDesc">Личный, Бизнес, Семья, Крипто</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetAccDesc">Личный, Бизнес, Семья, Инвестиции</div>
                 </div>
             </div>
             <!-- Notch hole — clipped by overflow:hidden, creates concave arc -->
@@ -3420,12 +3420,14 @@ select.input-field option {
                     <div class="account-template-card" data-template="crypto" onclick="selectAccountTemplate('crypto')">
                         <div class="account-template-icon acc-icon-amber">
                             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="2 15 6 9 10 12 14 6 18 9"/>
-                                <polyline points="14 6 18 6 18 10"/>
+                                <line x1="4" y1="17" x2="4" y2="11"/>
+                                <line x1="10" y1="17" x2="10" y2="7"/>
+                                <line x1="16" y1="17" x2="16" y2="3"/>
+                                <line x1="2" y1="17" x2="18" y2="17"/>
                             </svg>
                         </div>
-                        <div class="account-template-label" id="accTplCrypto">Крипто</div>
-                        <div class="account-template-desc" id="accTplCryptoDesc">Портфель биржи</div>
+                        <div class="account-template-label" id="accTplCrypto">Инвестиции</div>
+                        <div class="account-template-desc" id="accTplCryptoDesc">Крипто, акции, фонды</div>
                     </div>
                 </div>
             </div>
@@ -3723,11 +3725,11 @@ const T = {
         accPersonal: 'Личный', accPersonalDesc: 'Обычные расходы',
         accBusiness: 'Бизнес', accBusinessDesc: 'Реклама, налоги, ЗП',
         accFamily: 'Семейный', accFamilyDesc: 'Продукты, ЖКХ, дети',
-        accCrypto: 'Крипто', accCryptoDesc: 'Портфель биржи',
+        accCrypto: 'Инвестиции', accCryptoDesc: 'Крипто, акции, фонды',
         accExchange: 'Биржа', createAccount: 'Создать счёт',
         // Action sheet
         txLabel: 'Расход / Доход', txDesc: 'Добавить транзакцию',
-        accLabel: 'Новый счёт', accDesc: 'Личный, Бизнес, Семья, Крипто',
+        accLabel: 'Новый счёт', accDesc: 'Личный, Бизнес, Семья, Инвестиции',
         // Categories (system — for translation)
         catGroceries: 'Продукты', catDining: 'Заведения', catTransport: 'Транспорт',
         catHousing: 'Квартира', catSubscriptions: 'Регулярные', catShopping: 'Шоппинг',
@@ -3745,7 +3747,7 @@ const T = {
         importCsv: 'Импорт CSV', importDesc: 'Загрузить транзакции из файла',
         signOut: 'Выйти',
         personalAccounts: 'Личные',
-        cryptoPortfolio: 'Крипто портфель',
+        cryptoPortfolio: 'Инвест. портфель',
         tapToRefresh: 'Нажмите Обновить для загрузки',
         monthlyBalance: 'Баланс за месяц',
         // Template preview
@@ -3814,10 +3816,10 @@ const T = {
         accPersonal: 'Personal', accPersonalDesc: 'Daily expenses',
         accBusiness: 'Business', accBusinessDesc: 'Ads, taxes, payroll',
         accFamily: 'Family', accFamilyDesc: 'Groceries, utilities, kids',
-        accCrypto: 'Crypto', accCryptoDesc: 'Exchange portfolio',
+        accCrypto: 'Investments', accCryptoDesc: 'Crypto, stocks, funds',
         accExchange: 'Exchange', createAccount: 'Create Account',
         txLabel: 'Expense / Income', txDesc: 'Add a transaction',
-        accLabel: 'New Account', accDesc: 'Personal, Business, Family, Crypto',
+        accLabel: 'New Account', accDesc: 'Personal, Business, Family, Investments',
         catGroceries: 'Groceries', catDining: 'Dining', catTransport: 'Transport',
         catHousing: 'Housing', catSubscriptions: 'Subscriptions', catShopping: 'Shopping',
         catBeauty: 'Beauty', catSport: 'Sport', catTravel: 'Travel',
@@ -3833,7 +3835,7 @@ const T = {
         importCsv: 'Import CSV', importDesc: 'Import transactions from file',
         signOut: 'Sign Out',
         personalAccounts: 'Personal',
-        cryptoPortfolio: 'Crypto portfolio',
+        cryptoPortfolio: 'Investment portfolio',
         tapToRefresh: 'Tap Refresh to load',
         monthlyBalance: 'Monthly balance',
         tplPreview: 'Template categories',
@@ -3900,10 +3902,10 @@ const T = {
         accPersonal: 'Osobiste', accPersonalDesc: 'Codzienne wydatki',
         accBusiness: 'Biznesowe', accBusinessDesc: 'Reklamy, podatki, wypłaty',
         accFamily: 'Rodzinne', accFamilyDesc: 'Zakupy, media, dzieci',
-        accCrypto: 'Krypto', accCryptoDesc: 'Portfel giełdowy',
+        accCrypto: 'Inwestycje', accCryptoDesc: 'Krypto, akcje, fundusze',
         accExchange: 'Giełda', createAccount: 'Utwórz konto',
         txLabel: 'Wydatek / Przychód', txDesc: 'Dodaj transakcję',
-        accLabel: 'Nowe konto', accDesc: 'Osobiste, Biznesowe, Rodzinne, Krypto',
+        accLabel: 'Nowe konto', accDesc: 'Osobiste, Biznesowe, Rodzinne, Inwestycje',
         catGroceries: 'Zakupy spożywcze', catDining: 'Restauracje', catTransport: 'Transport',
         catHousing: 'Mieszkanie', catSubscriptions: 'Subskrypcje', catShopping: 'Zakupy',
         catBeauty: 'Uroda', catSport: 'Sport', catTravel: 'Podróże',
@@ -3919,7 +3921,7 @@ const T = {
         importCsv: 'Import CSV', importDesc: 'Importuj transakcje z pliku',
         signOut: 'Wyloguj się',
         personalAccounts: 'Osobiste',
-        cryptoPortfolio: 'Portfel krypto',
+        cryptoPortfolio: 'Portfel inwestycyjny',
         tapToRefresh: 'Kliknij Odśwież, aby załadować',
         monthlyBalance: 'Saldo miesięczne',
         tplPreview: 'Kategorie szablonu',
@@ -3986,10 +3988,10 @@ const T = {
         accPersonal: 'Особистий', accPersonalDesc: 'Звичайні витрати',
         accBusiness: 'Бізнес', accBusinessDesc: 'Реклама, податки, ЗП',
         accFamily: 'Сімейний', accFamilyDesc: 'Продукти, ЖКГ, діти',
-        accCrypto: 'Крипто', accCryptoDesc: 'Портфель біржі',
+        accCrypto: 'Інвестиції', accCryptoDesc: 'Крипто, акції, фонди',
         accExchange: 'Біржа', createAccount: 'Створити рахунок',
         txLabel: 'Витрата / Дохід', txDesc: 'Додати транзакцію',
-        accLabel: 'Новий рахунок', accDesc: 'Особистий, Бізнес, Сімейний, Крипто',
+        accLabel: 'Новий рахунок', accDesc: 'Особистий, Бізнес, Сімейний, Інвестиції',
         catGroceries: 'Продукти', catDining: 'Заклади', catTransport: 'Транспорт',
         catHousing: 'Квартира', catSubscriptions: 'Регулярні', catShopping: 'Шопінг',
         catBeauty: 'Краса', catSport: 'Спорт', catTravel: 'Подорожі',
@@ -4005,7 +4007,7 @@ const T = {
         importCsv: 'Імпорт CSV', importDesc: 'Завантажити транзакції з файлу',
         signOut: 'Вийти',
         personalAccounts: 'Особисті',
-        cryptoPortfolio: 'Крипто портфель',
+        cryptoPortfolio: 'Інвест. портфель',
         tapToRefresh: 'Натисніть Оновити для завантаження',
         monthlyBalance: 'Баланс за місяць',
         tplPreview: 'Категорії шаблону',
@@ -4421,14 +4423,33 @@ async function loadAccounts() {
     if (!data) return;
     state.accounts = data.accounts || [];
 
-    // activeAccountId=null → index 0 (Personal/default slot)
-    // activeAccountId=X → find account with id=X (it's at index 1+)
+    if (state.accounts.length === 0) {
+        renderAccountsCarousel();
+        renderSettingsAccountsList();
+        return;
+    }
+
     if (state.activeAccountId) {
         const idx = state.accounts.findIndex(a => a.id === state.activeAccountId);
-        state.accountIndex = idx >= 0 ? idx : 0;
+        if (idx >= 0) {
+            state.accountIndex = idx;
+        } else {
+            // Active account was deleted → fall back to Personal (index 0)
+            state.accountIndex = 0;
+            state.activeAccountId = state.accounts[0].id;
+            await apiFetch('/api/accounts/switch', {
+                method: 'POST',
+                body: JSON.stringify({ account_id: state.accounts[0].id }),
+            });
+        }
     } else {
+        // Session has no active account — ensure Personal (accounts[0]) is set as active
         state.accountIndex = 0;
-        // First time ever — silently save Personal as active slot (no API call needed, null = personal)
+        state.activeAccountId = state.accounts[0].id;
+        await apiFetch('/api/accounts/switch', {
+            method: 'POST',
+            body: JSON.stringify({ account_id: state.accounts[0].id }),
+        });
     }
 
     renderAccountsCarousel();
@@ -4440,7 +4461,7 @@ function getAccountTypeIconHTML(type) {
         personal: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.5"/><path d="M3 18c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>',
         business: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2.5"/><path d="M6.5 7V5.5A1.5 1.5 0 0 1 8 4h4A1.5 1.5 0 0 1 13.5 5.5V7"/><line x1="2" y1="12" x2="18" y2="12"/></svg>',
         family_shared: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5L10 2.5l7.5 6V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z"/><path d="M7.5 19V13.5h5V19"/></svg>',
-        crypto: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 14.5 6 8.5 10 11 14.5 5.5 18.5 8"/><polyline points="14.5 5.5 18.5 5.5 18.5 9.5"/></svg>',
+        crypto: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="17" x2="4" y2="11"/><line x1="10" y1="17" x2="10" y2="7"/><line x1="16" y1="17" x2="16" y2="3"/><line x1="2" y1="17" x2="18" y2="17"/></svg>',
     };
     return icons[type] || icons.personal;
 }
@@ -4537,12 +4558,11 @@ function renderAccountsCarousel() {
 }
 
 async function switchToAccountIndex(idx) {
-    if (idx === state.accountIndex && state.activeAccountId !== undefined) return;
+    if (idx === state.accountIndex && state.activeAccountId === (state.accounts[idx]?.id || null)) return;
     state.accountIndex = idx;
 
-    // Index 0 = Personal (null account_id for transactions = backward compat)
-    // Index 1..N = specific accounts
-    const newAccountId = idx === 0 ? null : (state.accounts[idx]?.id || null);
+    // Always use the real account ID — Personal account also has a real DB id
+    const newAccountId = state.accounts[idx]?.id || null;
     state.activeAccountId = newAccountId;
 
     // Update chip immediately
@@ -4883,9 +4903,8 @@ const SCREEN_MAP = {
 function updateFabVisibility() {
     const fab = document.getElementById('mainFab');
     if (!fab) return;
-    const inSettings = state.currentTab === 'settings';
     const anyModal = !!document.querySelector('.modal-overlay.show');
-    fab.classList.toggle('fab-hidden', inSettings || anyModal);
+    fab.classList.toggle('fab-hidden', anyModal);
 }
 
 function switchTab(tab, fromSwipe = false) {
