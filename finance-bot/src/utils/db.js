@@ -49,7 +49,7 @@ export function parseMonth(text) {
   return null;
 }
 
-export function getMonthName(date = new Date(), lang = 'ru') {
+export function getMonthName(date = new Date(), lang = 'en') {
   const months = {
     ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
          'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],

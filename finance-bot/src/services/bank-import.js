@@ -463,11 +463,8 @@ export class BankImportService {
       // Дом (Home)
       { pattern: /ikea|leroy merlin|castorama|obi\s|bricomarche|jysk|agata meble|black red white|abra|home&you|meble|remont|narzedzia/i, category: 'Дом' },
 
-      // Trading/Finance
-      { pattern: /binance|revolut|etoro|xtb|degiro|trading|crypto|bitcoin|giełda|gielda|inwestycje/i, category: 'Trading' },
-
-      // ATM withdrawals → Другое
-      { pattern: /wyplata|bankomat|atm|gotowka/i, category: 'Другое' }
+      // ATM withdrawals & trading → Другое
+      { pattern: /wyplata|bankomat|atm|gotowka|binance|revolut|etoro|xtb|degiro|trading|crypto|bitcoin|giełda|gielda|inwestycje/i, category: 'Другое' }
     ];
 
     const incomePatterns = [

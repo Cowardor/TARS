@@ -12,12 +12,418 @@ import { BankImportService } from './services/bank-import.js';
 import { NordigenService } from './services/nordigen.js';
 import { SaltEdgeService } from './services/saltedge.js';
 import { sendMessage, editMessage, answerCallback, sendDocument, downloadFile, inlineKeyboard, button, buttonRow } from './utils/telegram.js';
-import { parseMonth } from './utils/db.js';
+import { parseMonth, getMonthRange } from './utils/db.js';
 import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
+import { handleMiniAppAPI } from './api/miniapp.js';
+import { handleAuth } from './api/auth.js';
+import MINIAPP_HTML from '../mini-app.html';
+
+// ============================================
+// INSTALL LANDING PAGE
+// ============================================
+const INSTALL_PAGE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Alar Finance — Install App</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#09090b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#09090b;color:#fafafa;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px 40px;text-align:center;max-width:480px;width:100%}
+.logo{width:80px;height:80px;margin-bottom:24px;border-radius:20px;box-shadow:0 8px 32px rgba(59,130,246,0.3)}
+h1{font-size:32px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#3b82f6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:#a1a1aa;font-size:15px;margin-bottom:40px;line-height:1.5}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:40px}
+.feature{background:#111114;border:1px solid #27272a;border-radius:16px;padding:16px;text-align:center}
+.feature-icon{font-size:28px;margin-bottom:8px}
+.feature-text{font-size:12px;color:#a1a1aa;line-height:1.4}
+.install-section{width:100%;max-width:480px;padding:0 24px}
+.install-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:12px;border:none;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:transform 0.2s,opacity 0.2s}
+.install-btn:active{transform:scale(0.97)}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff}
+.btn-secondary{background:#111114;color:#fafafa;border:1px solid #27272a}
+.btn-icon{width:20px;height:20px}
+.web-link{display:block;text-align:center;color:#a1a1aa;font-size:13px;padding:16px;text-decoration:none;margin-bottom:20px}
+.web-link span{color:#3b82f6;text-decoration:underline}
+.steps{width:100%;max-width:480px;padding:0 24px 40px}
+.steps h3{font-size:16px;font-weight:600;margin-bottom:16px;color:#a1a1aa}
+.step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
+.step-num{min-width:28px;height:28px;background:linear-gradient(135deg,#3b82f6,#22d3ee);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.step-text{font-size:14px;line-height:1.5;color:#d4d4d8;padding-top:3px}
+.step-text b{color:#fafafa}
+.footer{text-align:center;padding:24px;color:#52525b;font-size:12px;border-top:1px solid #18181b;width:100%;margin-top:auto}
+
+/* iOS install modal */
+.ios-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:flex-end;justify-content:center;padding:16px}
+.ios-modal.show{display:flex}
+.ios-modal-content{background:#1c1c1e;border-radius:20px;padding:24px;max-width:360px;width:100%;margin-bottom:env(safe-area-inset-bottom,20px)}
+.ios-modal h3{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
+.ios-step{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #2c2c2e}
+.ios-step:last-child{border:none}
+.ios-step-icon{font-size:24px;min-width:32px;text-align:center}
+.ios-step-text{font-size:14px;color:#d4d4d8}
+.ios-step-text b{color:#fafafa}
+.ios-close{width:100%;padding:14px;background:#2c2c2e;border:none;border-radius:12px;color:#3b82f6;font-size:16px;font-weight:600;margin-top:16px;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* Hide install section if already installed */
+@media(display-mode:standalone){
+  .install-section,.steps{display:none}
+  .hero{padding-bottom:20px}
+}
+</style>
+</head>
+<body>
+<div class="hero">
+  <img src="/icon-192.png" alt="Alar" class="logo">
+  <h1>Alar Finance</h1>
+  <p class="subtitle">Track expenses, income & budgets.<br>Auto-convert currencies. Bank sync.</p>
+  <div class="features">
+    <div class="feature"><div class="feature-icon">💰</div><div class="feature-text">Expense & Income tracking</div></div>
+    <div class="feature"><div class="feature-icon">📊</div><div class="feature-text">Statistics & Trends</div></div>
+    <div class="feature"><div class="feature-icon">💱</div><div class="feature-text">Auto currency conversion</div></div>
+    <div class="feature"><div class="feature-icon">🏦</div><div class="feature-text">Bank sync (Open Banking)</div></div>
+    <div class="feature"><div class="feature-icon">👨‍👩‍👧</div><div class="feature-text">Family budgets</div></div>
+    <div class="feature"><div class="feature-icon">📥</div><div class="feature-text">Excel export</div></div>
+  </div>
+</div>
+
+<div class="install-section">
+  <a class="install-btn btn-primary" id="androidBtn" href="/download/android" style="display:none;text-decoration:none">
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download for Android
+  </a>
+  <button class="install-btn btn-primary" id="iosBtn" style="display:none" onclick="showIosModal()">
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Install on iPhone
+  </button>
+  <button class="install-btn btn-secondary" onclick="location.href='/app'">
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+    Open in Browser
+  </button>
+  <a href="/app" class="web-link">or <span>continue in browser</span></a>
+</div>
+
+<div class="steps" id="androidSteps" style="display:none">
+  <h3>How to install:</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-text">Tap <b>"Install App"</b> above</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text">Confirm in the popup</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-text">App appears on your <b>home screen</b></div></div>
+</div>
+
+<div class="steps" id="iosSteps" style="display:none">
+  <h3>How to install on iPhone:</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-text">Open this page in <b>Safari</b></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text">Tap the <b>Share</b> button (square with arrow ↑)</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-text">Scroll down, tap <b>"Add to Home Screen"</b></div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-text">Tap <b>"Add"</b> — done!</div></div>
+</div>
+
+<div class="ios-modal" id="iosModal">
+  <div class="ios-modal-content">
+    <h3>Install Alar Finance</h3>
+    <div class="ios-step"><div class="ios-step-icon">↑</div><div class="ios-step-text">Tap the <b>Share</b> button below</div></div>
+    <div class="ios-step"><div class="ios-step-icon">➕</div><div class="ios-step-text">Tap <b>"Add to Home Screen"</b></div></div>
+    <div class="ios-step"><div class="ios-step-icon">✓</div><div class="ios-step-text">Tap <b>"Add"</b> to install</div></div>
+    <button class="ios-close" onclick="hideIosModal()">Got it</button>
+  </div>
+</div>
+
+<div class="footer">Alar Finance · Automate with discipline ▲</div>
+
+<script>
+let deferredPrompt = null;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isAndroid = /Android/.test(navigator.userAgent);
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+
+// If already installed as PWA, redirect to app
+if (isStandalone) { location.href = '/app'; }
+
+// Android: show download APK button
+if (isAndroid && !isStandalone) {
+  document.getElementById('androidBtn').style.display = 'flex';
+  document.getElementById('androidSteps').style.display = 'block';
+}
+
+// iOS: show install button
+if (isIOS && !isStandalone) {
+  document.getElementById('iosBtn').style.display = 'flex';
+  document.getElementById('iosSteps').style.display = 'block';
+}
+
+// Desktop: show both buttons
+if (!isIOS && !isAndroid && !isStandalone) {
+  document.getElementById('androidBtn').style.display = 'flex';
+}
+
+function showIosModal() {
+  document.getElementById('iosModal').classList.add('show');
+}
+
+function hideIosModal() {
+  document.getElementById('iosModal').classList.remove('show');
+}
+
+// Register SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>`;
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    // ============================================
+    // MINI APP: Serve HTML + REST API
+    // ============================================
+
+    // Landing / Install page (GET only — POST is reserved for Telegram webhook)
+    if (url.pathname === '/' && request.method === 'GET') {
+      return new Response(INSTALL_PAGE, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
+    // Download Android APK from KV
+    if (url.pathname === '/download/android') {
+      const apk = await env.FINANCE_KV.get('apk_file', 'arrayBuffer');
+      if (!apk) {
+        return new Response('APK not found', { status: 404 });
+      }
+      return new Response(apk, {
+        headers: {
+          'Content-Type': 'application/vnd.android.package-archive',
+          'Content-Disposition': 'attachment; filename="AlarFinance.apk"',
+          'Content-Length': apk.byteLength.toString(),
+        },
+      });
+    }
+
+    // Serve Mini App HTML (Telegram + standalone PWA)
+    if (url.pathname === '/webapp' || url.pathname === '/app') {
+      return new Response(MINIAPP_HTML, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
+    // PWA Manifest
+    if (url.pathname === '/manifest.json') {
+      const manifest = {
+        name: 'Alar Finance',
+        short_name: 'Alar',
+        description: 'Personal finance tracker — expenses, income, budgets & bank sync',
+        start_url: '/app',
+        display: 'standalone',
+        background_color: '#09090b',
+        theme_color: '#09090b',
+        orientation: 'portrait',
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+        ],
+        categories: ['finance', 'productivity'],
+        lang: 'en',
+      };
+      return new Response(JSON.stringify(manifest), {
+        headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'public, max-age=86400' },
+      });
+    }
+
+    // PWA Service Worker
+    if (url.pathname === '/sw.js') {
+      const sw = `
+const CACHE = 'alar-v1';
+const PRECACHE = ['/', '/app', '/manifest.json'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  if (e.request.url.includes('/api/')) return; // never cache API
+  e.respondWith(
+    fetch(e.request).then(r => {
+      const clone = r.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return r;
+    }).catch(() => caches.match(e.request))
+  );
+});`;
+      return new Response(sw, {
+        headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-cache' },
+      });
+    }
+
+    // PWA Icons (generated SVG → PNG-like SVG wrapped)
+    if (url.pathname === '/icon-192.png' || url.pathname === '/icon-512.png') {
+      const size = url.pathname.includes('512') ? 512 : 192;
+      const svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${size}" height="${size}" rx="${size * 0.2}" fill="url(#g)"/>
+        <path d="${`M${size/2} ${size*0.17} L${size*0.79} ${size*0.79} L${size*0.21} ${size*0.79} Z`}" stroke="white" stroke-width="${size*0.04}" stroke-linejoin="round" fill="none"/>
+        <line x1="${size*0.58}" y1="${size*0.48}" x2="${size*0.83}" y2="${size*0.35}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.8"/>
+        <line x1="${size*0.6}" y1="${size*0.54}" x2="${size*0.83}" y2="${size*0.54}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.6"/>
+        <line x1="${size*0.58}" y1="${size*0.6}" x2="${size*0.83}" y2="${size*0.73}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.4"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="${size}" y2="${size}"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      </svg>`;
+      return new Response(svg, {
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' },
+      });
+    }
+
+    // Favicon
+    if (url.pathname === '/favicon.ico' || url.pathname === '/favicon.svg') {
+      const svg = `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="url(#g)"/><path d="M24 8 L38 38 L10 38 Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/><line x1="28" y1="23" x2="40" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/><line x1="29" y1="26" x2="40" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/><line x1="28" y1="29" x2="40" y2="35" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><defs><linearGradient id="g" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>`;
+      return new Response(svg, {
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' },
+      });
+    }
+
+    // Auth API (register, login, telegram, logout, me)
+    if (url.pathname.startsWith('/api/auth/') || url.pathname === '/api/auth') {
+      return handleAuth(request, env, url.pathname);
+    }
+
+    // Mini App REST API
+    if (url.pathname.startsWith('/api/')) {
+      return handleMiniAppAPI(request, env, url.pathname);
+    }
+
+    // Setup webhook to point to this worker
+    if (url.pathname === '/setup-webhook') {
+      try {
+        const botApi = `https://api.telegram.org/bot${env.TELEGRAM_TOKEN}`;
+        const webhookUrl = url.origin;
+        const res = await fetch(`${botApi}/setWebhook`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: webhookUrl })
+        });
+        const data = await res.json();
+        return new Response(JSON.stringify({ webhook_url: webhookUrl, result: data }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // One-time setup: configure Menu Button in Telegram
+    if (url.pathname === '/setup-webapp') {
+      try {
+        const webappUrl = `${url.origin}/webapp`;
+        const botApi = `https://api.telegram.org/bot${env.TELEGRAM_TOKEN}`;
+
+        // Verify bot token
+        const meRes = await fetch(`${botApi}/getMe`);
+        const meData = await meRes.json();
+
+        // Set Menu Button to open Mini App (default for all chats)
+        const menuRes = await fetch(`${botApi}/setChatMenuButton`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            menu_button: {
+              type: 'web_app',
+              text: 'Finance App',
+              web_app: { url: webappUrl }
+            }
+          })
+        });
+        const menuData = await menuRes.json();
+
+        return new Response(JSON.stringify({
+          success: true,
+          webapp_url: webappUrl,
+          bot: meData,
+          menu_button_result: menuData,
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message, stack: e.stack }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Quick check: is Salt Edge access working?
+    if (url.pathname === '/debug/saltedge') {
+      try {
+        // 1. Check providers for Poland
+        const provResp = await fetch('https://www.saltedge.com/api/v6/providers?country_code=PL', {
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID,
+            'Secret': env.SALTEDGE_SECRET,
+          }
+        });
+        const provData = await provResp.json();
+
+        // 2. List existing customers
+        const custResp = await fetch('https://www.saltedge.com/api/v6/customers', {
+          headers: {
+            'App-id': env.SALTEDGE_APP_ID,
+            'Secret': env.SALTEDGE_SECRET,
+          }
+        });
+        const custData = await custResp.json();
+
+        const providers = (provData.data || []).map(p => ({
+          code: p.code, name: p.name, status: p.status, mode: p.mode
+        }));
+
+        // 3. Check fake/sandbox providers
+        const fakeResp = await fetch('https://www.saltedge.com/api/v6/providers?country_code=XF', {
+          headers: { 'App-id': env.SALTEDGE_APP_ID, 'Secret': env.SALTEDGE_SECRET }
+        });
+        const fakeData = await fakeResp.json();
+        const fakeProviders = (fakeData.data || []).map(p => ({ code: p.code, name: p.name, mode: p.mode }));
+
+        // 4. All providers count
+        const allResp = await fetch('https://www.saltedge.com/api/v6/providers', {
+          headers: { 'App-id': env.SALTEDGE_APP_ID, 'Secret': env.SALTEDGE_SECRET }
+        });
+        const allData = await allResp.json();
+
+        return new Response(JSON.stringify({
+          access: provResp.status === 200 ? 'OK' : 'DENIED',
+          api_status: provResp.status,
+          total_providers: (allData.data || []).length,
+          poland_providers: providers.length,
+          providers_sample: providers.slice(0, 20),
+          fake_providers: fakeProviders,
+          customers: (custData.data || []).length,
+          raw_error: provResp.status !== 200 ? provData : undefined,
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     // Debug endpoint to test connect session creation
     if (url.pathname === '/debug/session') {
@@ -58,7 +464,7 @@ export default {
                 scopes: ['accounts', 'transactions']
               },
               attempt: {
-                return_to: 'https://finance-bot.vishna2003.workers.dev/callback'
+                return_to: `${url.origin}/callback`
               },
               provider_code: 'fakebank_simple_xf'
             }
@@ -299,7 +705,7 @@ export default {
         // Initialize services
         const userService = new UserService(env.DB);
         const categoryService = new CategoryService(env.DB);
-        const transactionService = new TransactionService(env.DB);
+        const transactionService = new TransactionService(env.DB, env.ENCRYPTION_KEY);
         const statsService = new StatsService(transactionService);
         const familyService = new FamilyService(env.DB);
         const exportService = new ExportService(transactionService);
@@ -339,7 +745,7 @@ export default {
     console.log('Cron triggered:', event.cron);
 
     const userService = new UserService(env.DB);
-    const transactionService = new TransactionService(env.DB);
+    const transactionService = new TransactionService(env.DB, env.ENCRYPTION_KEY);
     const statsService = new StatsService(transactionService);
     const categoryService = new CategoryService(env.DB);
     const nordigenService = new NordigenService(env.DB, env);
@@ -484,6 +890,11 @@ async function handleMessage(message, env, services) {
     return;
   }
 
+  if (textLower === '/diag') {
+    await handleDiag(chatId, user, familyId, env, services);
+    return;
+  }
+
   if (textLower.startsWith('/cat')) {
     await handleCategoryCommand(chatId, user, text, env, services);
     return;
@@ -527,6 +938,13 @@ async function handleMessage(message, env, services) {
     return;
   }
 
+  // Check for + prefix → income (e.g. "+100 salary")
+  if (text.trim().startsWith('+')) {
+    const incomeText = '/income ' + text.trim().slice(1).trim();
+    await handleIncome(chatId, user, incomeText, familyId, env, services);
+    return;
+  }
+
   // Default: try to parse as expense
   await handleExpense(chatId, user, text, familyId, env, services);
 }
@@ -537,13 +955,13 @@ async function handleMessage(message, env, services) {
 
 async function handleStart(chatId, user, env, services) {
   // Check if user already has language set (not first time)
-  if (user.language && user.language !== 'ru') {
+  if (user.language) {
     // Return welcome in user's language
     await showWelcome(chatId, user, env);
     return;
   }
 
-  // First time or Russian default - show language selection
+  // First time - show language selection
   const languages = getLanguages();
   const buttons = languages.map(l => [button(`${l.flag} ${l.name}`, `lang_${l.code}`)]);
 
@@ -552,7 +970,7 @@ async function handleStart(chatId, user, env, services) {
 }
 
 async function showWelcome(chatId, user, env) {
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
 
   const message = `👋 ${t.welcome}, <b>${user.display_name}</b>!
 
@@ -570,7 +988,9 @@ ${t.errorExample} <code>${t.expenseExample}</code>
 /language - 🌍
 /help - ${t.helpTitle}
 
-💡 ${t.selectCategory}!`;
+💡 ${t.selectCategory}!
+
+<i>Powered by Alar ▲</i>`;
 
   await sendMessage(chatId, message, env);
 }
@@ -600,6 +1020,8 @@ async function handleHelp(chatId, env) {
 • /import - импорт из банка (CSV)
 • /bank - подключить банк (Open Banking)
 • /bank last - последние банковские транзакции
+• /bank wipe - удалить банковские транзакции
+• /diag - диагностика данных
 • /notifications - настройки уведомлений
 • /currency - сменить валюту
 • /budget продукты 2000 - установить бюджет
@@ -616,7 +1038,9 @@ async function handleHelp(chatId, env) {
 🛒 продукты, 🍽 заведения, 🚕 транспорт
 🏠 квартира, 📺 регулярные, 👕 шоппинг
 💅 красота, 🏋️ спорт, ✈️ путешествия
-🏡 дом, 📈 trading, 📦 другое`;
+🏡 дом, 📦 другое
+
+<i>Powered by Alar ▲</i>`;
 
   await sendMessage(chatId, message, env);
 }
@@ -656,22 +1080,125 @@ async function handleMenu(chatId, user, env) {
   );
 }
 
-async function handleExpense(chatId, user, text, familyId, env, services) {
-  const { categoryService, transactionService, statsService, budgetService } = services;
-  const t = getTranslations(user.language || 'ru');
-  const currency = user.currency || 'PLN';
+// Currency symbol mapping
+const CURRENCY_SYMBOLS = {
+  '$': 'USD', '€': 'EUR', '£': 'GBP', 'zł': 'PLN', 'zl': 'PLN',
+  '₴': 'UAH', 'Kč': 'CZK', 'kč': 'CZK', 'kr': 'NOK', 'Fr': 'CHF',
+  'fr': 'CHF', '¥': 'JPY', '₽': 'RUB',
+};
 
-  // Parse: amount [category] [description]
-  const match = text.match(/^(\d+(?:[.,]\d+)?)\s*(\S+)?\s*(.*)$/);
+// Fetch exchange rate with 1h KV cache
+async function convertCurrency(amount, fromCurrency, toCurrency, env) {
+  if (fromCurrency === toCurrency) return { converted: amount, rate: 1 };
 
-  if (!match) {
-    await sendMessage(chatId, `❌ ${t.errorFormat} <code>${t.expenseFormat}</code>\n${t.errorExample} <code>${t.expenseExample}</code>`, env);
-    return;
+  const cacheKey = `rate_${fromCurrency}_${toCurrency}`;
+  const cached = await env.FINANCE_KV.get(cacheKey);
+  if (cached) {
+    const rate = parseFloat(cached);
+    return { converted: +(amount * rate).toFixed(2), rate };
   }
 
-  const amount = parseFloat(match[1].replace(',', '.'));
-  const categoryInput = match[2] || '';
-  const description = match[3] || '';
+  try {
+    const resp = await fetch(`https://api.exchangerate.host/convert?from=${fromCurrency}&to=${toCurrency}&amount=1`);
+    const data = await resp.json();
+    if (data.success !== false && data.result) {
+      const rate = data.result;
+      await env.FINANCE_KV.put(cacheKey, rate.toString(), { expirationTtl: 3600 });
+      return { converted: +(amount * rate).toFixed(2), rate };
+    }
+  } catch (e) { console.log('Exchange rate error:', e.message); }
+
+  // Fallback: try open API
+  try {
+    const resp = await fetch(`https://open.er-api.com/v6/latest/${fromCurrency}`);
+    const data = await resp.json();
+    if (data.rates && data.rates[toCurrency]) {
+      const rate = data.rates[toCurrency];
+      await env.FINANCE_KV.put(cacheKey, rate.toString(), { expirationTtl: 3600 });
+      return { converted: +(amount * rate).toFixed(2), rate };
+    }
+  } catch (e) { console.log('Fallback rate error:', e.message); }
+
+  return null;
+}
+
+// Parse amount with optional currency symbol: "100$", "$100", "50€", "200zł"
+function parseAmountWithCurrency(text) {
+  const trimmed = text.trim();
+
+  // Try symbol before number: $100, €50
+  for (const [symbol, code] of Object.entries(CURRENCY_SYMBOLS)) {
+    if (trimmed.startsWith(symbol)) {
+      const rest = trimmed.slice(symbol.length).trim();
+      const numMatch = rest.match(/^(\d+(?:[.,]\d+)?)(.*)/);
+      if (numMatch) {
+        return { amount: parseFloat(numMatch[1].replace(',', '.')), sourceCurrency: code, rest: numMatch[2].trim() };
+      }
+    }
+  }
+
+  // Try number then symbol: 100$, 50€, 200zł
+  const numFirst = trimmed.match(/^(\d+(?:[.,]\d+)?)\s*(.+)/);
+  if (numFirst) {
+    const amount = parseFloat(numFirst[1].replace(',', '.'));
+    const afterNum = numFirst[2].trim();
+    for (const [symbol, code] of Object.entries(CURRENCY_SYMBOLS)) {
+      if (afterNum.startsWith(symbol)) {
+        const rest = afterNum.slice(symbol.length).trim();
+        return { amount, sourceCurrency: code, rest };
+      }
+    }
+    // Also check 3-letter code: 100 USD, 50 EUR
+    const codeMatch = afterNum.match(/^(USD|EUR|GBP|PLN|UAH|CZK|NOK|CHF|JPY|RUB)\b\s*(.*)/i);
+    if (codeMatch) {
+      return { amount, sourceCurrency: codeMatch[1].toUpperCase(), rest: codeMatch[2].trim() };
+    }
+  }
+
+  return null; // no currency detected
+}
+
+async function handleExpense(chatId, user, text, familyId, env, services) {
+  const { categoryService, transactionService, statsService, budgetService } = services;
+  const t = getTranslations(user.language || 'en');
+  const currency = user.currency || 'USD';
+
+  // Try to parse with currency symbol first
+  let amount, categoryInput, description, conversionNote = '';
+  const currencyParsed = parseAmountWithCurrency(text);
+
+  if (currencyParsed && currencyParsed.sourceCurrency !== currency) {
+    // Foreign currency detected — convert
+    const conversion = await convertCurrency(currencyParsed.amount, currencyParsed.sourceCurrency, currency, env);
+    if (conversion) {
+      amount = conversion.converted;
+      conversionNote = `\n💱 ${currencyParsed.amount} ${currencyParsed.sourceCurrency} → ${amount} ${currency} (${conversion.rate.toFixed(4)})`;
+      const restParts = currencyParsed.rest.match(/^(\S+)?\s*(.*)$/);
+      categoryInput = restParts?.[1] || '';
+      description = restParts?.[2] || '';
+    } else {
+      await sendMessage(chatId, `❌ Could not convert ${currencyParsed.sourceCurrency} → ${currency}. Try again later.`, env);
+      return;
+    }
+  } else if (currencyParsed && currencyParsed.sourceCurrency === currency) {
+    // Same currency, just strip the symbol
+    amount = currencyParsed.amount;
+    const restParts = currencyParsed.rest.match(/^(\S+)?\s*(.*)$/);
+    categoryInput = restParts?.[1] || '';
+    description = restParts?.[2] || '';
+  } else {
+    // Parse: amount [category] [description]
+    const match = text.match(/^(\d+(?:[.,]\d+)?)\s*(\S+)?\s*(.*)$/);
+
+    if (!match) {
+      await sendMessage(chatId, `❌ ${t.errorFormat} <code>${t.expenseFormat}</code>\n${t.errorExample} <code>${t.expenseExample}</code>`, env);
+      return;
+    }
+
+    amount = parseFloat(match[1].replace(',', '.'));
+    categoryInput = match[2] || '';
+    description = match[3] || '';
+  }
 
   // Try to detect category
   const category = await categoryService.detectCategory(categoryInput, 'expense', user.id);
@@ -693,6 +1220,7 @@ async function handleExpense(chatId, user, text, familyId, env, services) {
   const monthTotal = await transactionService.getCategoryTotal(user.id, category.id, new Date(), familyId);
 
   let message = statsService.generateExpenseConfirmation(amount, category, monthTotal, description, user.language, currency);
+  if (conversionNote) message += conversionNote;
 
   // Check budget warning
   const budgetWarning = await budgetService.checkBudgetWarning(user.id, category.id, familyId);
@@ -719,17 +1247,42 @@ async function handleExpense(chatId, user, text, familyId, env, services) {
 
 async function handleIncome(chatId, user, text, familyId, env, services) {
   const { categoryService, transactionService, statsService } = services;
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
+  const userCurrency = user.currency || 'USD';
 
-  const match = text.match(/\/income\s+(\d+(?:[.,]\d+)?)\s*(.*)/i);
+  const match = text.match(/\/income\s+(.+)/i);
 
   if (!match) {
     await sendMessage(chatId, `❌ ${t.errorFormat} <code>/income ${t.amount} ${t.description}</code>\n${t.errorExample} <code>/income 3400 salary</code>`, env);
     return;
   }
 
-  const amount = parseFloat(match[1].replace(',', '.'));
-  const description = match[2] || t.income;
+  let amount, description, conversionNote = '';
+  const incomeBody = match[1].trim();
+  const currencyParsed = parseAmountWithCurrency(incomeBody);
+
+  if (currencyParsed && currencyParsed.sourceCurrency !== userCurrency) {
+    const conversion = await convertCurrency(currencyParsed.amount, currencyParsed.sourceCurrency, userCurrency, env);
+    if (conversion) {
+      amount = conversion.converted;
+      conversionNote = `\n💱 ${currencyParsed.amount} ${currencyParsed.sourceCurrency} → ${amount} ${userCurrency} (${conversion.rate.toFixed(4)})`;
+      description = currencyParsed.rest || t.income;
+    } else {
+      await sendMessage(chatId, `❌ Could not convert ${currencyParsed.sourceCurrency} → ${userCurrency}. Try again later.`, env);
+      return;
+    }
+  } else if (currencyParsed) {
+    amount = currencyParsed.amount;
+    description = currencyParsed.rest || t.income;
+  } else {
+    const numMatch = incomeBody.match(/^(\d+(?:[.,]\d+)?)\s*(.*)/);
+    if (!numMatch) {
+      await sendMessage(chatId, `❌ ${t.errorFormat} <code>/income ${t.amount} ${t.description}</code>\n${t.errorExample} <code>/income 3400 salary</code>`, env);
+      return;
+    }
+    amount = parseFloat(numMatch[1].replace(',', '.'));
+    description = numMatch[2] || t.income;
+  }
 
   // Find or use default income category
   let category = await categoryService.detectCategory(description, 'income');
@@ -741,13 +1294,14 @@ async function handleIncome(chatId, user, text, familyId, env, services) {
   await transactionService.createIncome(user.id, category.id, amount, description, familyId);
   const monthTotal = await transactionService.getMonthTotal(user.id, 'income', new Date(), familyId);
 
-  const message = statsService.generateIncomeConfirmation(amount, monthTotal, description, user.language, user.currency);
+  let message = statsService.generateIncomeConfirmation(amount, monthTotal, description, user.language, userCurrency);
+  if (conversionNote) message += conversionNote;
   await sendMessage(chatId, message, env);
 }
 
 async function handleStats(chatId, user, text, familyId, env, services) {
   const { statsService } = services;
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
 
   // Parse month from command
   let date = new Date();
@@ -773,7 +1327,7 @@ async function handleStats(chatId, user, text, familyId, env, services) {
 
 async function handleTrend(chatId, user, familyId, env, services) {
   const { statsService } = services;
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
   const message = await statsService.generateTrendReport(user.id, familyId, user.language, user.currency);
 
   const keyboard = inlineKeyboard([
@@ -807,7 +1361,7 @@ async function handleHistory(chatId, user, text, familyId, env, services) {
 
 async function handleUndo(chatId, user, env, services) {
   const { transactionService } = services;
-  const currency = user.currency || 'PLN';
+  const currency = user.currency || 'USD';
 
   const lastTransaction = await transactionService.getLastTransaction(user.id);
 
@@ -858,7 +1412,7 @@ async function handleCategories(chatId, env, services) {
 
 async function handleExport(chatId, user, text, familyId, env, services) {
   const { exportService, familyService } = services;
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
 
   // Parse month from command
   let date = new Date();
@@ -905,8 +1459,9 @@ async function handleExport(chatId, user, text, familyId, env, services) {
       caption += `👨‍👩‍👧 ${familyName}\n`;
     }
     caption += `📝 ${info.count} ${t.transactionsWord}\n`;
-    caption += `📉 ${t.expenses}: ${info.expenses.toFixed(2)} PLN\n`;
-    caption += `📈 ${t.income}: ${info.income.toFixed(2)} PLN`;
+    const currency = user.currency || 'USD';
+    caption += `📉 ${t.expenses}: ${info.expenses.toFixed(2)} ${currency}\n`;
+    caption += `📈 ${t.income}: ${info.income.toFixed(2)} ${currency}`;
 
     // Send document
     await sendDocument(chatId, buffer, filename, caption, env);
@@ -1151,7 +1706,7 @@ async function handleCallback(callback, env, services) {
   if (data.startsWith('undo:')) {
     const lastTransaction = await transactionService.getLastTransaction(user.id);
     if (lastTransaction) {
-      const currency = user.currency || 'PLN';
+      const currency = user.currency || 'USD';
       await transactionService.delete(lastTransaction.id, user.id);
       const catEmoji = lastTransaction.category_emoji || '❓';
       const catName = lastTransaction.category_name || 'Без категории';
@@ -1167,7 +1722,7 @@ async function handleCallback(callback, env, services) {
 
   // Handle stats button
   if (data === 'stats') {
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     const message = await statsService.generateMonthlyStats(user.id, new Date(), familyId, null, user.language, user.currency);
     const keyboard = inlineKeyboard([
       buttonRow(
@@ -1182,7 +1737,7 @@ async function handleCallback(callback, env, services) {
 
   // Handle trend button
   if (data === 'trend') {
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     const message = await statsService.generateTrendReport(user.id, familyId, user.language, user.currency);
     const keyboard = inlineKeyboard([
       buttonRow(
@@ -1231,7 +1786,7 @@ async function handleCallback(callback, env, services) {
 
   // Handle export button
   if (data === 'export') {
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     await sendMessage(chatId, `⏳ ${t.generating}`, env);
     const info = await exportService.getExportInfo(user.id, new Date(), familyId, user.language);
 
@@ -1293,7 +1848,7 @@ async function handleCallback(callback, env, services) {
   if (data.startsWith('currency_')) {
     const newCurrency = data.replace('currency_', '');
     await userService.updateCurrency(user.id, newCurrency);
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     await editMessage(chatId, messageId, `✅ ${t.currencyChanged}: <b>${newCurrency}</b>`, env);
     await answerCallback(callback.id, env);
     return;
@@ -1303,7 +1858,7 @@ async function handleCallback(callback, env, services) {
   if (data === 'notif_daily_toggle') {
     const newValue = user.daily_reminder ? 0 : 1;
     await userService.updateNotificationSetting(user.id, 'daily_reminder', newValue);
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     const updatedUser = { ...user, daily_reminder: newValue };
     const message = generateNotificationSettings(updatedUser, t);
     await editMessage(chatId, messageId, message, env, { reply_markup: buildNotificationKeyboard(updatedUser, t) });
@@ -1314,7 +1869,7 @@ async function handleCallback(callback, env, services) {
   if (data === 'notif_monthly_toggle') {
     const newValue = user.monthly_report ? 0 : 1;
     await userService.updateNotificationSetting(user.id, 'monthly_report', newValue);
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
     const updatedUser = { ...user, monthly_report: newValue };
     const message = generateNotificationSettings(updatedUser, t);
     await editMessage(chatId, messageId, message, env, { reply_markup: buildNotificationKeyboard(updatedUser, t) });
@@ -1326,8 +1881,8 @@ async function handleCallback(callback, env, services) {
   if (data.startsWith('import_confirm:')) {
     const importKey = data.replace('import_confirm:', '');
     const { bankImportService } = services;
-    const t = getTranslations(user.language || 'ru');
-    const currency = user.currency || 'PLN';
+    const t = getTranslations(user.language || 'en');
+    const currency = user.currency || 'USD';
 
     try {
       // Get stored import data from KV
@@ -1418,7 +1973,7 @@ async function handleCallback(callback, env, services) {
   // Handle import cancellation
   if (data.startsWith('import_cancel:')) {
     const importKey = data.replace('import_cancel:', '');
-    const t = getTranslations(user.language || 'ru');
+    const t = getTranslations(user.language || 'en');
 
     // Delete the stored data
     await env.FINANCE_KV.delete(importKey);
@@ -1525,7 +2080,7 @@ async function handleCallback(callback, env, services) {
     }
 
     try {
-      const redirectUrl = `https://finance-bot.vishna2003.workers.dev/callback?user=${user.id}`;
+      const redirectUrl = `${url.origin}/callback?user=${user.id}`;
 
       let connectUrl, connectionId;
 
@@ -1638,6 +2193,48 @@ async function handleCallback(callback, env, services) {
     return;
   }
 
+  // Handle bank wipe confirmation
+  if (data.startsWith('bank_wipe_')) {
+    const action = data.replace('bank_wipe_', '');
+    const currency = user.currency || 'USD';
+
+    if (action === 'cancel') {
+      await editMessage(chatId, messageId, `👌 Отменено`, env);
+      await answerCallback(callback.id, env);
+      return;
+    }
+
+    let sourceFilter;
+    let label;
+    if (action === 'confirm') {
+      sourceFilter = `IN ('saltedge', 'bank_import')`;
+      label = 'все банковские';
+    } else if (action === 'saltedge') {
+      sourceFilter = `= 'saltedge'`;
+      label = 'Open Banking';
+    } else if (action === 'csv') {
+      sourceFilter = `= 'bank_import'`;
+      label = 'CSV импорт';
+    } else {
+      await answerCallback(callback.id, env, 'Неизвестное действие');
+      return;
+    }
+
+    const deleted = await env.DB.prepare(`
+      DELETE FROM transactions
+      WHERE user_id = ? AND source ${sourceFilter}
+      RETURNING id
+    `).bind(user.id).all();
+
+    const count = deleted.results.length;
+    await editMessage(chatId, messageId,
+      `🗑 Удалено <b>${count}</b> транзакций (${label}).\n\n✅ Статистика обновлена.`,
+      env
+    );
+    await answerCallback(callback.id, env);
+    return;
+  }
+
   // Handle bank cancel
   if (data.startsWith('bank_cancel:')) {
     const { openBankingService, openBankingProvider } = services;
@@ -1710,7 +2307,7 @@ async function handleCallback(callback, env, services) {
         break;
       }
       case 'balance': {
-        const t = getTranslations(user.language || 'ru');
+        const t = getTranslations(user.language || 'en');
         const msg = await statsService.generateBalance(user.id, new Date(), familyId, user.language, user.currency);
         await sendMessage(chatId, msg, env);
         break;
@@ -1769,7 +2366,7 @@ async function handleCallback(callback, env, services) {
 // ============================================
 
 async function handleNotifications(chatId, user, env, services) {
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
   const message = generateNotificationSettings(user, t);
   await sendMessage(chatId, message, env, { reply_markup: buildNotificationKeyboard(user, t) });
 }
@@ -1788,8 +2385,8 @@ const CURRENCIES = [
 ];
 
 async function handleCurrency(chatId, user, env, services) {
-  const t = getTranslations(user.language || 'ru');
-  const currentCurrency = user.currency || 'PLN';
+  const t = getTranslations(user.language || 'en');
+  const currentCurrency = user.currency || 'USD';
 
   let message = `💱 <b>${t.currencyTitle}</b>\n\n`;
   message += `${t.currentCurrency}: <b>${currentCurrency}</b>\n\n`;
@@ -1809,8 +2406,8 @@ async function handleCurrency(chatId, user, env, services) {
 
 async function handleBudget(chatId, user, text, familyId, env, services) {
   const { categoryService, budgetService } = services;
-  const t = getTranslations(user.language || 'ru');
-  const currency = user.currency || 'PLN';
+  const t = getTranslations(user.language || 'en');
+  const currency = user.currency || 'USD';
 
   // /budget delete <category>
   const deleteMatch = text.match(/\/budget\s+delete\s+(.+)/i);
@@ -1866,8 +2463,8 @@ async function handleBudget(chatId, user, text, familyId, env, services) {
 
 async function handleBudgets(chatId, user, familyId, env, services) {
   const { budgetService } = services;
-  const t = getTranslations(user.language || 'ru');
-  const currency = user.currency || 'PLN';
+  const t = getTranslations(user.language || 'en');
+  const currency = user.currency || 'USD';
 
   const statuses = await budgetService.getAllBudgetStatuses(user.id, familyId);
 
@@ -1935,8 +2532,8 @@ function buildNotificationKeyboard(user, t) {
 
 async function handleImportCommand(chatId, user, text, familyId, env, services) {
   const { bankImportService } = services;
-  const t = getTranslations(user.language || 'ru');
-  const currency = user.currency || 'PLN';
+  const t = getTranslations(user.language || 'en');
+  const currency = user.currency || 'USD';
 
   const parts = text.trim().split(/\s+/);
   const subCommand = parts[1]?.toLowerCase();
@@ -2004,8 +2601,8 @@ async function handleImportCommand(chatId, user, text, familyId, env, services) 
 
 async function handleDocument(chatId, user, document, familyId, env, services) {
   const { bankImportService } = services;
-  const t = getTranslations(user.language || 'ru');
-  const currency = user.currency || 'PLN';
+  const t = getTranslations(user.language || 'en');
+  const currency = user.currency || 'USD';
 
   // Check if it's a CSV file
   const fileName = document.file_name || '';
@@ -2116,6 +2713,104 @@ function detectBankFromFile(fileName, content) {
 // ============================================
 // OPEN BANKING (NORDIGEN) HANDLERS
 // ============================================
+
+// ============================================
+// DIAGNOSTIC HANDLER
+// ============================================
+
+async function handleDiag(chatId, user, familyId, env, services) {
+  const { transactionService } = services;
+  const currency = user.currency || 'USD';
+  const now = new Date();
+
+  // 1. Raw transaction counts by source and type for current month
+  const { start, end } = getMonthRange(now);
+
+  const rawBySourceType = await env.DB.prepare(`
+    SELECT source, type, COUNT(*) as cnt, COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE user_id = ? AND transaction_date BETWEEN ? AND ?
+    GROUP BY source, type
+    ORDER BY source, type
+  `).bind(user.id, start, end).all();
+
+  // 2. Service-calculated totals (what /stats uses)
+  const svcExpense = await transactionService.getMonthTotal(user.id, 'expense', now, familyId);
+  const svcIncome = await transactionService.getMonthTotal(user.id, 'income', now, familyId);
+
+  // 3. Raw totals (no family_id filter)
+  const rawTotals = await env.DB.prepare(`
+    SELECT type, COALESCE(SUM(amount), 0) as total, COUNT(*) as cnt
+    FROM transactions
+    WHERE user_id = ? AND transaction_date BETWEEN ? AND ?
+    GROUP BY type
+  `).bind(user.id, start, end).all();
+
+  // 4. Check for transactions with non-null family_id
+  const familyTx = await env.DB.prepare(`
+    SELECT COUNT(*) as cnt FROM transactions
+    WHERE user_id = ? AND family_id IS NOT NULL AND transaction_date BETWEEN ? AND ?
+  `).bind(user.id, start, end).first();
+
+  // 5. Total transactions all-time by source
+  const allTimeSources = await env.DB.prepare(`
+    SELECT source, COUNT(*) as cnt
+    FROM transactions WHERE user_id = ?
+    GROUP BY source
+  `).bind(user.id).all();
+
+  // 6. Active family
+  const monthName = getMonthName(now, user.language || 'en');
+
+  let msg = `🔍 <b>Диагностика — ${monthName} ${now.getFullYear()}</b>\n`;
+  msg += `user_id=${user.id}, familyId=${familyId || 'null'}\n\n`;
+
+  // Raw totals
+  msg += `<b>📊 Сырые данные (все транзакции):</b>\n`;
+  const rawExpense = rawTotals.results.find(r => r.type === 'expense');
+  const rawIncome = rawTotals.results.find(r => r.type === 'income');
+  msg += `  Расходы: ${rawExpense?.total?.toFixed(2) || '0.00'} ${currency} (${rawExpense?.cnt || 0} шт.)\n`;
+  msg += `  Доходы:  ${rawIncome?.total?.toFixed(2) || '0.00'} ${currency} (${rawIncome?.cnt || 0} шт.)\n\n`;
+
+  // Service totals (what stats shows)
+  msg += `<b>📈 Что показывает /stats:</b>\n`;
+  msg += `  Расходы: ${svcExpense.toFixed(2)} ${currency}\n`;
+  msg += `  Доходы:  ${svcIncome.toFixed(2)} ${currency}\n`;
+
+  // Mismatch?
+  const expenseDiff = (rawExpense?.total || 0) - svcExpense;
+  const incomeDiff = (rawIncome?.total || 0) - svcIncome;
+  if (Math.abs(expenseDiff) > 0.01 || Math.abs(incomeDiff) > 0.01) {
+    msg += `\n⚠️ <b>РАСХОЖДЕНИЕ!</b>\n`;
+    if (Math.abs(expenseDiff) > 0.01) msg += `  Расходы: разница ${expenseDiff.toFixed(2)} ${currency}\n`;
+    if (Math.abs(incomeDiff) > 0.01) msg += `  Доходы: разница ${incomeDiff.toFixed(2)} ${currency}\n`;
+    msg += `  <i>Причина: family_id фильтр или некорректные данные</i>\n`;
+  } else {
+    msg += `\n✅ Суммы совпадают\n`;
+  }
+
+  // By source and type
+  msg += `\n<b>📋 Текущий месяц по источникам:</b>\n`;
+  for (const r of rawBySourceType.results) {
+    const src = r.source || 'manual';
+    const typeEmoji = r.type === 'expense' ? '📉' : '📈';
+    msg += `  ${typeEmoji} ${src}: ${r.cnt} шт. = ${r.total.toFixed(2)} ${currency}\n`;
+  }
+
+  // Family transactions
+  if (familyTx?.cnt > 0) {
+    msg += `\n⚠️ <b>Транзакции с family_id ≠ NULL: ${familyTx.cnt}</b>\n`;
+    msg += `  <i>Эти НЕ попадают в /stats когда familyId=null</i>\n`;
+  }
+
+  // All-time sources
+  msg += `\n<b>🗄 Всего транзакций в БД:</b>\n`;
+  for (const r of allTimeSources.results) {
+    msg += `  ${r.source || 'manual'}: ${r.cnt}\n`;
+  }
+
+  await sendMessage(chatId, msg, env);
+}
 
 // ============================================
 // CATEGORY MANAGEMENT HANDLER
@@ -2382,7 +3077,7 @@ async function handleCategoryCommand(chatId, user, text, env, services) {
 
 async function handleBankCommand(chatId, user, text, familyId, env, services) {
   const { openBankingService, openBankingProvider, categoryService } = services;
-  const t = getTranslations(user.language || 'ru');
+  const t = getTranslations(user.language || 'en');
   const textLower = text.toLowerCase().trim();
 
   // Check if Open Banking is configured (either Salt Edge or Nordigen)
@@ -2520,7 +3215,7 @@ async function handleBankCommand(chatId, user, text, familyId, env, services) {
     let totalSkipped = 0;
     let allImported = [];
     let allDuplicates = [];
-    const currency = user.currency || 'PLN';
+    const currency = user.currency || 'USD';
 
     for (const conn of connections) {
       try {
@@ -2579,7 +3274,7 @@ async function handleBankCommand(chatId, user, text, familyId, env, services) {
 
   // /bank last - show recently imported bank transactions
   if (textLower.startsWith('/bank last')) {
-    const currency = user.currency || 'PLN';
+    const currency = user.currency || 'USD';
     let limit = 20;
     const limitMatch = text.match(/\/bank\s+last\s+(\d+)/i);
     if (limitMatch) limit = Math.min(parseInt(limitMatch[1]), 50);
@@ -2671,7 +3366,7 @@ async function handleBankCommand(chatId, user, text, familyId, env, services) {
 
   // /bank debug - show raw DB state for debugging
   if (textLower === '/bank debug') {
-    const currency = user.currency || 'PLN';
+    const currency = user.currency || 'USD';
 
     // 1. All bank_connections for this user (any status)
     const allConns = await env.DB.prepare(`
@@ -2818,6 +3513,46 @@ async function handleBankCommand(chatId, user, text, familyId, env, services) {
     return;
   }
 
+  // /bank wipe - delete all saltedge/fakebank transactions
+  if (textLower === '/bank wipe') {
+    const currency = user.currency || 'USD';
+
+    // Count what will be deleted
+    const counts = await env.DB.prepare(`
+      SELECT source, COUNT(*) as cnt, COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE user_id = ? AND source IN ('saltedge', 'bank_import')
+      GROUP BY source
+    `).bind(user.id).all();
+
+    if (counts.results.length === 0) {
+      await sendMessage(chatId, `📭 Нет банковских транзакций для удаления.`, env);
+      return;
+    }
+
+    let msg = `⚠️ <b>Удалить ВСЕ банковские транзакции?</b>\n\n`;
+    let totalCount = 0;
+    for (const r of counts.results) {
+      const label = r.source === 'saltedge' ? '🔄 Open Banking' : '📄 CSV импорт';
+      msg += `${label}: <b>${r.cnt}</b> транз. (${r.total.toFixed(2)} ${currency})\n`;
+      totalCount += r.cnt;
+    }
+    msg += `\n<b>Итого: ${totalCount} транзакций будут удалены</b>\n`;
+    msg += `\n⚠️ Это действие нельзя отменить!`;
+
+    const buttons = [
+      buttonRow(
+        button(`🗑 Удалить все (${totalCount})`, 'bank_wipe_confirm'),
+        button('❌ Отмена', 'bank_wipe_cancel')
+      ),
+      [button('🔄 Только Open Banking', 'bank_wipe_saltedge')],
+      [button('📄 Только CSV', 'bank_wipe_csv')]
+    ];
+
+    await sendMessage(chatId, msg, env, { reply_markup: inlineKeyboard(buttons) });
+    return;
+  }
+
   // Unknown bank command
   await sendMessage(chatId,
     `❓ Неизвестная команда.\n\n` +
@@ -2826,7 +3561,8 @@ async function handleBankCommand(chatId, user, text, familyId, env, services) {
     `/bank connect - подключить банк\n` +
     `/bank sync - синхронизировать\n` +
     `/bank disconnect - отключить\n` +
-    `/bank status - статус`,
+    `/bank status - статус\n` +
+    `/bank wipe - удалить банковские транзакции`,
     env
   );
 }
@@ -2844,7 +3580,7 @@ async function sendDailyReminders(env, userService) {
 
   for (const user of users) {
     try {
-      const t = getTranslations(user.language || 'ru');
+      const t = getTranslations(user.language || 'en');
       const message = `⏰ <b>${t.reminderTitle}</b>\n\n${t.reminderText}\n\n💡 ${t.reminderTip}`;
 
       await sendMessage(user.telegram_id, message, env, {
@@ -2876,7 +3612,7 @@ async function sendMonthlyReports(env, userService, statsService) {
 
   for (const user of users) {
     try {
-      const t = getTranslations(user.language || 'ru');
+      const t = getTranslations(user.language || 'en');
       const message = await statsService.generateMonthlyStats(user.id, prevMonth, null, null, user.language, user.currency);
 
       await sendMessage(user.telegram_id, `📬 <b>${t.monthlyReportTitle}</b>\n\n` + message, env, {

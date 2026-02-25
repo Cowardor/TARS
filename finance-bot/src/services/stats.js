@@ -29,12 +29,12 @@ export class StatsService {
   }
 
   // Format currency
-  formatAmount(amount, currency = 'PLN') {
+  formatAmount(amount, currency = 'USD') {
     return `${amount.toFixed(2)} ${currency}`;
   }
 
   // Format percentage with sign
-  formatChange(current, previous, lang = 'ru') {
+  formatChange(current, previous, lang = 'en') {
     const t = getTranslations(lang);
     if (previous === 0) {
       if (current === 0) return '—';
@@ -53,7 +53,7 @@ export class StatsService {
   }
 
   // Generate monthly stats message with comparison
-  async generateMonthlyStats(userId, date = new Date(), familyId = null, familyName = null, lang = 'ru', currency = 'PLN') {
+  async generateMonthlyStats(userId, date = new Date(), familyId = null, familyName = null, lang = 'en', currency = 'USD') {
     const ts = this.transactionService;
     const t = getTranslations(lang);
 
@@ -138,7 +138,9 @@ export class StatsService {
           else if (change < -20) changeIndicator = ' ↓';
         }
 
-        message += `${cat.emoji} ${cat.name.substring(0, 10).padEnd(10)} ${bar} ${this.formatAmount(cat.total, currency)} (${percent})${changeIndicator}\n`;
+        const catEmoji = cat.emoji || '❓';
+        const catName = (cat.name || 'Без категории').substring(0, 10).padEnd(10);
+        message += `${catEmoji} ${catName} ${bar} ${this.formatAmount(cat.total, currency)} (${percent})${changeIndicator}\n`;
       }
     }
 
@@ -178,7 +180,7 @@ export class StatsService {
   }
 
   // Generate balance message
-  async generateBalance(userId, date = new Date(), familyId = null, lang = 'ru', currency = 'PLN') {
+  async generateBalance(userId, date = new Date(), familyId = null, lang = 'en', currency = 'USD') {
     const ts = this.transactionService;
     const t = getTranslations(lang);
 
@@ -207,7 +209,7 @@ export class StatsService {
   }
 
   // Generate recent transactions message
-  async generateHistory(userId, limit = 10, familyId = null, lang = 'ru', currency = 'PLN') {
+  async generateHistory(userId, limit = 10, familyId = null, lang = 'en', currency = 'USD') {
     const t = getTranslations(lang);
     const transactions = await this.transactionService.getRecent(userId, limit, familyId);
 
@@ -246,7 +248,7 @@ export class StatsService {
   }
 
   // Generate expense confirmation message
-  generateExpenseConfirmation(amount, category, monthTotal, description = null, lang = 'ru', currency = 'PLN') {
+  generateExpenseConfirmation(amount, category, monthTotal, description = null, lang = 'en', currency = 'USD') {
     const t = getTranslations(lang);
     let message = `✅ ${t.recorded}: <b>${this.formatAmount(amount, currency)}</b> → ${category.emoji} ${category.name}`;
     if (description) {
@@ -257,7 +259,7 @@ export class StatsService {
   }
 
   // Generate income confirmation message
-  generateIncomeConfirmation(amount, monthTotal, description = null, lang = 'ru', currency = 'PLN') {
+  generateIncomeConfirmation(amount, monthTotal, description = null, lang = 'en', currency = 'USD') {
     const t = getTranslations(lang);
     let message = `💵 ${t.recordedIncome}: <b>${this.formatAmount(amount, currency)}</b>`;
     if (description) {
@@ -268,7 +270,7 @@ export class StatsService {
   }
 
   // Generate trend report (6 months overview)
-  async generateTrendReport(userId, familyId = null, lang = 'ru', currency = 'PLN') {
+  async generateTrendReport(userId, familyId = null, lang = 'en', currency = 'USD') {
     const ts = this.transactionService;
     const t = getTranslations(lang);
     const trend = await ts.getMonthlyTrend(userId, 6, familyId);

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LETHANI — Brand Identity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #111118;
+    --bg-elevated: #19192a;
+    --border: #252538;
+    --text: #f5f5ff;
+    --text-muted: #9898b0;
+    --primary: #7c3aed;
+    --primary-glow: rgba(124, 58, 237, 0.15);
+    --accent: #a78bfa;
+    --warm: #c084fc;
+    --rose: #e879f9;
+    --gradient: linear-gradient(135deg, #7c3aed, #c084fc);
+    --gradient-wide: linear-gradient(135deg, #7c3aed, #a78bfa, #e879f9);
+    --gradient-text: linear-gradient(135deg, #a78bfa, #e879f9);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', 'Inter', -apple-system, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: 30%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(124, 58, 237, 0.12), transparent 70%);
+    animation: float 10s ease-in-out infinite;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    right: 20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(232, 121, 249, 0.08), transparent 70%);
+    animation: float 12s ease-in-out infinite reverse;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 15px) scale(0.95); }
+  }
+
+  .hero-content { position: relative; z-index: 1; text-align: center; }
+
+  /* === LOGO SVG === */
+  .logo-main {
+    width: 280px;
+    height: 280px;
+    margin: 0 auto 40px;
+    filter: drop-shadow(0 0 80px rgba(124, 58, 237, 0.25));
+  }
+
+  .logo-wordmark {
+    font-size: 64px;
+    font-weight: 300;
+    letter-spacing: 20px;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .logo-tagline {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+  }
+
+  /* === SECTIONS === */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 40px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  .section-heading {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 48px;
+  }
+
+  /* === LOGO VARIATIONS === */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+  }
+
+  .logo-card {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    transition: all 0.3s;
+  }
+
+  .logo-card:hover { border-color: var(--primary); box-shadow: 0 0 40px var(--primary-glow); }
+
+  .logo-card.light { background: #fefefe; }
+  .logo-card.dark { background: var(--bg-card); }
+  .logo-card.gradient-bg { background: var(--gradient); }
+
+  .logo-card-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .logo-card.light .logo-card-label { color: #71717a; }
+  .logo-card.gradient-bg .logo-card-label { color: rgba(255,255,255,0.7); }
+
+  /* === COLORS === */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .color-swatch {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .color-preview { height: 120px; }
+
+  .color-info {
+    padding: 16px;
+    background: var(--bg-card);
+  }
+
+  .color-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .color-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* === TYPOGRAPHY === */
+  .type-specimen {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+  }
+
+  .type-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .type-display {
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .type-body {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .type-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--accent);
+    padding: 24px;
+    background: var(--bg);
+    border-radius: 12px;
+    margin-top: 24px;
+  }
+
+  /* === MOCKUPS === */
+  .mockup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+  }
+
+  .mockup-card {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .mockup-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot.r { background: #ef4444; }
+  .mockup-dot.y { background: #eab308; }
+  .mockup-dot.g { background: #22c55e; }
+
+  .mockup-body { padding: 32px; }
+
+  .mockup-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 16px 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* === APP ICON === */
+  .app-icon {
+    width: 80px; height: 80px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient);
+    box-shadow: 0 8px 40px rgba(124, 58, 237, 0.35);
+  }
+
+  /* === BUSINESS CARD === */
+  .bcard {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1.8/1;
+    border-radius: 14px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bcard::after {
+    content: '';
+    position: absolute;
+    bottom: -40%;
+    right: -20%;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15), transparent 70%);
+  }
+
+  .bcard-logo {
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bcard-info { position: relative; z-index: 1; }
+
+  .bcard-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .bcard-role {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .bcard-contact {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* === PRODUCTS === */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .product-chip {
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-card);
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .product-chip:hover {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+  }
+
+  .product-name {
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .product-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 40px;
+  }
+
+  .slogan-bar {
+    text-align: center;
+    padding: 80px 40px;
+  }
+
+  .slogan-text {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .slogan-text em {
+    font-style: italic;
+    font-weight: 500;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Path animation for logo */
+  @keyframes draw {
+    from { stroke-dashoffset: 400; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .path-anim {
+    stroke-dasharray: 400;
+    animation: draw 3s ease-in-out infinite alternate;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <!-- MAIN LOGO: Flowing path / Lethani symbol -->
+    <svg class="logo-main" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring — thin, elegant -->
+      <circle cx="140" cy="140" r="125" stroke="url(#leth-grad)" stroke-width="0.5" opacity="0.2"/>
+
+      <!-- The Path — flowing S-curve through center -->
+      <path d="M90 60 C90 60, 110 80, 140 100 C170 120, 200 140, 190 170 C180 200, 140 210, 120 200 C100 190, 95 165, 120 150 C145 135, 180 140, 190 160"
+            stroke="url(#leth-grad)" stroke-width="2.5" stroke-linecap="round" fill="none" class="path-anim"/>
+
+      <!-- Stylized L mark in the center -->
+      <path d="M125 90 L125 180 L175 180" stroke="url(#leth-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+      <!-- Small accent dots along the path -->
+      <circle cx="90" cy="60" r="3" fill="#a78bfa" opacity="0.6"/>
+      <circle cx="140" cy="100" r="2.5" fill="#c084fc" opacity="0.7"/>
+      <circle cx="190" cy="170" r="3" fill="#e879f9" opacity="0.6"/>
+      <circle cx="120" cy="200" r="2" fill="#a78bfa" opacity="0.5"/>
+      <circle cx="190" cy="160" r="2.5" fill="#e879f9" opacity="0.5"/>
+
+      <!-- Star/diamond at the path start -->
+      <path d="M90 54 L92 58 L96 60 L92 62 L90 66 L88 62 L84 60 L88 58 Z" fill="#a78bfa" opacity="0.8"/>
+
+      <defs>
+        <linearGradient id="leth-grad" x1="80" y1="60" x2="200" y2="210" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="50%" stop-color="#c084fc"/>
+          <stop offset="100%" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div class="logo-wordmark">Lethani</div>
+    <div class="logo-tagline">The right path forward</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LOGO VARIATIONS -->
+<section class="section">
+  <div class="section-title">01 / Logo</div>
+  <div class="section-heading">Variations</div>
+
+  <div class="logo-grid">
+    <!-- Dark bg — horizontal logo -->
+    <div class="logo-card dark">
+      <svg width="180" height="48" viewBox="0 0 180 48" fill="none">
+        <!-- L path mark -->
+        <path d="M10 8 L10 38 L32 38" stroke="url(#lg1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Flowing accent -->
+        <path d="M18 22 C24 18, 30 24, 28 30" stroke="url(#lg1)" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <text x="44" y="34" font-family="'DM Sans', sans-serif" font-weight="300" font-size="26" letter-spacing="6" fill="#f5f5ff">LETHANI</text>
+        <defs><linearGradient id="lg1" x1="10" y1="8" x2="32" y2="38"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+      <div class="logo-card-label">Primary / Dark</div>
+    </div>
+
+    <!-- Light bg -->
+    <div class="logo-card light">
+      <svg width="180" height="48" viewBox="0 0 180 48" fill="none">
+        <path d="M10 8 L10 38 L32 38" stroke="url(#lg2)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 22 C24 18, 30 24, 28 30" stroke="url(#lg2)" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <text x="44" y="34" font-family="'DM Sans', sans-serif" font-weight="300" font-size="26" letter-spacing="6" fill="#0a0a0f">LETHANI</text>
+        <defs><linearGradient id="lg2" x1="10" y1="8" x2="32" y2="38"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+      </svg>
+      <div class="logo-card-label">Primary / Light</div>
+    </div>
+
+    <!-- Gradient bg -->
+    <div class="logo-card gradient-bg">
+      <svg width="180" height="48" viewBox="0 0 180 48" fill="none">
+        <path d="M10 8 L10 38 L32 38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 22 C24 18, 30 24, 28 30" stroke="white" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.4"/>
+        <text x="44" y="34" font-family="'DM Sans', sans-serif" font-weight="300" font-size="26" letter-spacing="6" fill="white">LETHANI</text>
+      </svg>
+      <div class="logo-card-label">Reversed / Gradient</div>
+    </div>
+
+    <!-- Icon only -->
+    <div class="logo-card dark">
+      <div class="app-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <path d="M8 6 L8 28 L26 28" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 17 C18 14, 23 18, 22 22" stroke="white" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="logo-card-label">App Icon</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COLORS -->
+<section class="section">
+  <div class="section-title">02 / Colors</div>
+  <div class="section-heading">Palette</div>
+
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #0a0a0f;"></div>
+      <div class="color-info">
+        <div class="color-name">Abyss</div>
+        <div class="color-value">#0A0A0F</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #19192a;"></div>
+      <div class="color-info">
+        <div class="color-name">Twilight</div>
+        <div class="color-value">#19192A</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #7c3aed;"></div>
+      <div class="color-info">
+        <div class="color-name">Adem Violet</div>
+        <div class="color-value">#7C3AED</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #a78bfa;"></div>
+      <div class="color-info">
+        <div class="color-name">Path</div>
+        <div class="color-value">#A78BFA</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #e879f9;"></div>
+      <div class="color-info">
+        <div class="color-name">Bloom</div>
+        <div class="color-value">#E879F9</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: linear-gradient(135deg, #7c3aed, #a78bfa, #e879f9);"></div>
+      <div class="color-info">
+        <div class="color-name">Lethani Flow</div>
+        <div class="color-value">gradient</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TYPOGRAPHY -->
+<section class="section">
+  <div class="section-title">03 / Typography</div>
+  <div class="section-heading">Typefaces</div>
+
+  <div class="type-specimen">
+    <div class="type-label">Headings / DM Sans 300-700</div>
+    <div class="type-display">There is a right way<br>to do all things.</div>
+    <div class="type-body" style="margin-top: 24px;">
+      The Lethani is not a path you walk. It is the way of moving through the world
+      with elegance and purpose. Every action has a correct form.
+    </div>
+    <div class="type-mono">const path = lethani.findOptimal(workflow);</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-label">Product UI / DM Sans 400-600</div>
+    <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">Workflows</div>
+    <div style="font-size: 16px; color: var(--text-muted); margin-bottom: 16px;">12 automations running. Revenue this month: $4,280.</div>
+    <div style="display: inline-block; padding: 10px 28px; background: var(--gradient); border-radius: 10px; font-weight: 600; font-size: 14px;">New Workflow</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRODUCT NAMES -->
+<section class="section">
+  <div class="section-title">04 / Product Suite</div>
+  <div class="section-heading">Naming System</div>
+
+  <div class="product-grid">
+    <div class="product-chip">
+      <div class="product-name">Lethani Scout</div>
+      <div class="product-desc">Product Research AI</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Lethani Create</div>
+      <div class="product-desc">Content Generation</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Lethani Motion</div>
+      <div class="product-desc">AI Video Production</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Lethani Wallet</div>
+      <div class="product-desc">Budget Tracker Bot</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Lethani Assist</div>
+      <div class="product-desc">AI Sales Assistant</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Lethani Spark</div>
+      <div class="product-desc">TikTok Creator Tools</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MOCKUPS -->
+<section class="section">
+  <div class="section-title">05 / Applications</div>
+  <div class="section-heading">In Context</div>
+
+  <div class="mockup-grid">
+    <!-- Website -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 32px;">
+          <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
+            <path d="M8 6 L8 28 L26 28" stroke="url(#gm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="gm2" x1="8" y1="6" x2="26" y2="28"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+          </svg>
+          <span style="font-weight: 300; font-size: 16px; letter-spacing: 5px; text-transform: uppercase;">Lethani</span>
+          <span style="margin-left: auto; font-size: 13px; color: var(--text-muted);">Products</span>
+          <span style="font-size: 13px; color: var(--text-muted);">Pricing</span>
+          <span style="font-size: 13px; color: var(--text-muted);">Docs</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 300; line-height: 1.3; margin-bottom: 12px;">
+          The right path to<br>
+          <span style="font-weight: 700; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">automation.</span>
+        </div>
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">AI workflows that find products, create content, and grow your business.</div>
+        <div style="display: flex; gap: 12px;">
+          <div style="padding: 10px 24px; background: var(--gradient); border-radius: 10px; font-size: 13px; font-weight: 600;">Start Free</div>
+          <div style="padding: 10px 24px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text-muted);">Learn More</div>
+        </div>
+      </div>
+      <div class="mockup-label">Website Header</div>
+    </div>
+
+    <!-- Business card -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body" style="display: flex; justify-content: center;">
+        <div class="bcard">
+          <div class="bcard-logo">LETHANI</div>
+          <div class="bcard-info">
+            <div class="bcard-name">Illia</div>
+            <div class="bcard-role">Founder & CEO</div>
+            <div class="bcard-contact">hello@lethani.ai</div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-label">Business Card</div>
+    </div>
+
+    <!-- Telegram bot -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body" style="background: #0e1621;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);">
+            <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+              <path d="M8 6 L8 28 L26 28" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div style="font-weight: 500; font-size: 15px;">Lethani Wallet</div>
+          <div style="font-size: 12px; color: var(--text-muted);">online</div>
+        </div>
+        <div style="background: #182533; padding: 10px 14px; border-radius: 12px 12px 12px 4px; margin-bottom: 8px; font-size: 13px; max-width: 85%;">
+          Записал: <b>45 PLN</b> -> Продукты<br>
+          Продукты за месяц: <b>892 PLN</b>
+        </div>
+        <div style="background: #3b2068; padding: 10px 14px; border-radius: 12px 12px 4px 12px; font-size: 13px; margin-left: auto; max-width: 60%; text-align: right;">
+          120 заведения обед
+        </div>
+      </div>
+      <div class="mockup-label">Telegram Bot</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SLOGAN -->
+<section class="slogan-bar">
+  <div class="slogan-text">
+    "There is a right thing to do.<br>
+    <em>Always. In every moment. The Lethani.</em>"
+  </div>
+  <div style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">— Patrick Rothfuss, The Wise Man's Fear</div>
+</section>
+
+</body>
+</html>

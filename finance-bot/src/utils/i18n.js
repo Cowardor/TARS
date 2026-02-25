@@ -892,25 +892,25 @@ const translations = {
 };
 
 // Get translation function for a language
-export function t(lang = 'ru') {
-  const dict = translations[lang] || translations.ru;
-  return (key) => dict[key] || translations.ru[key] || key;
+export function t(lang = 'en') {
+  const dict = translations[lang] || translations.en;
+  return (key) => dict[key] || translations.en[key] || key;
 }
 
 // Get full translations object
-export function getTranslations(lang = 'ru') {
-  return translations[lang] || translations.ru;
+export function getTranslations(lang = 'en') {
+  return translations[lang] || translations.en;
 }
 
 // Get month name
-export function getMonthName(date, lang = 'ru') {
-  const dict = translations[lang] || translations.ru;
+export function getMonthName(date, lang = 'en') {
+  const dict = translations[lang] || translations.en;
   return dict.months[date.getMonth()];
 }
 
 // Get short month name
-export function getMonthNameShort(date, lang = 'ru') {
-  const dict = translations[lang] || translations.ru;
+export function getMonthNameShort(date, lang = 'en') {
+  const dict = translations[lang] || translations.en;
   return dict.monthsShort[date.getMonth()];
 }
 

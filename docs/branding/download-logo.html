@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alar — Download Logo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #09090b; color: #fafafa; font-family: Inter, sans-serif; padding: 40px; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: 6px; margin-bottom: 8px; }
+  .sub { color: #a1a1aa; margin-bottom: 48px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; max-width: 1200px; }
+  .card {
+    border: 1px solid #27272a; border-radius: 16px; overflow: hidden; background: #111114;
+  }
+  .card-preview {
+    display: flex; align-items: center; justify-content: center; padding: 32px; min-height: 240px;
+  }
+  .card-preview.light { background: #fefefe; }
+  .card-preview.gradient { background: linear-gradient(135deg, #3b82f6, #22d3ee); }
+  .card-info { padding: 20px; border-top: 1px solid #27272a; }
+  .card-title { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+  .card-desc { font-size: 13px; color: #a1a1aa; margin-bottom: 16px; }
+  .btn {
+    display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, #3b82f6, #22d3ee);
+    color: white; border: none; border-radius: 8px; font-family: Inter, sans-serif;
+    font-weight: 600; font-size: 13px; cursor: pointer; margin-right: 8px; margin-bottom: 8px;
+    text-decoration: none;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.outline {
+    background: transparent; border: 1px solid #27272a; color: #a1a1aa;
+  }
+  canvas { display: none; }
+</style>
+</head>
+<body>
+
+<h1>ALAR</h1>
+<p class="sub">Download logo — PNG for Telegram, social media, etc.</p>
+
+<div class="grid">
+
+  <!-- 1. Bot Avatar (circle-friendly, dark bg) -->
+  <div class="card">
+    <div class="card-preview" id="prev-avatar">
+      <canvas id="c-avatar" width="512" height="512"></canvas>
+      <img id="img-avatar" width="160" height="160" style="border-radius: 50%;">
+    </div>
+    <div class="card-info">
+      <div class="card-title">Bot Avatar (Dark)</div>
+      <div class="card-desc">512x512 — for Telegram @BotFather</div>
+      <button class="btn" onclick="download('c-avatar', 'alar-avatar-dark-512.png')">PNG 512px</button>
+      <button class="btn outline" onclick="downloadSize('avatar', 1024, 'alar-avatar-dark-1024.png')">PNG 1024px</button>
+    </div>
+  </div>
+
+  <!-- 2. Bot Avatar (gradient bg) -->
+  <div class="card">
+    <div class="card-preview gradient" id="prev-avatar-grad">
+      <canvas id="c-avatar-grad" width="512" height="512"></canvas>
+      <img id="img-avatar-grad" width="160" height="160" style="border-radius: 50%;">
+    </div>
+    <div class="card-info">
+      <div class="card-title">Bot Avatar (Gradient)</div>
+      <div class="card-desc">512x512 — gradient background</div>
+      <button class="btn" onclick="download('c-avatar-grad', 'alar-avatar-gradient-512.png')">PNG 512px</button>
+      <button class="btn outline" onclick="downloadSize('avatar-grad', 1024, 'alar-avatar-gradient-1024.png')">PNG 1024px</button>
+    </div>
+  </div>
+
+  <!-- 3. Icon only (transparent) -->
+  <div class="card">
+    <div class="card-preview" style="background: repeating-conic-gradient(#18181b 0% 25%, #111114 0% 50%) 50%/20px 20px;">
+      <canvas id="c-icon" width="512" height="512"></canvas>
+      <img id="img-icon" width="160" height="160">
+    </div>
+    <div class="card-info">
+      <div class="card-title">Icon (Transparent)</div>
+      <div class="card-desc">512x512 — transparent background</div>
+      <button class="btn" onclick="download('c-icon', 'alar-icon-transparent-512.png')">PNG 512px</button>
+      <button class="btn outline" onclick="downloadSize('icon', 1024, 'alar-icon-transparent-1024.png')">PNG 1024px</button>
+    </div>
+  </div>
+
+  <!-- 4. App Icon (rounded square) -->
+  <div class="card">
+    <div class="card-preview">
+      <canvas id="c-appicon" width="512" height="512"></canvas>
+      <img id="img-appicon" width="160" height="160" style="border-radius: 24px;">
+    </div>
+    <div class="card-info">
+      <div class="card-title">App Icon</div>
+      <div class="card-desc">512x512 — rounded square, gradient bg</div>
+      <button class="btn" onclick="download('c-appicon', 'alar-appicon-512.png')">PNG 512px</button>
+      <button class="btn outline" onclick="downloadSize('appicon', 1024, 'alar-appicon-1024.png')">PNG 1024px</button>
+    </div>
+  </div>
+
+  <!-- 5. Horizontal logo dark -->
+  <div class="card">
+    <div class="card-preview">
+      <canvas id="c-horiz" width="800" height="200"></canvas>
+      <img id="img-horiz" width="320" height="80">
+    </div>
+    <div class="card-info">
+      <div class="card-title">Horizontal Logo (Dark)</div>
+      <div class="card-desc">800x200 — icon + ALAR text</div>
+      <button class="btn" onclick="download('c-horiz', 'alar-logo-dark-800.png')">PNG 800px</button>
+    </div>
+  </div>
+
+  <!-- 6. Horizontal logo light -->
+  <div class="card">
+    <div class="card-preview light">
+      <canvas id="c-horiz-light" width="800" height="200"></canvas>
+      <img id="img-horiz-light" width="320" height="80">
+    </div>
+    <div class="card-info">
+      <div class="card-title">Horizontal Logo (Light)</div>
+      <div class="card-desc">800x200 — for light backgrounds</div>
+      <button class="btn" onclick="download('c-horiz-light', 'alar-logo-light-800.png')">PNG 800px</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// === DRAWING FUNCTIONS ===
+
+function createGradient(ctx, x1, y1, x2, y2) {
+  const g = ctx.createLinearGradient(x1, y1, x2, y2);
+  g.addColorStop(0, '#3b82f6');
+  g.addColorStop(1, '#22d3ee');
+  return g;
+}
+
+function drawPrism(ctx, cx, cy, size, strokeColor, beamWhite) {
+  const s = size / 160; // scale factor from 160x160 base
+  ctx.save();
+  ctx.translate(cx - 80 * s, cy - 80 * s);
+  ctx.scale(s, s);
+
+  // Triangle
+  ctx.beginPath();
+  ctx.moveTo(80, 25);
+  ctx.lineTo(130, 130);
+  ctx.lineTo(30, 130);
+  ctx.closePath();
+  ctx.strokeStyle = strokeColor || createGradient(ctx, 30, 130, 130, 25);
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Input beam
+  ctx.beginPath();
+  ctx.moveTo(15, 85);
+  ctx.lineTo(68, 85);
+  ctx.strokeStyle = beamWhite || 'rgba(250,250,250,0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Output beams
+  const beams = [
+    { x: 145, y: 55, color: '#22d3ee', w: 2.2 },
+    { x: 145, y: 85, color: '#60a5fa', w: 2.2 },
+    { x: 145, y: 115, color: '#3b82f6', w: 2.2 },
+  ];
+  beams.forEach(b => {
+    ctx.beginPath();
+    ctx.moveTo(95 + (b.y - 85) * 0.08, b.y - (b.y - 85) * 0.2 + (85 - 85));
+    // Simpler: just draw from edge
+    const startY = b.y === 55 ? 75 : b.y === 115 ? 95 : 85;
+    ctx.moveTo(95, startY);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = b.w;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // End dot
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = b.color;
+    ctx.fill();
+  });
+
+  // Center refraction point
+  ctx.beginPath();
+  ctx.arc(82, 85, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawWordmark(ctx, x, y, size, color) {
+  ctx.font = `800 ${size}px Inter, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.letterSpacing = `${size * 0.15}px`;
+  ctx.textBaseline = 'middle';
+  // Manual letter spacing since canvas doesn't support it well
+  const letters = ['A', 'L', 'A', 'R'];
+  const spacing = size * 0.18;
+  let cx = x;
+  letters.forEach(l => {
+    ctx.fillText(l, cx, y);
+    cx += ctx.measureText(l).width + spacing;
+  });
+}
+
+// === RENDER ALL CANVASES ===
+
+function renderAll() {
+  // 1. Avatar dark
+  {
+    const c = document.getElementById('c-avatar');
+    const ctx = c.getContext('2d');
+    // Dark circle bg
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, 512, 512);
+    drawPrism(ctx, 256, 240, 300);
+    showPreview('c-avatar', 'img-avatar');
+  }
+
+  // 2. Avatar gradient
+  {
+    const c = document.getElementById('c-avatar-grad');
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 512, 512);
+    g.addColorStop(0, '#3b82f6');
+    g.addColorStop(1, '#22d3ee');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 512, 512);
+    drawPrism(ctx, 256, 240, 300, 'white', 'rgba(255,255,255,0.4)');
+    showPreview('c-avatar-grad', 'img-avatar-grad');
+  }
+
+  // 3. Icon transparent
+  {
+    const c = document.getElementById('c-icon');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, 512, 512);
+    drawPrism(ctx, 256, 256, 340);
+    showPreview('c-icon', 'img-icon');
+  }
+
+  // 4. App icon
+  {
+    const c = document.getElementById('c-appicon');
+    const ctx = c.getContext('2d');
+    // Rounded rect gradient bg
+    const g = ctx.createLinearGradient(0, 0, 512, 512);
+    g.addColorStop(0, '#3b82f6');
+    g.addColorStop(1, '#22d3ee');
+    roundRect(ctx, 0, 0, 512, 512, 90);
+    ctx.fillStyle = g;
+    ctx.fill();
+    drawPrism(ctx, 256, 245, 300, 'white', 'rgba(255,255,255,0.4)');
+    showPreview('c-appicon', 'img-appicon');
+  }
+
+  // 5. Horizontal dark
+  {
+    const c = document.getElementById('c-horiz');
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, 800, 200);
+    drawPrism(ctx, 100, 95, 130);
+    drawWordmark(ctx, 200, 105, 60, '#fafafa');
+    showPreview('c-horiz', 'img-horiz');
+  }
+
+  // 6. Horizontal light
+  {
+    const c = document.getElementById('c-horiz-light');
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fefefe';
+    ctx.fillRect(0, 0, 800, 200);
+    drawPrism(ctx, 100, 95, 130);
+    drawWordmark(ctx, 200, 105, 60, '#09090b');
+    showPreview('c-horiz-light', 'img-horiz-light');
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function showPreview(canvasId, imgId) {
+  const c = document.getElementById(canvasId);
+  const img = document.getElementById(imgId);
+  img.src = c.toDataURL('image/png');
+}
+
+// === DOWNLOAD ===
+
+function download(canvasId, filename) {
+  const c = document.getElementById(canvasId);
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = c.toDataURL('image/png');
+  link.click();
+}
+
+function downloadSize(type, size, filename) {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = size;
+  tempCanvas.height = size;
+  const ctx = tempCanvas.getContext('2d');
+
+  if (type === 'avatar') {
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, size, size);
+    drawPrism(ctx, size/2, size * 0.47, size * 0.58);
+  } else if (type === 'avatar-grad') {
+    const g = ctx.createLinearGradient(0, 0, size, size);
+    g.addColorStop(0, '#3b82f6');
+    g.addColorStop(1, '#22d3ee');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+    drawPrism(ctx, size/2, size * 0.47, size * 0.58, 'white', 'rgba(255,255,255,0.4)');
+  } else if (type === 'icon') {
+    ctx.clearRect(0, 0, size, size);
+    drawPrism(ctx, size/2, size/2, size * 0.66);
+  } else if (type === 'appicon') {
+    const g = ctx.createLinearGradient(0, 0, size, size);
+    g.addColorStop(0, '#3b82f6');
+    g.addColorStop(1, '#22d3ee');
+    roundRect(ctx, 0, 0, size, size, size * 0.17);
+    ctx.fillStyle = g;
+    ctx.fill();
+    drawPrism(ctx, size/2, size * 0.48, size * 0.58, 'white', 'rgba(255,255,255,0.4)');
+  }
+
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = tempCanvas.toDataURL('image/png');
+  link.click();
+}
+
+// Wait for font to load then render
+document.fonts.ready.then(() => {
+  renderAll();
+});
+// Fallback
+setTimeout(renderAll, 500);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LETHANI — Door Logo Variations</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #111118;
+    --border: #252538;
+    --text: #f5f5ff;
+    --text-muted: #9898b0;
+    --primary: #7c3aed;
+    --accent: #a78bfa;
+    --warm: #c084fc;
+    --rose: #e879f9;
+    --gradient: linear-gradient(135deg, #7c3aed, #c084fc);
+    --gradient-text: linear-gradient(135deg, #a78bfa, #e879f9);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    padding: 60px 40px;
+  }
+
+  h1 {
+    text-align: center;
+    font-weight: 300;
+    font-size: 40px;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 80px;
+    letter-spacing: 2px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .concept {
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.3s;
+    background: var(--bg-card);
+  }
+
+  .concept:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 60px rgba(124, 58, 237, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .concept-logo {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .concept-logo::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.06), transparent 70%);
+  }
+
+  .concept-info {
+    padding: 28px 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .concept-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .concept-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .concept-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .concept-horizontal {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .wordmark {
+    font-weight: 300;
+    font-size: 22px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+
+  .concept-app-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+    margin-left: auto;
+  }
+
+  /* Light row for contrast */
+  .concept-light-row {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fefefe;
+  }
+
+  .concept-light-row .wordmark {
+    color: #0a0a0f;
+  }
+
+  .concept-light-row .concept-app-icon-light {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #0a0a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
+</style>
+</head>
+<body>
+
+<h1>Lethani</h1>
+<p class="subtitle">The Door — 6 variations</p>
+
+<div class="grid">
+
+<!-- ============ V1: CLEAN MINIMAL ARCH ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Clean arch - single stroke, elegant -->
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165"
+            stroke="url(#v1g)" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <!-- Single light point in center -->
+      <circle cx="70" cy="90" r="6" fill="url(#v1g)" opacity="0.7"/>
+      <circle cx="70" cy="90" r="2.5" fill="white" opacity="0.95"/>
+      <defs>
+        <linearGradient id="v1g" x1="70" y1="165" x2="70" y2="8" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V1</div>
+    <div class="concept-name">Minimal Arch</div>
+    <div class="concept-desc">Максимальный минимализм. Одна линия, одна точка света. Ничего лишнего. Элегантно масштабируется.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="url(#v1gs)" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="90" r="8" fill="url(#v1gs)" opacity="0.7"/>
+      <circle cx="70" cy="90" r="3.5" fill="white"/>
+      <defs><linearGradient id="v1gs" x1="70" y1="165" x2="70" y2="8"><stop stop-color="#7c3aed" stop-opacity="0.5"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="white" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="90" r="4" fill="white"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="url(#v1gl)" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="90" r="8" fill="url(#v1gl)" opacity="0.7"/>
+      <circle cx="70" cy="90" r="3.5" fill="white"/>
+      <defs><linearGradient id="v1gl" x1="70" y1="165" x2="70" y2="8"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="url(#v1gli)" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="90" r="4" fill="white"/>
+        <defs><linearGradient id="v1gli" x1="70" y1="165" x2="70" y2="8"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ V2: DOOR + BLADE (sword through arch) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Arch outline -->
+      <path d="M30 165 L30 68 C30 35, 70 14, 70 14 C70 14, 110 35, 110 68 L110 165"
+            stroke="url(#v2g)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <!-- Vertical blade through center -->
+      <line x1="70" y1="30" x2="70" y2="155" stroke="url(#v2g2)" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Blade tip glow -->
+      <circle cx="70" cy="28" r="3.5" fill="#e879f9" opacity="0.9"/>
+      <circle cx="70" cy="28" r="8" stroke="#e879f9" stroke-width="0.5" opacity="0.3"/>
+      <!-- Crossbar on blade where it meets arch center -->
+      <line x1="55" y1="90" x2="85" y2="90" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <defs>
+        <linearGradient id="v2g" x1="70" y1="165" x2="70" y2="14" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="1" stop-color="#a78bfa"/>
+        </linearGradient>
+        <linearGradient id="v2g2" x1="70" y1="155" x2="70" y2="28" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V2</div>
+    <div class="concept-name">Arch & Blade</div>
+    <div class="concept-desc">Дверь + меч через центр. Портал защищён. Острота ума проходит через врата знания. Сила + мудрость.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 68 C30 35, 70 14, 70 14 C70 14, 110 35, 110 68 L110 165" stroke="url(#v2gs)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <line x1="70" y1="30" x2="70" y2="155" stroke="url(#v2g2s)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="70" cy="28" r="5" fill="#e879f9"/>
+      <defs>
+        <linearGradient id="v2gs" x1="70" y1="165" x2="70" y2="14"><stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+        <linearGradient id="v2g2s" x1="70" y1="155" x2="70" y2="28"><stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="1" stop-color="#e879f9"/></linearGradient>
+      </defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 68 C30 35, 70 14, 70 14 C70 14, 110 35, 110 68 L110 165" stroke="white" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.7"/>
+        <line x1="70" y1="30" x2="70" y2="155" stroke="white" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="28" r="5" fill="white"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 68 C30 35, 70 14, 70 14 C70 14, 110 35, 110 68 L110 165" stroke="#7c3aed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4"/>
+      <line x1="70" y1="30" x2="70" y2="155" stroke="url(#v2gls)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="70" cy="28" r="5" fill="#c026d3"/>
+      <defs><linearGradient id="v2gls" x1="70" y1="155" x2="70" y2="28"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 68 C30 35, 70 14, 70 14 C70 14, 110 35, 110 68 L110 165" stroke="#a78bfa" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <line x1="70" y1="30" x2="70" y2="155" stroke="url(#v2glsi)" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="28" r="5" fill="#e879f9"/>
+        <defs><linearGradient id="v2glsi" x1="70" y1="155" x2="70" y2="28"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ V3: GOTHIC POINTED ARCH ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Pointed/Gothic arch — sharper peak -->
+      <path d="M30 165 L30 80 C30 50, 50 25, 70 12 C90 25, 110 50, 110 80 L110 165"
+            stroke="url(#v3g)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <!-- Inner glow fill -->
+      <path d="M38 165 L38 82 C38 55, 55 32, 70 22 C85 32, 102 55, 102 82 L102 165"
+            fill="url(#v3gf)" opacity="0.05"/>
+      <!-- Light ray from top -->
+      <line x1="70" y1="12" x2="70" y2="100" stroke="url(#v3g2)" stroke-width="1" opacity="0.5"/>
+      <!-- Light at peak -->
+      <circle cx="70" cy="12" r="4" fill="#e879f9" opacity="0.8"/>
+      <circle cx="70" cy="12" r="10" stroke="#e879f9" stroke-width="0.5" opacity="0.2"/>
+      <!-- Threshold -->
+      <line x1="28" y1="165" x2="112" y2="165" stroke="url(#v3g)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      <defs>
+        <linearGradient id="v3g" x1="70" y1="165" x2="70" y2="12" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="0.6" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+        <linearGradient id="v3gf" x1="70" y1="165" x2="70" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+        <linearGradient id="v3g2" x1="70" y1="100" x2="70" y2="12" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#a78bfa" stop-opacity="0"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V3</div>
+    <div class="concept-name">Gothic Arch</div>
+    <div class="concept-desc">Готическая заострённая арка. Более драматичная, амбициозная. Свет на вершине — знание, к которому стремишься.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="18" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 80 C30 50, 50 25, 70 12 C90 25, 110 50, 110 80 L110 165" stroke="url(#v3gs)" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="12" r="5" fill="#e879f9"/>
+      <defs><linearGradient id="v3gs" x1="70" y1="165" x2="70" y2="12"><stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="16" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 80 C30 50, 50 25, 70 12 C90 25, 110 50, 110 80 L110 165" stroke="white" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="12" r="6" fill="white"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="18" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 80 C30 50, 50 25, 70 12 C90 25, 110 50, 110 80 L110 165" stroke="url(#v3gls)" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="12" r="5" fill="#c026d3"/>
+      <defs><linearGradient id="v3gls" x1="70" y1="165" x2="70" y2="12"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="16" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 80 C30 50, 50 25, 70 12 C90 25, 110 50, 110 80 L110 165" stroke="url(#v3glsi)" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="12" r="6" fill="#e879f9"/>
+        <defs><linearGradient id="v3glsi" x1="70" y1="165" x2="70" y2="12"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ V4: DOOR + WIND (wind flowing through) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Arch -->
+      <path d="M30 165 L30 65 C30 32, 70 12, 70 12 C70 12, 110 32, 110 65 L110 165"
+            stroke="url(#v4g)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <!-- Wind lines flowing through the door -->
+      <path d="M15 70 C35 62, 55 78, 70 70 C85 62, 105 72, 125 65"
+            stroke="url(#v4w)" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <path d="M10 90 C35 82, 55 98, 70 90 C85 82, 110 92, 130 87"
+            stroke="url(#v4w)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6"/>
+      <path d="M18 110 C38 102, 58 116, 73 108 C88 100, 108 108, 125 105"
+            stroke="url(#v4w)" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.3"/>
+      <!-- Particles at wind ends -->
+      <circle cx="125" cy="65" r="2.5" fill="#e879f9" opacity="0.7"/>
+      <circle cx="130" cy="87" r="2" fill="#c084fc" opacity="0.5"/>
+      <defs>
+        <linearGradient id="v4g" x1="70" y1="165" x2="70" y2="12" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="0.6" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+        <linearGradient id="v4w" x1="10" y1="90" x2="130" y2="85" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="0.4" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V4</div>
+    <div class="concept-name">Wind Gate</div>
+    <div class="concept-desc">Ветер проходит через врата. Дверь + Name of the Wind. Движение сквозь портал — данные текут через автоматизацию.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="24" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 65 C30 32, 70 12, 70 12 C70 12, 110 32, 110 65 L110 165" stroke="url(#v4gs)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M15 75 C35 67, 55 83, 70 75 C85 67, 105 77, 125 70" stroke="url(#v4ws)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M10 95 C35 87, 55 103, 70 95 C85 87, 110 97, 130 92" stroke="url(#v4ws)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+      <defs>
+        <linearGradient id="v4gs" x1="70" y1="165" x2="70" y2="12"><stop stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+        <linearGradient id="v4ws" x1="10" y1="90" x2="130" y2="85"><stop stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="1" stop-color="#e879f9"/></linearGradient>
+      </defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="20" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 65 C30 32, 70 12, 70 12 C70 12, 110 32, 110 65 L110 165" stroke="white" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.7"/>
+        <path d="M15 75 C40 65, 55 85, 70 75 C85 65, 110 78, 125 70" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M10 100 C40 90, 55 110, 70 100 C85 90, 115 100, 130 95" stroke="white" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="24" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 65 C30 32, 70 12, 70 12 C70 12, 110 32, 110 65 L110 165" stroke="#7c3aed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.35"/>
+      <path d="M15 75 C35 67, 55 83, 70 75 C85 67, 105 77, 125 70" stroke="url(#v4wls)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M10 95 C35 87, 55 103, 70 95 C85 87, 110 97, 130 92" stroke="url(#v4wls)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+      <defs><linearGradient id="v4wls" x1="10" y1="90" x2="130" y2="85"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="20" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 65 C30 32, 70 12, 70 12 C70 12, 110 32, 110 65 L110 165" stroke="#a78bfa" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <path d="M15 75 C40 65, 55 85, 70 75 C85 65, 110 78, 125 70" stroke="url(#v4wlsi)" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <defs><linearGradient id="v4wlsi" x1="10" y1="75" x2="130" y2="70"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ V5: DOUBLE ARCH (depth / layers) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Outer arch -->
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165"
+            stroke="url(#v5g1)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <!-- Inner arch — smaller, brighter -->
+      <path d="M42 165 L42 72 C42 48, 70 30, 70 30 C70 30, 98 48, 98 72 L98 165"
+            stroke="url(#v5g2)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <!-- Light in center between arches -->
+      <circle cx="70" cy="78" r="5" fill="url(#v5g2)" opacity="0.6"/>
+      <circle cx="70" cy="78" r="2" fill="white" opacity="0.9"/>
+      <!-- Threshold lines -->
+      <line x1="23" y1="165" x2="117" y2="165" stroke="url(#v5g1)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      <line x1="40" y1="165" x2="100" y2="165" stroke="url(#v5g2)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <defs>
+        <linearGradient id="v5g1" x1="70" y1="165" x2="70" y2="8" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0.7"/>
+        </linearGradient>
+        <linearGradient id="v5g2" x1="70" y1="165" x2="70" y2="30" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#a78bfa" stop-opacity="0.4"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V5</div>
+    <div class="concept-name">Double Gate</div>
+    <div class="concept-desc">Две арки — глубина, слои. Как "четыре двери разума" Квоута. Внешняя бледнее, внутренняя ярче — путь вглубь.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="#a78bfa" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.35"/>
+      <path d="M42 165 L42 72 C42 48, 70 30, 70 30 C70 30, 98 48, 98 72 L98 165" stroke="url(#v5g2s)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="78" r="4" fill="white"/>
+      <defs><linearGradient id="v5g2s" x1="70" y1="165" x2="70" y2="30"><stop stop-color="#a78bfa" stop-opacity="0.5"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="white" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.4"/>
+        <path d="M42 165 L42 72 C42 48, 70 30, 70 30 C70 30, 98 48, 98 72 L98 165" stroke="white" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="78" r="4" fill="white"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="#7c3aed" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.2"/>
+      <path d="M42 165 L42 72 C42 48, 70 30, 70 30 C70 30, 98 48, 98 72 L98 165" stroke="url(#v5g2ls)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="70" cy="78" r="4" fill="#7c3aed"/>
+      <defs><linearGradient id="v5g2ls" x1="70" y1="165" x2="70" y2="30"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M25 165 L25 65 C25 30, 70 8, 70 8 C70 8, 115 30, 115 65 L115 165" stroke="#a78bfa" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.3"/>
+        <path d="M42 165 L42 72 C42 48, 70 30, 70 30 C70 30, 98 48, 98 72 L98 165" stroke="url(#v5glsi)" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <circle cx="70" cy="78" r="4" fill="#e879f9"/>
+        <defs><linearGradient id="v5glsi" x1="70" y1="165" x2="70" y2="30"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ V6: KEYSTONE (filled arch, monolith) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="140" height="180" viewBox="0 0 140 180" fill="none">
+      <!-- Filled arch shape — solid, bold -->
+      <path d="M30 165 L30 70 C30 35, 70 10, 70 10 C70 10, 110 35, 110 70 L110 165 L95 165 L95 75 C95 50, 70 30, 70 30 C70 30, 45 50, 45 75 L45 165 Z"
+            fill="url(#v6g)"/>
+      <!-- Inner space is empty (the "door" opening) -->
+      <!-- Keystone at top -->
+      <path d="M63 22 L70 10 L77 22 Z" fill="#e879f9" opacity="0.8"/>
+      <!-- Light inside the door -->
+      <circle cx="70" cy="100" r="4" fill="white" opacity="0.15"/>
+      <circle cx="70" cy="100" r="1.5" fill="white" opacity="0.5"/>
+      <defs>
+        <linearGradient id="v6g" x1="70" y1="165" x2="70" y2="10" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed"/><stop offset="0.7" stop-color="#a78bfa"/><stop offset="1" stop-color="#c084fc"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">DOOR V6</div>
+    <div class="concept-name">Keystone</div>
+    <div class="concept-desc">Массивная заполненная арка. Замковый камень наверху. Монументальность, надёжность, солидность. Самый "тяжёлый" вариант.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 70 C30 35, 70 10, 70 10 C70 10, 110 35, 110 70 L110 165 L95 165 L95 75 C95 50, 70 30, 70 30 C70 30, 45 50, 45 75 L45 165 Z" fill="url(#v6gs)"/>
+      <path d="M63 22 L70 10 L77 22 Z" fill="#e879f9"/>
+      <defs><linearGradient id="v6gs" x1="70" y1="165" x2="70" y2="10"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 70 C30 35, 70 10, 70 10 C70 10, 110 35, 110 70 L110 165 L95 165 L95 75 C95 50, 70 30, 70 30 C70 30, 45 50, 45 75 L45 165 Z" fill="white"/>
+        <path d="M63 22 L70 10 L77 22 Z" fill="white"/>
+      </svg>
+    </div>
+  </div>
+  <div class="concept-light-row">
+    <svg width="20" height="28" viewBox="0 0 140 180" fill="none">
+      <path d="M30 165 L30 70 C30 35, 70 10, 70 10 C70 10, 110 35, 110 70 L110 165 L95 165 L95 75 C95 50, 70 30, 70 30 C70 30, 45 50, 45 75 L45 165 Z" fill="url(#v6gls)"/>
+      <path d="M63 22 L70 10 L77 22 Z" fill="#c026d3"/>
+      <defs><linearGradient id="v6gls" x1="70" y1="165" x2="70" y2="10"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon-light">
+      <svg width="18" height="24" viewBox="0 0 140 180" fill="none">
+        <path d="M30 165 L30 70 C30 35, 70 10, 70 10 C70 10, 110 35, 110 70 L110 165 L95 165 L95 75 C95 50, 70 30, 70 30 C70 30, 45 50, 45 75 L45 165 Z" fill="url(#v6glsi)"/>
+        <path d="M63 22 L70 10 L77 22 Z" fill="#e879f9"/>
+        <defs><linearGradient id="v6glsi" x1="70" y1="165" x2="70" y2="10"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</div>
+
+</div><!-- grid -->
+
+</body>
+</html>

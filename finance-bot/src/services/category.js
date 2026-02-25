@@ -24,16 +24,18 @@ export class CategoryService {
     return this.getSystemCategories('income');
   }
 
-  // Get all categories visible to a user (system + user's custom)
-  async getUserCategories(userId, type = null) {
+  // Get all categories visible to a user (system + user's custom + family)
+  async getUserCategories(userId, type = null, familyId = null) {
     let query = `
       SELECT * FROM categories
       WHERE is_active = 1 AND (
         owner_type = 'system'
         OR (owner_type = 'user' AND owner_id = ?)
+        ${familyId ? "OR (owner_type = 'family' AND owner_id = ?)" : ''}
       )
     `;
     const params = [userId];
+    if (familyId) params.push(familyId);
 
     if (type) {
       query += ' AND type = ?';
@@ -125,15 +127,19 @@ export class CategoryService {
   // CUSTOM CATEGORY MANAGEMENT
   // ============================================
 
-  async addCustomCategory(userId, name, emoji, type = 'expense', keywords = []) {
-    // Check if name already exists for this user (system or custom)
+  async addCustomCategory(userId, name, emoji, type = 'expense', keywords = [], familyId = null) {
+    const ownerType = familyId ? 'family' : 'user';
+    const ownerId = familyId || userId;
+
+    // Check if name already exists for this user/family (system or custom)
     const existing = await this.db.prepare(`
       SELECT id FROM categories
       WHERE name = ? AND type = ? AND (
         owner_type = 'system'
         OR (owner_type = 'user' AND owner_id = ?)
+        OR (owner_type = 'family' AND owner_id = ?)
       )
-    `).bind(name, type, userId).first();
+    `).bind(name, type, userId, familyId || 0).first();
 
     if (existing) {
       return { success: false, error: 'exists' };
@@ -149,14 +155,14 @@ export class CategoryService {
 
     const result = await this.db.prepare(`
       INSERT INTO categories (owner_type, owner_id, name, emoji, type, keywords, sort_order)
-      VALUES ('user', ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       RETURNING *
-    `).bind(userId, name, emoji, type, JSON.stringify(keywords), sortOrder).first();
+    `).bind(ownerType, ownerId, name, emoji, type, JSON.stringify(keywords), sortOrder).first();
 
     return { success: true, category: result };
   }
 
-  async deleteCategory(userId, categoryId) {
+  async deleteCategory(userId, categoryId, familyId = null) {
     // Allow deleting system or user categories
     const category = await this.db.prepare(`
       SELECT * FROM categories WHERE id = ?
@@ -173,6 +179,11 @@ export class CategoryService {
 
     // If it's a custom category owned by another user, block
     if (category.owner_type === 'user' && category.owner_id !== userId) {
+      return { success: false, error: 'not_found' };
+    }
+
+    // If it's a family category, only members of that family can delete it
+    if (category.owner_type === 'family' && category.owner_id !== familyId) {
       return { success: false, error: 'not_found' };
     }
 
@@ -205,17 +216,19 @@ export class CategoryService {
     return this.deleteCategory(userId, categoryId);
   }
 
-  // Get all editable categories for user (system + custom)
-  async getEditableCategories(userId, type = null) {
+  // Get all editable categories for user (system + custom + family)
+  async getEditableCategories(userId, type = null, familyId = null) {
     let query = `
       SELECT c.*, (SELECT COUNT(*) FROM transactions WHERE category_id = c.id) as tx_count
       FROM categories c
       WHERE c.is_active = 1 AND (
         c.owner_type = 'system'
         OR (c.owner_type = 'user' AND c.owner_id = ?)
+        ${familyId ? "OR (c.owner_type = 'family' AND c.owner_id = ?)" : ''}
       )
     `;
     const params = [userId];
+    if (familyId) params.push(familyId);
 
     if (type) {
       query += ' AND c.type = ?';
@@ -232,7 +245,7 @@ export class CategoryService {
     return this.getEditableCategories(userId);
   }
 
-  async renameCategory(categoryId, userId, newName) {
+  async renameCategory(categoryId, userId, newName, familyId = null) {
     const category = await this.db.prepare(`
       SELECT * FROM categories WHERE id = ?
     `).bind(categoryId).first();
@@ -243,6 +256,11 @@ export class CategoryService {
 
     // If it's a custom category owned by another user, block
     if (category.owner_type === 'user' && category.owner_id !== userId) {
+      return { success: false, error: 'Категория не найдена' };
+    }
+
+    // If it's a family category, only members of that family can rename it
+    if (category.owner_type === 'family' && category.owner_id !== familyId) {
       return { success: false, error: 'Категория не найдена' };
     }
 
@@ -301,14 +319,18 @@ export class CategoryService {
       SELECT * FROM categories
       WHERE owner_type = 'system'
     `;
+    const params = [];
 
     if (type) {
-      query += ` AND type = '${type}'`;
+      query += ` AND type = ?`;
+      params.push(type);
     }
 
     query += ' ORDER BY sort_order';
 
-    const result = await this.db.prepare(query).all();
+    const result = params.length > 0
+      ? await this.db.prepare(query).bind(...params).all()
+      : await this.db.prepare(query).all();
     return result.results;
   }
 }

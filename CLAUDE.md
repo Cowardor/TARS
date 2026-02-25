@@ -19,14 +19,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Задачи для участников команды:
 
 **Приоритет HIGH:**
-1. **Finance Bot (Telegram + Notion)** - НОВАЯ ЗАДАЧА
+1. **РЕБРЕНДИНГ: TARS → Alar** - СРОЧНО
+   - Промпт: [docs/prompts/REBRAND_DEV_PROMPT.md](docs/prompts/REBRAND_DEV_PROMPT.md)
+   - Брендбук: [docs/branding/BRAND_GUIDE.md](docs/branding/BRAND_GUIDE.md)
+   - Статус: ⏳ Ожидает разработки
+2. **Finance Bot (Telegram)** → теперь **Alar Finance**
    - Промпт: [docs/prompts/FINANCE_BOT_DEV_PROMPT.md](docs/prompts/FINANCE_BOT_DEV_PROMPT.md)
    - Статус: ⏳ Ожидает разработки
-2. Caption & Hashtag Generator (TikTok) - простой, быстрый старт
-3. AI Sales Consultant (Telegram) - высокий потенциал
+3. Caption & Hashtag Generator (TikTok) → **Alar Toolkit**
+4. AI Sales Consultant (Telegram) → **Alar Consult**
 
 **Текущие замечания:**
+- БРЕНД УТВЕРЖДЁН: Alar (призма). Лого, цвета, шрифты → docs/branding/BRAND_GUIDE.md
 - Finance Bot: категории взяты из существующего Notion трекера пользователя
+- Нейминг продуктов: Alar Scout, Alar Creative, Alar Video, Alar Finance, Alar Consult, Alar Toolkit
 
 ### Сообщения для Team Lead:
 *Участники команды могут оставлять здесь сообщения. Формат:*
@@ -37,6 +43,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 <!-- TEAM MESSAGES START -->
 <!-- Пример: [2026-01-29] [Workflow Dev]: Создал Caption Generator, нужен review -->
 [2026-02-10] [Marketing Strategist]: Готова полная стратегия монетизации → docs/MONETIZATION_STRATEGY.md. Приоритет запуска: 1) Dropshipping Bundle (one-time $49-299, быстрые деньги), 2) TikTok Toolkit (подписка $9.99/мес), 3) AI Sales Consultant ($49-149/мес, высокий LTV), 4) Finance Bot (freemium, growth). Реалистичный прогноз: $4K MRR к месяцу 3, $10K к месяцу 6. Немедленное действие: создать аккаунт LemonSqueezy и опубликовать Scout Budget бесплатно на n8n Community.
+[2026-02-10] [UI/UX Designer]: Создан Telegram Mini App для Finance Bot → finance-bot/mini-app.html. TARS dark theme, 4 экрана (Dashboard/Stats/History/Settings), SVG donut chart, bottom sheet для ввода, haptic feedback, 12 категорий. Готов к деплою на Cloudflare Pages. Нужно: подключить API_BASE к Cloudflare Worker.
+[2026-02-11] [Marketing Strategist]: БРЕНД УТВЕРЖДЁН — Alar (The Prism). Брендбук: docs/branding/BRAND_GUIDE.md. Инструкция для дева: docs/prompts/REBRAND_DEV_PROMPT.md. Лого: треугольник-призма (свет входит → 3 потока выходят). Палитра: #09090b фон, #3b82f6→#22d3ee gradient. Шрифт: Inter 800 + JetBrains Mono. Нейминг: Alar Scout/Creative/Video/Finance/Consult/Toolkit. Слоган: "Automate with discipline".
+[2026-02-24] [UI/UX Designer]: Design v2 — finance-bot/mini-app.html. Добавлено: 1) Светлая тема (pearl #f3f4f8, CSS data-theme attr, localStorage, toggle кнопка в хедере); 2) Логотип Alar в хедере с адаптивным SVG (beam цвет через CSS vars — виден на обоих темах); 3) Alar Tab Transitions — направленный слайд экранов + световой луч-shimmer при каждом переключении (метафора призмы); 4) Alar Interaction Language — spring-press (fast compress + overshoot release), gradient pulse кольцо на submit, category bounce, count-up для цифр баланса, pill-индикатор под активной вкладкой. Инструкция для дева: docs/prompts/MINI_APP_DESIGN_DEV_GUIDE.md
 <!-- TEAM MESSAGES END -->
 
 ### Документы команды:

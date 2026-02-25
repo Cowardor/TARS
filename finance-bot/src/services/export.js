@@ -9,7 +9,7 @@ export class ExportService {
   }
 
   // Generate Excel-compatible XML with full statistics
-  async generateExcelXML(userId, date = new Date(), familyId = null, familyName = null, lang = 'ru') {
+  async generateExcelXML(userId, date = new Date(), familyId = null, familyName = null, lang = 'en') {
     const ts = this.transactionService;
     const t = getTranslations(lang);
     const { start, end } = getMonthRange(date);
@@ -388,7 +388,7 @@ export class ExportService {
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
   }
 
-  async getExportInfo(userId, date = new Date(), familyId = null, lang = 'ru') {
+  async getExportInfo(userId, date = new Date(), familyId = null, lang = 'en') {
     const { start, end } = getMonthRange(date);
     const transactions = await this.transactionService.getByPeriod(userId, start, end, familyId);
     const totalExpenses = await this.transactionService.getMonthTotal(userId, 'expense', date, familyId);

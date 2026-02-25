@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for domain in alarfinance.com alarfinance.dev alarfinance.app)",
+      "Bash(do echo -n \"$domain → \")",
+      "Bash(whois:*)",
+      "Bash(done)"
+    ]
+  }
+}

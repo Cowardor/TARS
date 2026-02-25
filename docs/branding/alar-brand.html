@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALAR — Brand Identity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #09090b;
+    --bg-card: #111114;
+    --bg-elevated: #18181b;
+    --border: #27272a;
+    --text: #fafafa;
+    --text-muted: #a1a1aa;
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.15);
+    --accent: #60a5fa;
+    --cyan: #22d3ee;
+    --gradient: linear-gradient(135deg, #3b82f6, #22d3ee);
+    --gradient-text: linear-gradient(135deg, #60a5fa, #22d3ee);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 50% 50%, var(--primary-glow), transparent 60%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+  }
+
+  .hero-content { position: relative; z-index: 1; text-align: center; }
+
+  /* === LOGO SVG === */
+  .logo-main {
+    width: 280px;
+    height: 280px;
+    margin: 0 auto 40px;
+    filter: drop-shadow(0 0 60px rgba(59, 130, 246, 0.3));
+  }
+
+  .logo-wordmark {
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: 16px;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .logo-tagline {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+
+  /* === SECTIONS === */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 40px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  .section-heading {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 48px;
+  }
+
+  /* === LOGO VARIATIONS === */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .logo-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    transition: border-color 0.3s;
+  }
+
+  .logo-card:hover { border-color: var(--primary); }
+
+  .logo-card.light { background: #ffffff; }
+  .logo-card.dark { background: var(--bg-card); }
+  .logo-card.gradient-bg {
+    background: var(--gradient);
+  }
+
+  .logo-card-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .logo-card.light .logo-card-label { color: #71717a; }
+  .logo-card.gradient-bg .logo-card-label { color: rgba(255,255,255,0.7); }
+
+  /* === COLORS === */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .color-swatch {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .color-preview {
+    height: 120px;
+    position: relative;
+  }
+
+  .color-info {
+    padding: 16px;
+    background: var(--bg-card);
+  }
+
+  .color-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .color-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* === TYPOGRAPHY === */
+  .type-specimen {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+  }
+
+  .type-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .type-display {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .type-body {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .type-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--accent);
+    padding: 24px;
+    background: var(--bg);
+    border-radius: 12px;
+    margin-top: 24px;
+  }
+
+  /* === APP MOCKUPS === */
+  .mockup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+  }
+
+  .mockup-card {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .mockup-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mockup-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .mockup-dot.r { background: #ef4444; }
+  .mockup-dot.y { background: #eab308; }
+  .mockup-dot.g { background: #22c55e; }
+
+  .mockup-body { padding: 32px; }
+
+  .mockup-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 16px 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* === ICON === */
+  .app-icon {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  }
+
+  /* === BUSINESS CARD === */
+  .bcard {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1.8/1;
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bcard::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, var(--primary-glow), transparent 70%);
+  }
+
+  .bcard-logo {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bcard-info {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bcard-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .bcard-role {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .bcard-contact {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* === PRODUCT NAMES === */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .product-chip {
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .product-chip:hover {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+  }
+
+  .product-name {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .product-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 40px;
+  }
+
+  /* === SLOGAN BAR === */
+  .slogan-bar {
+    text-align: center;
+    padding: 80px 40px;
+  }
+
+  .slogan-text {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-muted);
+  }
+
+  .slogan-text em {
+    font-style: normal;
+    font-weight: 600;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <!-- MAIN LOGO: Geometric A with binding lines -->
+    <svg class="logo-main" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer glow circle -->
+      <circle cx="140" cy="140" r="120" stroke="url(#alar-grad)" stroke-width="1" opacity="0.3"/>
+      <!-- Inner circle -->
+      <circle cx="140" cy="140" r="80" stroke="url(#alar-grad)" stroke-width="0.5" opacity="0.15"/>
+      <!-- The A shape — stylized triangle with a horizontal bar -->
+      <path d="M140 50 L200 210 L190 210 L170 160 L110 160 L90 210 L80 210 Z"
+            fill="url(#alar-grad)" opacity="0.9"/>
+      <!-- Crossbar -->
+      <rect x="108" y="148" width="64" height="3" rx="1.5" fill="#09090b"/>
+      <!-- Binding lines (sympathy links) radiating from A -->
+      <line x1="140" y1="50" x2="140" y2="20" stroke="url(#alar-grad)" stroke-width="1.5" opacity="0.5"/>
+      <line x1="80" y1="210" x2="55" y2="230" stroke="url(#alar-grad)" stroke-width="1.5" opacity="0.3"/>
+      <line x1="200" y1="210" x2="225" y2="230" stroke="url(#alar-grad)" stroke-width="1.5" opacity="0.3"/>
+      <!-- Small nodes at line ends -->
+      <circle cx="140" cy="18" r="3" fill="#22d3ee" opacity="0.8"/>
+      <circle cx="53" cy="232" r="2.5" fill="#3b82f6" opacity="0.6"/>
+      <circle cx="227" cy="232" r="2.5" fill="#3b82f6" opacity="0.6"/>
+      <defs>
+        <linearGradient id="alar-grad" x1="80" y1="50" x2="200" y2="210" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#60a5fa"/>
+          <stop offset="100%" stop-color="#22d3ee"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div class="logo-wordmark">ALAR</div>
+    <div class="logo-tagline">Automate with discipline</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LOGO VARIATIONS -->
+<section class="section">
+  <div class="section-title">01 / Logo</div>
+  <div class="section-heading">Variations</div>
+
+  <div class="logo-grid">
+    <!-- Dark bg -->
+    <div class="logo-card dark">
+      <svg width="120" height="48" viewBox="0 0 120 48" fill="none">
+        <path d="M24 4L44 44H38L33 33H15L10 44H4L24 4Z" fill="url(#g1)"/>
+        <rect x="14.5" y="30" width="19" height="2" rx="1" fill="#111114"/>
+        <text x="54" y="34" font-family="Inter, sans-serif" font-weight="800" font-size="28" letter-spacing="4" fill="#fafafa">ALAR</text>
+        <defs><linearGradient id="g1" x1="4" y1="4" x2="44" y2="44"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      </svg>
+      <div class="logo-card-label">Primary / Dark</div>
+    </div>
+
+    <!-- Light bg -->
+    <div class="logo-card light">
+      <svg width="120" height="48" viewBox="0 0 120 48" fill="none">
+        <path d="M24 4L44 44H38L33 33H15L10 44H4L24 4Z" fill="url(#g2)"/>
+        <rect x="14.5" y="30" width="19" height="2" rx="1" fill="#ffffff"/>
+        <text x="54" y="34" font-family="Inter, sans-serif" font-weight="800" font-size="28" letter-spacing="4" fill="#09090b">ALAR</text>
+        <defs><linearGradient id="g2" x1="4" y1="4" x2="44" y2="44"><stop stop-color="#2563eb"/><stop offset="1" stop-color="#0891b2"/></linearGradient></defs>
+      </svg>
+      <div class="logo-card-label">Primary / Light</div>
+    </div>
+
+    <!-- Gradient bg -->
+    <div class="logo-card gradient-bg">
+      <svg width="120" height="48" viewBox="0 0 120 48" fill="none">
+        <path d="M24 4L44 44H38L33 33H15L10 44H4L24 4Z" fill="white"/>
+        <rect x="14.5" y="30" width="19" height="2" rx="1" fill="#3b82f6"/>
+        <text x="54" y="34" font-family="Inter, sans-serif" font-weight="800" font-size="28" letter-spacing="4" fill="white">ALAR</text>
+      </svg>
+      <div class="logo-card-label">Reversed / Gradient</div>
+    </div>
+
+    <!-- Icon only -->
+    <div class="logo-card dark">
+      <div class="app-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 4L36 36H30L26 27H14L10 36H4L20 4Z" fill="white"/>
+          <rect x="13.5" y="24.5" width="13" height="2" rx="1" fill="#3b82f6"/>
+        </svg>
+      </div>
+      <div class="logo-card-label">App Icon</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COLORS -->
+<section class="section">
+  <div class="section-title">02 / Colors</div>
+  <div class="section-heading">Palette</div>
+
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #09090b;"></div>
+      <div class="color-info">
+        <div class="color-name">Void</div>
+        <div class="color-value">#09090B</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #18181b;"></div>
+      <div class="color-info">
+        <div class="color-name">Carbon</div>
+        <div class="color-value">#18181B</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #3b82f6;"></div>
+      <div class="color-info">
+        <div class="color-name">Alar Blue</div>
+        <div class="color-value">#3B82F6</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #22d3ee;"></div>
+      <div class="color-info">
+        <div class="color-name">Sympathy</div>
+        <div class="color-value">#22D3EE</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: linear-gradient(135deg, #3b82f6, #22d3ee);"></div>
+      <div class="color-info">
+        <div class="color-name">Binding</div>
+        <div class="color-value">gradient</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-preview" style="background: #fafafa;"></div>
+      <div class="color-info">
+        <div class="color-name">Light</div>
+        <div class="color-value">#FAFAFA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TYPOGRAPHY -->
+<section class="section">
+  <div class="section-title">03 / Typography</div>
+  <div class="section-heading">Typefaces</div>
+
+  <div class="type-specimen">
+    <div class="type-label">Headings / Inter 800</div>
+    <div class="type-display">The mind is the<br>greatest tool.</div>
+    <div class="type-body" style="margin-top: 24px;">
+      Alar is the art of holding a belief so strongly that it becomes reality.
+      In sympathy, the strength of your Alar determines everything.
+    </div>
+    <div class="type-mono">const alar = createBinding(mind, automation);</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-label">Product UI / Inter 400-600</div>
+    <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">Dashboard</div>
+    <div style="font-size: 16px; color: var(--text-muted); margin-bottom: 16px;">Your automations at a glance. 12 active workflows, 3 need attention.</div>
+    <div style="display: inline-block; padding: 10px 24px; background: var(--gradient); border-radius: 8px; font-weight: 600; font-size: 14px;">Create Workflow</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRODUCT NAMES -->
+<section class="section">
+  <div class="section-title">04 / Product Suite</div>
+  <div class="section-heading">Naming System</div>
+
+  <div class="product-grid">
+    <div class="product-chip">
+      <div class="product-name">Alar Scout</div>
+      <div class="product-desc">Product Research AI</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Alar Creative</div>
+      <div class="product-desc">Content Generation</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Alar Video</div>
+      <div class="product-desc">AI Video Production</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Alar Finance</div>
+      <div class="product-desc">Budget Tracker Bot</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Alar Consult</div>
+      <div class="product-desc">AI Sales Assistant</div>
+    </div>
+    <div class="product-chip">
+      <div class="product-name">Alar Toolkit</div>
+      <div class="product-desc">TikTok Creator Tools</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MOCKUPS -->
+<section class="section">
+  <div class="section-title">05 / Applications</div>
+  <div class="section-heading">In Context</div>
+
+  <div class="mockup-grid">
+    <!-- Website header mockup -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <path d="M20 4L36 36H30L26 27H14L10 36H4L20 4Z" fill="url(#gm1)"/>
+            <rect x="13.5" y="24.5" width="13" height="2" rx="1" fill="#111114"/>
+            <defs><linearGradient id="gm1" x1="4" y1="4" x2="36" y2="36"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+          </svg>
+          <span style="font-weight: 700; font-size: 18px; letter-spacing: 3px;">ALAR</span>
+          <span style="margin-left: auto; font-size: 13px; color: var(--text-muted);">Products</span>
+          <span style="font-size: 13px; color: var(--text-muted);">Pricing</span>
+          <span style="font-size: 13px; color: var(--text-muted);">Docs</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 800; line-height: 1.2; margin-bottom: 12px;">
+          Automate your<br>
+          <span style="background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">entire business.</span>
+        </div>
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">From product research to TikTok video — in 15 minutes.</div>
+        <div style="display: flex; gap: 12px;">
+          <div style="padding: 8px 20px; background: var(--gradient); border-radius: 8px; font-size: 13px; font-weight: 600;">Get Started Free</div>
+          <div style="padding: 8px 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text-muted);">View Demo</div>
+        </div>
+      </div>
+      <div class="mockup-label">Website Header</div>
+    </div>
+
+    <!-- Business card -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body" style="display: flex; justify-content: center;">
+        <div class="bcard">
+          <div class="bcard-logo">ALAR</div>
+          <div class="bcard-info">
+            <div class="bcard-name">Illia</div>
+            <div class="bcard-role">Founder & CEO</div>
+            <div class="bcard-contact">hello@alar.ai</div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-label">Business Card</div>
+    </div>
+
+    <!-- Telegram bot -->
+    <div class="mockup-card">
+      <div class="mockup-header">
+        <span class="mockup-dot r"></span>
+        <span class="mockup-dot y"></span>
+        <span class="mockup-dot g"></span>
+      </div>
+      <div class="mockup-body" style="background: #0e1621;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div class="app-icon" style="margin: 0 auto 12px; width: 56px; height: 56px; border-radius: 50%;">
+            <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+              <path d="M20 4L36 36H30L26 27H14L10 36H4L20 4Z" fill="white"/>
+              <rect x="13.5" y="24.5" width="13" height="2" rx="1" fill="#3b82f6"/>
+            </svg>
+          </div>
+          <div style="font-weight: 600; font-size: 15px;">Alar Finance Bot</div>
+          <div style="font-size: 12px; color: var(--text-muted);">online</div>
+        </div>
+        <div style="background: #182533; padding: 10px 14px; border-radius: 12px 12px 12px 4px; margin-bottom: 8px; font-size: 13px; max-width: 85%;">
+          Записал: <b>45 PLN</b> -> Продукты<br>
+          Продукты за месяц: <b>892 PLN</b>
+        </div>
+        <div style="background: #2b5278; padding: 10px 14px; border-radius: 12px 12px 4px 12px; font-size: 13px; margin-left: auto; max-width: 60%; text-align: right;">
+          120 заведения обед
+        </div>
+      </div>
+      <div class="mockup-label">Telegram Bot</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SLOGAN -->
+<section class="slogan-bar">
+  <div class="slogan-text">
+    "The Alar is the cornerstone of sympathy.<br>
+    <em>Believe hard enough, and it becomes real.</em>"
+  </div>
+  <div style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">— Patrick Rothfuss, The Name of the Wind</div>
+</section>
+
+</body>
+</html>

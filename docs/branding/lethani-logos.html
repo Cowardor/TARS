@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LETHANI — Logo Concepts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #111118;
+    --border: #252538;
+    --text: #f5f5ff;
+    --text-muted: #9898b0;
+    --primary: #7c3aed;
+    --accent: #a78bfa;
+    --warm: #c084fc;
+    --rose: #e879f9;
+    --gradient: linear-gradient(135deg, #7c3aed, #c084fc);
+    --gradient-text: linear-gradient(135deg, #a78bfa, #e879f9);
+    --gradient-wide: linear-gradient(135deg, #7c3aed, #a78bfa, #e879f9);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    padding: 60px 40px;
+  }
+
+  h1 {
+    text-align: center;
+    font-weight: 300;
+    font-size: 40px;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 80px;
+    letter-spacing: 2px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .concept {
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.3s;
+    background: var(--bg-card);
+  }
+
+  .concept:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 60px rgba(124, 58, 237, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .concept-logo {
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .concept-logo::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.08), transparent 70%);
+  }
+
+  .concept-info {
+    padding: 28px 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .concept-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .concept-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .concept-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Horizontal logo preview under each */
+  .concept-horizontal {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .concept-horizontal .wordmark {
+    font-weight: 300;
+    font-size: 22px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+
+  .concept-app-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+    margin-left: auto;
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes draw {
+    from { stroke-dashoffset: 200; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Lethani</h1>
+<p class="subtitle">6 logo concepts — choose your path</p>
+
+<div class="grid">
+
+<!-- ============ CONCEPT 1: THE KETAN (martial arts flow) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Three flowing lines representing Ketan movements -->
+      <path d="M40 120 C40 120, 55 60, 80 50 C105 40, 120 70, 110 100"
+            stroke="url(#c1g)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M50 130 C50 130, 70 55, 90 45 C110 35, 130 60, 115 95"
+            stroke="url(#c1g)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
+      <path d="M30 115 C30 115, 45 65, 70 55 C95 45, 108 80, 100 105"
+            stroke="url(#c1g)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"/>
+      <!-- Focus point at top -->
+      <circle cx="80" cy="48" r="5" fill="url(#c1g)"/>
+      <circle cx="80" cy="48" r="10" stroke="#a78bfa" stroke-width="0.5" opacity="0.4"/>
+      <defs>
+        <linearGradient id="c1g" x1="30" y1="130" x2="120" y2="40">
+          <stop stop-color="#7c3aed"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 01</div>
+    <div class="concept-name">The Ketan</div>
+    <div class="concept-desc">Три текучие линии — движения боевых форм Адем. Энергия, грация, точность. Точка фокуса наверху — цель.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="32" height="32" viewBox="0 0 160 160" fill="none">
+      <path d="M40 120 C40 120, 55 60, 80 50 C105 40, 120 70, 110 100" stroke="url(#c1gs)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="80" cy="48" r="8" fill="url(#c1gs)"/>
+      <defs><linearGradient id="c1gs" x1="30" y1="130" x2="120" y2="40"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="22" height="22" viewBox="0 0 160 160" fill="none">
+        <path d="M40 120 C40 120, 55 60, 80 50 C105 40, 120 70, 110 100" stroke="white" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <circle cx="80" cy="48" r="8" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONCEPT 2: CONSTELLATION (connected nodes) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Connected constellation dots forming abstract shape -->
+      <line x1="40" y1="100" x2="65" y2="55" stroke="#a78bfa" stroke-width="1.2" opacity="0.6"/>
+      <line x1="65" y1="55" x2="95" y2="40" stroke="#a78bfa" stroke-width="1.2" opacity="0.6"/>
+      <line x1="95" y1="40" x2="120" y2="65" stroke="#c084fc" stroke-width="1.2" opacity="0.6"/>
+      <line x1="120" y1="65" x2="110" y2="105" stroke="#c084fc" stroke-width="1.2" opacity="0.6"/>
+      <line x1="65" y1="55" x2="80" y2="85" stroke="#a78bfa" stroke-width="0.8" opacity="0.3"/>
+      <line x1="80" y1="85" x2="110" y2="105" stroke="#c084fc" stroke-width="0.8" opacity="0.3"/>
+      <line x1="95" y1="40" x2="80" y2="85" stroke="#c084fc" stroke-width="0.8" opacity="0.3"/>
+      <!-- Nodes -->
+      <circle cx="40" cy="100" r="5" fill="#7c3aed"/>
+      <circle cx="65" cy="55" r="6" fill="#a78bfa"/>
+      <circle cx="95" cy="40" r="7" fill="url(#c2g)"/>
+      <circle cx="120" cy="65" r="5" fill="#c084fc"/>
+      <circle cx="110" cy="105" r="5" fill="#e879f9"/>
+      <circle cx="80" cy="85" r="4" fill="#a78bfa" opacity="0.6"/>
+      <!-- Glow on main node -->
+      <circle cx="95" cy="40" r="16" stroke="#a78bfa" stroke-width="0.5" opacity="0.3"/>
+      <circle cx="95" cy="40" r="24" stroke="#a78bfa" stroke-width="0.3" opacity="0.15"/>
+      <defs>
+        <linearGradient id="c2g" x1="88" y1="33" x2="102" y2="47">
+          <stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 02</div>
+    <div class="concept-name">Constellation</div>
+    <div class="concept-desc">Связанные узлы — как ноды в n8n воркфлоу. Созвездие, карта пути. Технологичность + мистика.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="32" height="32" viewBox="0 0 160 160" fill="none">
+      <line x1="40" y1="100" x2="65" y2="55" stroke="#a78bfa" stroke-width="2" opacity="0.6"/>
+      <line x1="65" y1="55" x2="95" y2="40" stroke="#a78bfa" stroke-width="2" opacity="0.6"/>
+      <line x1="95" y1="40" x2="120" y2="65" stroke="#c084fc" stroke-width="2" opacity="0.6"/>
+      <line x1="120" y1="65" x2="110" y2="105" stroke="#c084fc" stroke-width="2" opacity="0.6"/>
+      <circle cx="40" cy="100" r="7" fill="#7c3aed"/>
+      <circle cx="65" cy="55" r="8" fill="#a78bfa"/>
+      <circle cx="95" cy="40" r="9" fill="#c084fc"/>
+      <circle cx="120" cy="65" r="7" fill="#c084fc"/>
+      <circle cx="110" cy="105" r="7" fill="#e879f9"/>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="22" height="22" viewBox="0 0 160 160" fill="none">
+        <line x1="40" y1="100" x2="65" y2="55" stroke="white" stroke-width="3"/>
+        <line x1="65" y1="55" x2="95" y2="40" stroke="white" stroke-width="3"/>
+        <line x1="95" y1="40" x2="120" y2="65" stroke="white" stroke-width="3"/>
+        <line x1="120" y1="65" x2="110" y2="105" stroke="white" stroke-width="3"/>
+        <circle cx="40" cy="100" r="8" fill="white"/>
+        <circle cx="65" cy="55" r="8" fill="white"/>
+        <circle cx="95" cy="40" r="10" fill="white"/>
+        <circle cx="120" cy="65" r="8" fill="white"/>
+        <circle cx="110" cy="105" r="8" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONCEPT 3: THE SWORD (Adem blade) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Stylized vertical blade / sword -->
+      <path d="M80 25 L88 110 L80 120 L72 110 Z" fill="url(#c3g)" opacity="0.9"/>
+      <!-- Cross guard — thin horizontal -->
+      <rect x="62" y="108" width="36" height="2.5" rx="1.25" fill="#a78bfa"/>
+      <!-- Handle -->
+      <rect x="76" y="114" width="8" height="18" rx="2" fill="#7c3aed" opacity="0.7"/>
+      <!-- Pommel -->
+      <circle cx="80" cy="136" r="5" fill="url(#c3g)"/>
+      <!-- Blade edge glow -->
+      <line x1="80" y1="28" x2="80" y2="105" stroke="white" stroke-width="0.5" opacity="0.3"/>
+      <!-- Energy emanating from tip -->
+      <circle cx="80" cy="25" r="3" fill="#e879f9" opacity="0.8"/>
+      <circle cx="80" cy="25" r="8" stroke="#e879f9" stroke-width="0.5" opacity="0.3"/>
+      <circle cx="80" cy="25" r="14" stroke="#a78bfa" stroke-width="0.3" opacity="0.15"/>
+      <defs>
+        <linearGradient id="c3g" x1="80" y1="25" x2="80" y2="136" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#e879f9"/><stop offset="0.4" stop-color="#a78bfa"/><stop offset="1" stop-color="#7c3aed"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 03</div>
+    <div class="concept-name">Saicere</div>
+    <div class="concept-desc">Стилизованный меч Адем — точность, острота, элегантность. Направлен вверх — рост и амбиции. Минимализм.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="16" height="32" viewBox="0 0 40 80" fill="none">
+      <path d="M20 4 L24 55 L20 60 L16 55 Z" fill="url(#c3gs)"/>
+      <rect x="14" y="55" width="12" height="2" rx="1" fill="#a78bfa"/>
+      <circle cx="20" cy="68" r="3" fill="url(#c3gs)"/>
+      <circle cx="20" cy="4" r="2.5" fill="#e879f9"/>
+      <defs><linearGradient id="c3gs" x1="20" y1="4" x2="20" y2="68"><stop stop-color="#e879f9"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="12" height="24" viewBox="0 0 40 80" fill="none">
+        <path d="M20 4 L24 55 L20 60 L16 55 Z" fill="white"/>
+        <rect x="14" y="55" width="12" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
+        <circle cx="20" cy="68" r="3" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONCEPT 4: SPINNING LEAF (Adem meditation) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Two leaves forming a dynamic spin / yin-yang like shape -->
+      <path d="M80 30 C100 30, 130 55, 130 80 C130 80, 105 80, 80 80"
+            fill="url(#c4g1)" opacity="0.85"/>
+      <path d="M80 130 C60 130, 30 105, 30 80 C30 80, 55 80, 80 80"
+            fill="url(#c4g2)" opacity="0.85"/>
+      <!-- Center dot -->
+      <circle cx="80" cy="80" r="4" fill="white"/>
+      <!-- Subtle rotation lines -->
+      <circle cx="80" cy="80" r="55" stroke="#a78bfa" stroke-width="0.5" opacity="0.2" stroke-dasharray="4 6"/>
+      <defs>
+        <linearGradient id="c4g1" x1="80" y1="30" x2="130" y2="80">
+          <stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+        <linearGradient id="c4g2" x1="80" y1="130" x2="30" y2="80">
+          <stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a78bfa"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 04</div>
+    <div class="concept-name">Spinning Leaf</div>
+    <div class="concept-desc">Две формы вращаются вокруг центра — "Spinning Leaf" из Кетан. Баланс, движение, гармония. Инь-янь для AI.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="32" height="32" viewBox="0 0 160 160" fill="none">
+      <path d="M80 30 C100 30, 130 55, 130 80 C130 80, 105 80, 80 80" fill="url(#c4g1s)" opacity="0.85"/>
+      <path d="M80 130 C60 130, 30 105, 30 80 C30 80, 55 80, 80 80" fill="url(#c4g2s)" opacity="0.85"/>
+      <circle cx="80" cy="80" r="5" fill="white"/>
+      <defs>
+        <linearGradient id="c4g1s" x1="80" y1="30" x2="130" y2="80"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient>
+        <linearGradient id="c4g2s" x1="80" y1="130" x2="30" y2="80"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+      </defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="24" height="24" viewBox="0 0 160 160" fill="none">
+        <path d="M80 30 C100 30, 130 55, 130 80 C130 80, 105 80, 80 80" fill="white" opacity="0.9"/>
+        <path d="M80 130 C60 130, 30 105, 30 80 C30 80, 55 80, 80 80" fill="white" opacity="0.6"/>
+        <circle cx="80" cy="80" r="5" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONCEPT 5: THE DOOR (of stone, of the mind) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Arch / doorway shape -->
+      <path d="M50 135 L50 55 C50 30, 80 15, 80 15 C80 15, 110 30, 110 55 L110 135"
+            stroke="url(#c5g)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <!-- Inner glow / portal effect -->
+      <path d="M60 135 L60 60 C60 40, 80 28, 80 28 C80 28, 100 40, 100 60 L100 135"
+            fill="url(#c5gf)" opacity="0.08"/>
+      <!-- Light at the center of the doorway -->
+      <circle cx="80" cy="75" r="8" fill="url(#c5g)" opacity="0.6"/>
+      <circle cx="80" cy="75" r="16" stroke="#a78bfa" stroke-width="0.5" opacity="0.2"/>
+      <circle cx="80" cy="75" r="3" fill="white" opacity="0.9"/>
+      <!-- Threshold line -->
+      <line x1="48" y1="135" x2="112" y2="135" stroke="url(#c5g)" stroke-width="2" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="c5g" x1="50" y1="135" x2="110" y2="15">
+          <stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+        <linearGradient id="c5gf" x1="80" y1="135" x2="80" y2="28">
+          <stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 05</div>
+    <div class="concept-name">The Door</div>
+    <div class="concept-desc">Арка / портал — "Doors of the Mind" из Имени ветра. Вход в новый мир автоматизации. Свет внутри — знание.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="28" height="32" viewBox="0 0 160 160" fill="none">
+      <path d="M50 135 L50 55 C50 30, 80 15, 80 15 C80 15, 110 30, 110 55 L110 135" stroke="url(#c5gs)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="80" cy="75" r="10" fill="url(#c5gs)" opacity="0.5"/>
+      <circle cx="80" cy="75" r="4" fill="white"/>
+      <line x1="48" y1="135" x2="112" y2="135" stroke="url(#c5gs)" stroke-width="4" stroke-linecap="round"/>
+      <defs><linearGradient id="c5gs" x1="50" y1="135" x2="110" y2="15"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="22" height="26" viewBox="0 0 160 160" fill="none">
+        <path d="M50 135 L50 55 C50 30, 80 15, 80 15 C80 15, 110 30, 110 55 L110 135" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <circle cx="80" cy="75" r="5" fill="white"/>
+        <line x1="48" y1="135" x2="112" y2="135" stroke="white" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONCEPT 6: WIND (abstract flowing mark) ============ -->
+<div class="concept">
+  <div class="concept-logo">
+    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+      <!-- Three wind/flow lines — abstract, dynamic -->
+      <path d="M30 65 C50 55, 70 75, 90 65 C110 55, 130 65, 135 55"
+            stroke="url(#c6g)" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M25 85 C50 75, 75 95, 100 85 C125 75, 140 85, 145 80"
+            stroke="url(#c6g)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <path d="M35 105 C55 95, 80 112, 105 100 C120 92, 130 98, 140 95"
+            stroke="url(#c6g)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>
+      <!-- Trailing particles -->
+      <circle cx="135" cy="55" r="3" fill="#e879f9" opacity="0.8"/>
+      <circle cx="145" cy="80" r="2.5" fill="#c084fc" opacity="0.6"/>
+      <circle cx="140" cy="95" r="2" fill="#a78bfa" opacity="0.4"/>
+      <!-- Origin point -->
+      <circle cx="28" cy="85" r="4" fill="#7c3aed"/>
+      <circle cx="28" cy="85" r="10" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>
+      <defs>
+        <linearGradient id="c6g" x1="25" y1="85" x2="145" y2="80" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7c3aed"/><stop offset="0.5" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="concept-info">
+    <div class="concept-number">CONCEPT 06</div>
+    <div class="concept-name">The Wind</div>
+    <div class="concept-desc">Три потока ветра — "Имя ветра". Движение, скорость, невидимая сила. Точка-источник слева — ты запускаешь поток.</div>
+  </div>
+  <div class="concept-horizontal">
+    <svg width="36" height="28" viewBox="0 0 160 160" fill="none">
+      <path d="M30 65 C50 55, 70 75, 90 65 C110 55, 130 65, 135 55" stroke="url(#c6gs)" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M25 85 C50 75, 75 95, 100 85 C125 75, 140 85, 145 80" stroke="url(#c6gs)" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <path d="M35 105 C55 95, 80 112, 105 100 C120 92, 130 98, 140 95" stroke="url(#c6gs)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+      <circle cx="28" cy="85" r="6" fill="#7c3aed"/>
+      <circle cx="135" cy="55" r="4" fill="#e879f9"/>
+      <defs><linearGradient id="c6gs" x1="25" y1="85" x2="145" y2="80"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs>
+    </svg>
+    <span class="wordmark">Lethani</span>
+    <div class="concept-app-icon">
+      <svg width="26" height="20" viewBox="0 0 160 160" fill="none">
+        <path d="M30 65 C50 55, 70 75, 90 65 C110 55, 130 65, 135 55" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M25 85 C50 75, 75 95, 100 85 C125 75, 140 85, 145 80" stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+        <path d="M35 105 C55 95, 80 112, 105 100 C120 92, 130 98, 140 95" stroke="white" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+</div><!-- grid -->
+
+</body>
+</html>
