@@ -21,25 +21,25 @@ export class TransactionService {
     return Promise.all(rows.map(r => this._dec(r)));
   }
 
-  async create(userId, categoryId, type, amount, description = null, familyId = null, transactionDate = null) {
+  async create(userId, categoryId, type, amount, description = null, familyId = null, transactionDate = null, accountId = null) {
     const date = transactionDate || formatDate();
     const encDesc = await encrypt(description, this.encKey);
 
     const result = await this.db.prepare(`
-      INSERT INTO transactions (user_id, family_id, category_id, type, amount, description, transaction_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO transactions (user_id, family_id, account_id, category_id, type, amount, description, transaction_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *
-    `).bind(userId, familyId, categoryId, type, amount, encDesc, date).first();
+    `).bind(userId, familyId, accountId, categoryId, type, amount, encDesc, date).first();
 
     return this._dec(result);
   }
 
-  async createExpense(userId, categoryId, amount, description = null, familyId = null) {
-    return this.create(userId, categoryId, 'expense', amount, description, familyId);
+  async createExpense(userId, categoryId, amount, description = null, familyId = null, accountId = null) {
+    return this.create(userId, categoryId, 'expense', amount, description, familyId, null, accountId);
   }
 
-  async createIncome(userId, categoryId, amount, description = null, familyId = null) {
-    return this.create(userId, categoryId, 'income', amount, description, familyId);
+  async createIncome(userId, categoryId, amount, description = null, familyId = null, accountId = null) {
+    return this.create(userId, categoryId, 'income', amount, description, familyId, null, accountId);
   }
 
   async findById(transactionId) {
@@ -101,8 +101,38 @@ export class TransactionService {
     return this._dec(result);
   }
 
+  // Helper: append the right user/family/account filter clause + params
+  _accountFilter(query, params, userId, familyId, accountId) {
+    if (accountId) {
+      query += ' AND t.account_id = ?';
+      params.push(accountId);
+    } else if (familyId) {
+      query += ' AND t.family_id = ?';
+      params.push(familyId);
+    } else {
+      query += ' AND t.user_id = ? AND t.family_id IS NULL AND (t.account_id IS NULL)';
+      params.push(userId);
+    }
+    return query;
+  }
+
+  // Variant without 't.' alias (for queries on bare transactions table)
+  _accountFilterBare(query, params, userId, familyId, accountId) {
+    if (accountId) {
+      query += ' AND account_id = ?';
+      params.push(accountId);
+    } else if (familyId) {
+      query += ' AND family_id = ?';
+      params.push(familyId);
+    } else {
+      query += ' AND user_id = ? AND family_id IS NULL AND (account_id IS NULL)';
+      params.push(userId);
+    }
+    return query;
+  }
+
   // Get transactions for a period
-  async getByPeriod(userId, startDate, endDate, familyId = null, type = null, categoryId = null) {
+  async getByPeriod(userId, startDate, endDate, familyId = null, type = null, categoryId = null, accountId = null) {
     let query = `
       SELECT t.*, c.name as category_name, c.emoji as category_emoji, u.display_name as user_name
       FROM transactions t
@@ -112,13 +142,7 @@ export class TransactionService {
     `;
     const params = [startDate, endDate];
 
-    if (familyId) {
-      query += ' AND t.family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND t.user_id = ? AND t.family_id IS NULL';
-      params.push(userId);
-    }
+    query = this._accountFilter(query, params, userId, familyId, accountId);
 
     if (type) {
       query += ' AND t.type = ?';
@@ -136,23 +160,23 @@ export class TransactionService {
     return this._decMany(result.results);
   }
 
-  async getMonthTransactions(userId, date = new Date(), familyId = null) {
+  async getMonthTransactions(userId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
-    return this.getByPeriod(userId, start, end, familyId);
+    return this.getByPeriod(userId, start, end, familyId, null, null, accountId);
   }
 
-  async getMonthExpenses(userId, date = new Date(), familyId = null) {
+  async getMonthExpenses(userId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
-    return this.getByPeriod(userId, start, end, familyId, 'expense');
+    return this.getByPeriod(userId, start, end, familyId, 'expense', null, accountId);
   }
 
-  async getMonthIncomes(userId, date = new Date(), familyId = null) {
+  async getMonthIncomes(userId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
-    return this.getByPeriod(userId, start, end, familyId, 'income');
+    return this.getByPeriod(userId, start, end, familyId, 'income', null, accountId);
   }
 
   // Get totals
-  async getMonthTotal(userId, type, date = new Date(), familyId = null) {
+  async getMonthTotal(userId, type, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
 
     let query = `
@@ -162,19 +186,13 @@ export class TransactionService {
     `;
     const params = [start, end, type];
 
-    if (familyId) {
-      query += ' AND family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND user_id = ? AND family_id IS NULL';
-      params.push(userId);
-    }
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
 
     const result = await this.db.prepare(query).bind(...params).first();
     return result?.total || 0;
   }
 
-  async getCategoryTotal(userId, categoryId, date = new Date(), familyId = null) {
+  async getCategoryTotal(userId, categoryId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
 
     let query = `
@@ -184,20 +202,14 @@ export class TransactionService {
     `;
     const params = [start, end, categoryId];
 
-    if (familyId) {
-      query += ' AND family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND user_id = ? AND family_id IS NULL';
-      params.push(userId);
-    }
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
 
     const result = await this.db.prepare(query).bind(...params).first();
     return result?.total || 0;
   }
 
   // Get stats by category
-  async getStatsByCategory(userId, date = new Date(), familyId = null) {
+  async getStatsByCategory(userId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
 
     let query = `
@@ -214,14 +226,7 @@ export class TransactionService {
     `;
     const params = [start, end];
 
-    if (familyId) {
-      query += ' AND t.family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND t.user_id = ? AND t.family_id IS NULL';
-      params.push(userId);
-    }
-
+    query = this._accountFilter(query, params, userId, familyId, accountId);
     query += ' GROUP BY c.id, t.type ORDER BY total DESC';
 
     const result = await this.db.prepare(query).bind(...params).all();
@@ -257,14 +262,14 @@ export class TransactionService {
   }
 
   // Get stats for multiple months (for trends)
-  async getMonthlyTrend(userId, months = 6, familyId = null) {
+  async getMonthlyTrend(userId, months = 6, familyId = null, accountId = null) {
     const trends = [];
     const now = new Date();
 
     for (let i = 0; i < months; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const expenses = await this.getMonthTotal(userId, 'expense', date, familyId);
-      const income = await this.getMonthTotal(userId, 'income', date, familyId);
+      const expenses = await this.getMonthTotal(userId, 'expense', date, familyId, accountId);
+      const income = await this.getMonthTotal(userId, 'income', date, familyId, accountId);
 
       trends.unshift({
         month: date.getMonth(),
@@ -279,7 +284,7 @@ export class TransactionService {
   }
 
   // Get transaction count for a month
-  async getMonthCount(userId, type, date = new Date(), familyId = null) {
+  async getMonthCount(userId, type, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
 
     let query = `
@@ -289,20 +294,14 @@ export class TransactionService {
     `;
     const params = [start, end, type];
 
-    if (familyId) {
-      query += ' AND family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND user_id = ? AND family_id IS NULL';
-      params.push(userId);
-    }
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
 
     const result = await this.db.prepare(query).bind(...params).first();
     return result?.count || 0;
   }
 
   // Get average transaction amount
-  async getMonthAverage(userId, type, date = new Date(), familyId = null) {
+  async getMonthAverage(userId, type, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
 
     let query = `
@@ -312,35 +311,24 @@ export class TransactionService {
     `;
     const params = [start, end, type];
 
-    if (familyId) {
-      query += ' AND family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' AND user_id = ? AND family_id IS NULL';
-      params.push(userId);
-    }
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
 
     const result = await this.db.prepare(query).bind(...params).first();
     return result?.avg || 0;
   }
 
   // Recent transactions
-  async getRecent(userId, limit = 10, familyId = null) {
+  async getRecent(userId, limit = 10, familyId = null, accountId = null) {
     let query = `
       SELECT t.*, c.name as category_name, c.emoji as category_emoji, u.display_name as user_name
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
       JOIN users u ON t.user_id = u.id
+      WHERE 1=1
     `;
     const params = [];
 
-    if (familyId) {
-      query += ' WHERE t.family_id = ?';
-      params.push(familyId);
-    } else {
-      query += ' WHERE t.user_id = ?';
-      params.push(userId);
-    }
+    query = this._accountFilter(query, params, userId, familyId, accountId);
 
     query += ' ORDER BY t.created_at DESC LIMIT ?';
     params.push(limit);

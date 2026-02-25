@@ -642,6 +642,293 @@ body {
 }
 
 /* ============================================
+   ACCOUNTS CAROUSEL
+   ============================================ */
+
+.accounts-carousel-wrapper {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border-radius: var(--radius-xl);
+}
+
+.accounts-carousel-track {
+    display: flex;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.accounts-carousel-track .balance-card {
+    flex: 0 0 100%;
+    margin-bottom: 0;
+    border-radius: var(--radius-xl);
+    /* color accent bar at top */
+    border-top: 3px solid var(--account-color, var(--accent-blue));
+}
+
+/* Account name chip inside balance-card */
+.account-name-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+/* Dots indicator */
+.account-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.account-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--border);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+
+.account-dot.active {
+    width: 18px;
+    background: var(--accent-gradient);
+}
+
+/* Crypto card variant */
+.crypto-balance-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.crypto-balance-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+}
+
+.crypto-symbol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.crypto-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.crypto-usd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--warning);
+}
+
+.crypto-sync-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crypto-sync-btn:active { transform: scale(0.94); transition-duration: 0.06s; }
+
+/* ============================================
+   ACTION SHEET (+ button)
+   ============================================ */
+
+.action-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.action-sheet-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.action-sheet-menu {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 8px 16px calc(16px + var(--safe-bottom));
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.action-sheet-overlay.show .action-sheet-menu {
+    transform: translateY(0);
+}
+
+.action-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: var(--radius-full);
+    margin: 8px auto 16px;
+}
+
+.action-sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 12px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: background 0.15s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.action-sheet-item:active { transform: scale(0.96); transition-duration: 0.06s; }
+.action-sheet-item:hover, .action-sheet-item:active { background: var(--bg-elevated); }
+
+.action-sheet-item-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.action-sheet-item:first-of-type .action-sheet-item-icon {
+    background: var(--accent-blue-soft);
+}
+.action-sheet-item:nth-of-type(2) .action-sheet-item-icon {
+    background: rgba(139, 92, 246, 0.12);
+}
+
+.action-sheet-cancel {
+    text-align: center;
+    padding: 14px;
+    color: var(--danger);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+    margin-top: 4px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease;
+}
+.action-sheet-cancel:hover { background: var(--danger-soft); }
+
+/* ============================================
+   NEW ACCOUNT MODAL
+   ============================================ */
+
+.account-templates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.account-template-card {
+    padding: 14px 10px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+    background: var(--bg-elevated);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.account-template-card.selected {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-soft);
+}
+
+.account-template-card:active { transform: scale(0.94); transition-duration: 0.06s; }
+
+.account-template-emoji {
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.account-template-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.account-template-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.account-color-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.account-color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid transparent;
+}
+
+.account-color-swatch:active { transform: scale(0.86); transition-duration: 0.06s; }
+.account-color-swatch.selected { border-color: var(--text-primary); transform: scale(1.15); }
+
+/* Crypto API fields */
+.crypto-fields {
+    display: none;
+}
+.crypto-fields.visible {
+    display: block;
+}
+
+/* ============================================
    DASHBOARD SCREEN
    ============================================ */
 
@@ -2189,28 +2476,45 @@ body {
                     </div>
                 </div>
 
-                <div class="balance-card">
-                    <div class="balance-label" data-i18n="balance">Баланс за месяц</div>
-                    <div class="balance-amount positive" id="balanceAmount">0 USD</div>
-                    <div class="balance-row">
-                        <div class="balance-stat">
-                            <div class="balance-stat-label" data-i18n="income">Доходы</div>
-                            <div class="balance-stat-value income" id="totalIncome">0 USD</div>
+                <!-- Accounts carousel -->
+                <div class="accounts-carousel-wrapper" id="accountsCarouselWrapper">
+                    <div class="accounts-carousel-track" id="accountsCarouselTrack"
+                         ontouchstart="carouselTouchStart(event)"
+                         ontouchmove="carouselTouchMove(event)"
+                         ontouchend="carouselTouchEnd(event)">
+
+                        <!-- Default personal card (always first) -->
+                        <div class="balance-card" id="defaultBalanceCard">
+                            <div class="account-name-chip" id="activeAccountChip">💼 Личные</div>
+                            <div class="balance-label" data-i18n="balance">Баланс за месяц</div>
+                            <div class="balance-amount positive" id="balanceAmount">0 USD</div>
+                            <div class="balance-row">
+                                <div class="balance-stat">
+                                    <div class="balance-stat-label" data-i18n="income">Доходы</div>
+                                    <div class="balance-stat-value income" id="totalIncome">0 USD</div>
+                                </div>
+                                <div class="balance-stat">
+                                    <div class="balance-stat-label" data-i18n="expenses">Расходы</div>
+                                    <div class="balance-stat-value expense" id="totalExpense">0 USD</div>
+                                </div>
+                            </div>
+                            <div class="balance-progress">
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-label">
+                                    <span data-i18n="expenses">Потрачено</span>
+                                    <span id="progressPercent">0%</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="balance-stat">
-                            <div class="balance-stat-label" data-i18n="expenses">Расходы</div>
-                            <div class="balance-stat-value expense" id="totalExpense">0 USD</div>
-                        </div>
+                        <!-- Additional account cards rendered by JS into #extraAccountCards -->
+                        <div id="extraAccountCards" style="display:contents;"></div>
                     </div>
-                    <div class="balance-progress">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
-                        <div class="progress-label">
-                            <span data-i18n="expenses">Потрачено</span>
-                            <span id="progressPercent">0%</span>
-                        </div>
-                    </div>
+                </div>
+                <!-- Dots indicator -->
+                <div class="account-dots" id="accountDots">
+                    <div class="account-dot active" data-idx="0" onclick="switchToAccountIndex(0)"></div>
                 </div>
 
                 <button class="quick-add-btn" onclick="openAddModal()">
@@ -2564,7 +2868,7 @@ body {
             </button>
 
             <!-- FAB: центральная кнопка добавления -->
-            <button class="nav-fab" onclick="openAddModal()" aria-label="Добавить транзакцию">
+            <button class="nav-fab" onclick="openActionSheet()" aria-label="Действия">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
 
@@ -2816,6 +3120,117 @@ body {
                     &#128229; Импортировать
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         ACTION SHEET (FAB +)
+         ══════════════════════════════════════════ -->
+    <div class="action-sheet-overlay" id="actionSheet" onclick="closeActionSheet()">
+        <div class="action-sheet-menu" onclick="event.stopPropagation()">
+            <div class="action-sheet-handle"></div>
+            <div class="action-sheet-item" onclick="closeActionSheet();openAddModal();">
+                <div class="action-sheet-item-icon">💸</div>
+                <div>
+                    <div style="font-weight:600;">Расход / Доход</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Добавить транзакцию</div>
+                </div>
+            </div>
+            <div class="action-sheet-item" onclick="closeActionSheet();openNewAccount();">
+                <div class="action-sheet-item-icon">🗂️</div>
+                <div>
+                    <div style="font-weight:600;">Новый счёт</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Личный, Бизнес, Семья, Крипто</div>
+                </div>
+            </div>
+            <div class="action-sheet-cancel" onclick="closeActionSheet()">Отмена</div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         NEW ACCOUNT MODAL
+         ══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="newAccountModal">
+        <div class="modal-sheet" style="max-height:92vh;">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title">🗂️ Новый счёт</div>
+                <button class="modal-close" onclick="closeNewAccount()">&times;</button>
+            </div>
+
+            <!-- Step 1: Template -->
+            <div style="margin-bottom:16px;">
+                <div class="category-label" style="margin-bottom:10px;">Тип счёта</div>
+                <div class="account-templates">
+                    <div class="account-template-card selected" data-template="personal" onclick="selectAccountTemplate('personal')">
+                        <div class="account-template-emoji">👤</div>
+                        <div class="account-template-label">Личный</div>
+                        <div class="account-template-desc">Обычные расходы</div>
+                    </div>
+                    <div class="account-template-card" data-template="business" onclick="selectAccountTemplate('business')">
+                        <div class="account-template-emoji">💼</div>
+                        <div class="account-template-label">Бизнес</div>
+                        <div class="account-template-desc">Реклама, налоги, ЗП</div>
+                    </div>
+                    <div class="account-template-card" data-template="family_shared" onclick="selectAccountTemplate('family_shared')">
+                        <div class="account-template-emoji">👨‍👩‍👧</div>
+                        <div class="account-template-label">Семейный</div>
+                        <div class="account-template-desc">Продукты, ЖКХ, дети</div>
+                    </div>
+                    <div class="account-template-card" data-template="crypto" onclick="selectAccountTemplate('crypto')">
+                        <div class="account-template-emoji">₿</div>
+                        <div class="account-template-label">Крипто</div>
+                        <div class="account-template-desc">Портфель биржи</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Name -->
+            <div class="input-group" style="margin-bottom:16px;">
+                <div class="input-label">Название</div>
+                <input type="text" class="input-field" id="newAccountName" placeholder="Мой бизнес" maxlength="32">
+            </div>
+
+            <!-- Step 3: Color -->
+            <div style="margin-bottom:16px;">
+                <div class="category-label" style="margin-bottom:8px;">Цвет</div>
+                <div class="account-color-row" id="accountColorRow">
+                    <div class="account-color-swatch selected" style="background:#3b82f6;" data-color="#3b82f6" onclick="selectAccountColor('#3b82f6')"></div>
+                    <div class="account-color-swatch" style="background:#8b5cf6;" data-color="#8b5cf6" onclick="selectAccountColor('#8b5cf6')"></div>
+                    <div class="account-color-swatch" style="background:#10b981;" data-color="#10b981" onclick="selectAccountColor('#10b981')"></div>
+                    <div class="account-color-swatch" style="background:#f59e0b;" data-color="#f59e0b" onclick="selectAccountColor('#f59e0b')"></div>
+                    <div class="account-color-swatch" style="background:#ef4444;" data-color="#ef4444" onclick="selectAccountColor('#ef4444')"></div>
+                    <div class="account-color-swatch" style="background:#ec4899;" data-color="#ec4899" onclick="selectAccountColor('#ec4899')"></div>
+                </div>
+            </div>
+
+            <!-- Crypto fields (shown only for crypto template) -->
+            <div class="crypto-fields" id="cryptoFields">
+                <div class="input-group" style="margin-bottom:12px;">
+                    <div class="input-label">Биржа</div>
+                    <select class="input-field" id="newAccountExchange" style="background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border);">
+                        <option value="binance">Binance</option>
+                        <option value="okx">OKX</option>
+                        <option value="bybit">Bybit</option>
+                        <option value="kucoin">KuCoin</option>
+                    </select>
+                </div>
+                <div class="input-group" style="margin-bottom:12px;">
+                    <div class="input-label">API Key</div>
+                    <input type="password" class="input-field" id="newAccountApiKey" placeholder="Вставьте API Key">
+                </div>
+                <div class="input-group" style="margin-bottom:16px;">
+                    <div class="input-label">API Secret</div>
+                    <input type="password" class="input-field" id="newAccountApiSecret" placeholder="Вставьте API Secret">
+                </div>
+                <div style="background:var(--warning-soft);border-radius:var(--radius-md);padding:10px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:16px;">
+                    ⚠️ Ключи шифруются AES-256-GCM и хранятся только на вашем аккаунте. Используй ключи только с правом на <strong>чтение</strong>.
+                </div>
+            </div>
+
+            <button class="submit-btn income-mode" id="newAccountSubmitBtn" onclick="submitNewAccount()">
+                ✨ Создать счёт
+            </button>
         </div>
     </div>
 
@@ -3238,6 +3653,12 @@ let state = {
     monthlyReport: true,
     language: 'en',
     activeFamilyId: null,
+    // Multi-accounts
+    accounts: [],         // [{id, name, emoji, type, color, ...}]
+    activeAccountId: null,
+    accountIndex: 0,      // carousel position (0 = implicit personal)
+    newAccountTemplate: 'personal',
+    newAccountColor: '#3b82f6',
 };
 
 // ============================================
@@ -3451,7 +3872,7 @@ async function initApp() {
     await loadUser();
     await loadCategories();
     buildCategoryGrid();
-    await loadDashboard();
+    await Promise.all([loadDashboard(), loadAccounts()]);
 }
 
 async function loadUser() {
@@ -3465,6 +3886,7 @@ async function loadUser() {
         state.monthlyReport = !!data.monthly_report;
         state.language = data.language || 'en';
         state.activeFamilyId = data.active_family_id || null;
+        state.activeAccountId = data.active_account_id || null;
         // Update settings UI
         const langNames = { ru: 'Русский', en: 'English', pl: 'Polski', uk: 'Українська' };
         document.getElementById('settingsLanguage').textContent = langNames[state.language] || state.language;
@@ -3535,6 +3957,280 @@ async function loadDashboard() {
         state.dashboardData = data;
     }
     renderDashboard();
+}
+
+// ============================================
+// ACCOUNTS
+// ============================================
+
+async function loadAccounts() {
+    const data = await apiFetch('/api/accounts');
+    if (!data) return;
+    state.accounts = data.accounts || [];
+    // Sync active index
+    if (state.activeAccountId) {
+        const idx = state.accounts.findIndex(a => a.id === state.activeAccountId);
+        state.accountIndex = idx >= 0 ? idx + 1 : 0; // +1 because index 0 = implicit personal
+    } else {
+        state.accountIndex = 0;
+    }
+    renderAccountsCarousel();
+}
+
+function renderAccountsCarousel() {
+    const track = document.getElementById('accountsCarouselTrack');
+    const dots = document.getElementById('accountDots');
+    const extraSlot = document.getElementById('extraAccountCards');
+
+    // Update chip on default card
+    const chip = document.getElementById('activeAccountChip');
+
+    // Render extra account cards
+    if (extraSlot) {
+        extraSlot.innerHTML = state.accounts.map(acc => {
+            if (acc.type === 'crypto') {
+                const balances = acc.crypto_balances || [];
+                const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
+                return `
+                <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
+                    <div class="account-name-chip">${acc.emoji} ${acc.name}</div>
+                    <div class="balance-label">Крипто портфель</div>
+                    <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
+                    <div class="crypto-balance-list">
+                        ${balances.length === 0
+                            ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">Нажмите Обновить для загрузки</div>`
+                            : balances.slice(0, 6).map(b => `
+                                <div class="crypto-balance-row">
+                                    <span class="crypto-symbol">${b.symbol}</span>
+                                    <span class="crypto-amount">${b.amount.toFixed(4)}</span>
+                                    <span class="crypto-usd">$${(b.usd_value||0).toFixed(2)}</span>
+                                </div>`).join('')}
+                    </div>
+                    <button class="crypto-sync-btn" onclick="syncCryptoAccount(${acc.id})" id="cryptoSyncBtn${acc.id}">
+                        🔄 Обновить
+                    </button>
+                </div>`;
+            }
+            return `
+            <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
+                <div class="account-name-chip">${acc.emoji} ${acc.name}</div>
+                <div class="balance-label">Баланс за месяц</div>
+                <div class="balance-amount positive" id="balAmt${acc.id}">— ${state.userCurrency}</div>
+                <div class="balance-row">
+                    <div class="balance-stat">
+                        <div class="balance-stat-label">Доходы</div>
+                        <div class="balance-stat-value income" id="balInc${acc.id}">0</div>
+                    </div>
+                    <div class="balance-stat">
+                        <div class="balance-stat-label">Расходы</div>
+                        <div class="balance-stat-value expense" id="balExp${acc.id}">0</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Update default card chip
+    if (state.accountIndex === 0) {
+        if (chip) { chip.textContent = '💼 Личные'; }
+        document.getElementById('defaultBalanceCard').style.removeProperty('--account-color');
+    } else {
+        const acc = state.accounts[state.accountIndex - 1];
+        if (acc) {
+            if (chip) chip.textContent = `${acc.emoji} ${acc.name}`;
+            document.getElementById('defaultBalanceCard').style.setProperty('--account-color', acc.color);
+        }
+    }
+
+    // Render dots
+    const total = state.accounts.length + 1; // +1 for implicit personal slot
+    if (total <= 1) {
+        dots.style.display = 'none';
+    } else {
+        dots.style.display = 'flex';
+        dots.innerHTML = Array.from({ length: total }, (_, i) =>
+            `<div class="account-dot${i === state.accountIndex ? ' active' : ''}" data-idx="${i}" onclick="switchToAccountIndex(${i})"></div>`
+        ).join('');
+    }
+
+    // Slide carousel
+    track.style.transform = `translateX(-${state.accountIndex * 100}%)`;
+}
+
+async function switchToAccountIndex(idx) {
+    if (idx === state.accountIndex) return;
+    state.accountIndex = idx;
+
+    const newAccountId = idx === 0 ? null : state.accounts[idx - 1]?.id;
+    state.activeAccountId = newAccountId || null;
+
+    // Update chip immediately
+    renderAccountsCarousel();
+
+    // POST to switch account on server
+    await apiFetch('/api/accounts/switch', {
+        method: 'POST',
+        body: JSON.stringify({ account_id: newAccountId || null }),
+    });
+
+    // Reload dashboard data
+    await Promise.all([loadDashboard(), loadCategories()]);
+    buildCategoryGrid();
+    haptic('light');
+}
+
+async function syncCryptoAccount(accountId) {
+    const btn = document.getElementById(`cryptoSyncBtn${accountId}`);
+    if (btn) { btn.textContent = '⏳ Загрузка...'; btn.disabled = true; }
+
+    const data = await apiFetch('/api/accounts/sync-crypto', {
+        method: 'POST',
+        body: JSON.stringify({ account_id: accountId }),
+    });
+
+    if (data && data.success) {
+        // Update cached balances in state
+        const acc = state.accounts.find(a => a.id === accountId);
+        if (acc) acc.crypto_balances = data.balances;
+        renderAccountsCarousel();
+        haptic('medium');
+    } else {
+        if (btn) { btn.textContent = '❌ Ошибка'; btn.disabled = false; }
+        setTimeout(() => { if (btn) { btn.textContent = '🔄 Обновить'; btn.disabled = false; } }, 2000);
+    }
+}
+
+// ── Carousel swipe ──────────────────────────────────────────────────────────
+let _carouselStartX = 0;
+let _carouselMoveX = 0;
+let _carouselDragging = false;
+
+function carouselTouchStart(e) {
+    _carouselStartX = e.touches[0].clientX;
+    _carouselMoveX = 0;
+    _carouselDragging = true;
+}
+
+function carouselTouchMove(e) {
+    if (!_carouselDragging) return;
+    _carouselMoveX = e.touches[0].clientX - _carouselStartX;
+    // Visual drag feedback
+    const total = state.accounts.length + 1;
+    const baseOffset = state.accountIndex * 100;
+    const pct = (_carouselMoveX / window.innerWidth) * 100;
+    document.getElementById('accountsCarouselTrack').style.transform =
+        `translateX(calc(-${baseOffset}% + ${_carouselMoveX}px))`;
+}
+
+function carouselTouchEnd(e) {
+    if (!_carouselDragging) return;
+    _carouselDragging = false;
+    const total = state.accounts.length + 1;
+    const threshold = 50; // px
+    if (_carouselMoveX < -threshold && state.accountIndex < total - 1) {
+        switchToAccountIndex(state.accountIndex + 1);
+    } else if (_carouselMoveX > threshold && state.accountIndex > 0) {
+        switchToAccountIndex(state.accountIndex - 1);
+    } else {
+        // Snap back
+        document.getElementById('accountsCarouselTrack').style.transform =
+            `translateX(-${state.accountIndex * 100}%)`;
+    }
+    _carouselMoveX = 0;
+}
+
+// ── Action Sheet ──────────────────────────────────────────────────────────
+function openActionSheet() {
+    document.getElementById('actionSheet').classList.add('show');
+    haptic('light');
+}
+
+function closeActionSheet() {
+    document.getElementById('actionSheet').classList.remove('show');
+}
+
+// ── New Account Modal ────────────────────────────────────────────────────
+function openNewAccount() {
+    document.getElementById('newAccountName').value = '';
+    document.getElementById('newAccountApiKey').value = '';
+    document.getElementById('newAccountApiSecret').value = '';
+    selectAccountTemplate('personal');
+    selectAccountColor('#3b82f6');
+    document.getElementById('newAccountModal').classList.add('show');
+    haptic('medium');
+}
+
+function closeNewAccount() {
+    document.getElementById('newAccountModal').classList.remove('show');
+}
+
+function selectAccountTemplate(template) {
+    state.newAccountTemplate = template;
+    document.querySelectorAll('.account-template-card').forEach(el => {
+        el.classList.toggle('selected', el.dataset.template === template);
+    });
+    // Show/hide crypto fields
+    const cryptoFields = document.getElementById('cryptoFields');
+    cryptoFields.classList.toggle('visible', template === 'crypto');
+    // Suggest a color
+    const colorMap = { personal: '#3b82f6', business: '#8b5cf6', family_shared: '#10b981', crypto: '#f59e0b' };
+    if (colorMap[template]) selectAccountColor(colorMap[template]);
+    // Suggest a name
+    const nameMap = { personal: 'Личный', business: 'Бизнес', family_shared: 'Семья', crypto: 'Крипто' };
+    const nameInput = document.getElementById('newAccountName');
+    if (!nameInput.value || Object.values(nameMap).includes(nameInput.value)) {
+        nameInput.value = nameMap[template] || '';
+    }
+}
+
+function selectAccountColor(color) {
+    state.newAccountColor = color;
+    document.querySelectorAll('.account-color-swatch').forEach(el => {
+        el.classList.toggle('selected', el.dataset.color === color);
+    });
+}
+
+async function submitNewAccount() {
+    const name = document.getElementById('newAccountName').value.trim();
+    if (!name) { haptic('error'); return; }
+
+    const btn = document.getElementById('newAccountSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Создаём...';
+
+    const body = {
+        name,
+        type: state.newAccountTemplate,
+        template: state.newAccountTemplate,
+        color: state.newAccountColor,
+        emoji: { personal: '👤', business: '💼', family_shared: '👨‍👩‍👧', crypto: '₿' }[state.newAccountTemplate] || '💼',
+    };
+
+    if (state.newAccountTemplate === 'crypto') {
+        body.crypto_exchange = document.getElementById('newAccountExchange').value;
+        body.crypto_api_key = document.getElementById('newAccountApiKey').value.trim();
+        body.crypto_api_secret = document.getElementById('newAccountApiSecret').value.trim();
+        if (!body.crypto_api_key || !body.crypto_api_secret) {
+            btn.disabled = false;
+            btn.textContent = '✨ Создать счёт';
+            haptic('error');
+            return;
+        }
+    }
+
+    const data = await apiFetch('/api/accounts', { method: 'POST', body: JSON.stringify(body) });
+
+    btn.disabled = false;
+    btn.textContent = '✨ Создать счёт';
+
+    if (data?.success) {
+        closeNewAccount();
+        await loadAccounts();
+        // Switch to new account
+        const newIdx = state.accounts.findIndex(a => a.id === data.account.id);
+        if (newIdx >= 0) await switchToAccountIndex(newIdx + 1);
+        haptic('success');
+    }
 }
 
 function updateCurrencyDisplay() {
@@ -4712,6 +5408,7 @@ function initSheetSwipe() {
         exportPreview:   () => closeExportPreview(),
         catTxModal:      () => closeCatTxModal(),
         csvImportModal:  () => closeCsvImport(),
+        newAccountModal: () => closeNewAccount(),
         familyManager:   () => closeFamilyManager(),
         budgetManager:   () => closeBudgetManager(),
         languagePicker:  () => closeLanguagePicker(),

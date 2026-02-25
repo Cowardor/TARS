@@ -8,6 +8,7 @@ import { TransactionService } from '../services/transaction.js';
 import { FamilyService } from '../services/family.js';
 import { ExportService } from '../services/export.js';
 import { BudgetService } from '../services/budget.js';
+import { AccountService } from '../services/account.js';
 import { getMonthRange } from '../utils/db.js';
 
 // ============================================
@@ -104,6 +105,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
   const familyService = new FamilyService(env.DB);
   const exportService = new ExportService(transactionService);
   const budgetService = new BudgetService(env.DB, transactionService);
+  const accountService = new AccountService(env.DB, env.ENCRYPTION_KEY);
 
   // 1. Try session token (PWA / email login)
   let user = await resolveUser(request, env);
@@ -132,9 +134,11 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
   // Get active family from session (same as bot does)
   let familyId = null;
+  let activeAccountId = null;
   if (user.telegram_id) {
     const session = await userService.getSession(user.telegram_id);
     familyId = session?.active_family_id || null;
+    activeAccountId = session?.active_account_id || null;
   }
 
   const currency = user.currency || 'USD';
@@ -142,23 +146,23 @@ export async function handleMiniAppAPI(request, env, pathname) {
   // Route
   switch (pathname) {
     case '/api/dashboard':
-      return handleDashboard(userId, familyId, transactionService, currency);
+      return handleDashboard(userId, familyId, activeAccountId, transactionService, currency);
 
     case '/api/stats':
-      return handleStats(request, userId, familyId, transactionService, currency);
+      return handleStats(request, userId, familyId, activeAccountId, transactionService, currency);
 
     case '/api/transactions':
-      return handleTransactions(request, userId, familyId, transactionService, currency);
+      return handleTransactions(request, userId, familyId, activeAccountId, transactionService, currency);
 
     case '/api/categories':
-      return handleCategories(userId, familyId, categoryService);
+      return handleCategories(userId, familyId, activeAccountId, categoryService);
 
     case '/api/transaction':
       if (request.method === 'GET') {
         return handleGetTransaction(request, userId, transactionService);
       }
       if (request.method === 'POST') {
-        return handleCreateTransaction(request, userId, familyId, transactionService, categoryService, currency);
+        return handleCreateTransaction(request, userId, familyId, activeAccountId, transactionService, categoryService, currency);
       }
       if (request.method === 'PUT') {
         return handleUpdateTransaction(request, userId, transactionService);
@@ -170,7 +174,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/import':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleImportTransactions(request, userId, familyId, transactionService, categoryService);
+      return handleImportTransactions(request, userId, familyId, activeAccountId, transactionService, categoryService);
 
     case '/api/undo':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -189,6 +193,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
         daily_reminder: user.daily_reminder ?? 1,
         monthly_report: user.monthly_report ?? 1,
         active_family_id: familyId || null,
+        active_account_id: activeAccountId || null,
       });
 
     case '/api/export':
@@ -207,7 +212,31 @@ export async function handleMiniAppAPI(request, env, pathname) {
       return error('Method not allowed', 405);
 
     case '/api/categories/editable':
-      return handleEditableCategories(userId, familyId, categoryService);
+      return handleEditableCategories(userId, familyId, activeAccountId, categoryService);
+
+    // ── Accounts ────────────────────────────────────────
+    case '/api/accounts':
+      if (request.method === 'GET') {
+        return handleGetAccounts(userId, accountService);
+      }
+      if (request.method === 'POST') {
+        return handleCreateAccount(request, userId, accountService);
+      }
+      if (request.method === 'PUT') {
+        return handleUpdateAccount(request, userId, accountService);
+      }
+      if (request.method === 'DELETE') {
+        return handleDeleteAccount(request, userId, accountService);
+      }
+      return error('Method not allowed', 405);
+
+    case '/api/accounts/switch':
+      if (request.method !== 'POST') return error('Method not allowed', 405);
+      return handleAccountSwitch(request, userId, user.telegram_id, accountService);
+
+    case '/api/accounts/sync-crypto':
+      if (request.method !== 'POST') return error('Method not allowed', 405);
+      return handleSyncCrypto(request, userId, accountService);
 
     // Family management
     case '/api/family':
@@ -261,7 +290,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     // Trend
     case '/api/trend':
-      return handleTrend(userId, familyId, transactionService);
+      return handleTrend(userId, familyId, activeAccountId, transactionService);
 
     default:
       return error('Not found', 404);
@@ -272,14 +301,14 @@ export async function handleMiniAppAPI(request, env, pathname) {
 // GET /api/dashboard
 // ============================================
 
-async function handleDashboard(userId, familyId, ts, currency) {
+async function handleDashboard(userId, familyId, accountId, ts, currency) {
   const now = new Date();
 
   const [expenseTotal, incomeTotal, recent, statsByCategory] = await Promise.all([
-    ts.getMonthTotal(userId, 'expense', now, familyId),
-    ts.getMonthTotal(userId, 'income', now, familyId),
-    ts.getRecent(userId, 5, familyId),
-    ts.getStatsByCategory(userId, now, familyId),
+    ts.getMonthTotal(userId, 'expense', now, familyId, accountId),
+    ts.getMonthTotal(userId, 'income', now, familyId, accountId),
+    ts.getRecent(userId, 5, familyId, accountId),
+    ts.getStatsByCategory(userId, now, familyId, accountId),
   ]);
 
   const balance = incomeTotal - expenseTotal;
@@ -304,7 +333,7 @@ async function handleDashboard(userId, familyId, ts, currency) {
 // GET /api/stats?month=1&year=2026
 // ============================================
 
-async function handleStats(request, userId, familyId, ts, currency) {
+async function handleStats(request, userId, familyId, accountId, ts, currency) {
   const url = new URL(request.url);
   const now = new Date();
   const monthParam = url.searchParams.get('month');
@@ -314,9 +343,9 @@ async function handleStats(request, userId, familyId, ts, currency) {
   const date = new Date(year, month, 1);
 
   const [statsByCategory, expenseTotal, incomeTotal] = await Promise.all([
-    ts.getStatsByCategory(userId, date, familyId),
-    ts.getMonthTotal(userId, 'expense', date, familyId),
-    ts.getMonthTotal(userId, 'income', date, familyId),
+    ts.getStatsByCategory(userId, date, familyId, accountId),
+    ts.getMonthTotal(userId, 'expense', date, familyId, accountId),
+    ts.getMonthTotal(userId, 'income', date, familyId, accountId),
   ]);
 
   const expenses = statsByCategory.filter(c => c.type === 'expense');
@@ -351,7 +380,7 @@ async function handleStats(request, userId, familyId, ts, currency) {
 // GET /api/transactions?type=all|expense|income
 // ============================================
 
-async function handleTransactions(request, userId, familyId, ts, currency) {
+async function handleTransactions(request, userId, familyId, accountId, ts, currency) {
   const url = new URL(request.url);
   const type = url.searchParams.get('type') || 'all';
   const categoryId = url.searchParams.get('category_id') ? parseInt(url.searchParams.get('category_id')) : null;
@@ -364,7 +393,7 @@ async function handleTransactions(request, userId, familyId, ts, currency) {
   const { start, end } = getMonthRange(new Date(year, month, 1));
 
   const txType = type === 'all' ? null : type;
-  const transactions = await ts.getByPeriod(userId, start, end, familyId, txType, categoryId);
+  const transactions = await ts.getByPeriod(userId, start, end, familyId, txType, categoryId, accountId);
 
   return json({
     currency,
@@ -376,8 +405,8 @@ async function handleTransactions(request, userId, familyId, ts, currency) {
 // GET /api/categories
 // ============================================
 
-async function handleCategories(userId, familyId, cs) {
-  const categories = await cs.getUserCategories(userId, null, familyId);
+async function handleCategories(userId, familyId, accountId, cs) {
+  const categories = await cs.getUserCategories(userId, null, familyId, accountId);
 
   return json({
     expense: categories.filter(c => c.type === 'expense').map(c => ({
@@ -397,7 +426,7 @@ async function handleCategories(userId, familyId, cs) {
 // POST /api/transaction
 // ============================================
 
-async function handleCreateTransaction(request, userId, familyId, ts, cs, currency) {
+async function handleCreateTransaction(request, userId, familyId, accountId, ts, cs, currency) {
   let body;
   try {
     body = await request.json();
@@ -430,11 +459,13 @@ async function handleCreateTransaction(request, userId, familyId, ts, cs, curren
     type,
     amount,
     description || null,
-    familyId
+    familyId,
+    null,
+    accountId
   );
 
-  const categoryTotal = await ts.getCategoryTotal(userId, category_id, new Date(), familyId);
-  const monthTotal = await ts.getMonthTotal(userId, type, new Date(), familyId);
+  const categoryTotal = await ts.getCategoryTotal(userId, category_id, new Date(), familyId, accountId);
+  const monthTotal = await ts.getMonthTotal(userId, type, new Date(), familyId, accountId);
 
   return json({
     success: true,
@@ -578,8 +609,8 @@ async function handleExport(request, userId, familyId, ts, exportService, family
 // GET /api/categories/editable
 // ============================================
 
-async function handleEditableCategories(userId, familyId, cs) {
-  const categories = await cs.getEditableCategories(userId, null, familyId);
+async function handleEditableCategories(userId, familyId, accountId, cs) {
+  const categories = await cs.getEditableCategories(userId, null, familyId, accountId);
 
   return json({
     expense: categories.filter(c => c.type === 'expense').map(c => ({
@@ -873,8 +904,8 @@ async function handleLanguageChange(request, userId, us) {
 // GET /api/trend
 // ============================================
 
-async function handleTrend(userId, familyId, ts) {
-  const trend = await ts.getMonthlyTrend(userId, 6, familyId);
+async function handleTrend(userId, familyId, accountId, ts) {
+  const trend = await ts.getMonthlyTrend(userId, 6, familyId, accountId);
   const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
 
   return json({
@@ -953,10 +984,149 @@ async function handleUpdateTransaction(request, userId, ts) {
 }
 
 // ============================================
+// GET /api/accounts — List user accounts
+// ============================================
+
+async function handleGetAccounts(userId, as) {
+  const accounts = await as.getAccounts(userId);
+  return json({
+    accounts: accounts.map(a => ({
+      id: a.id,
+      name: a.name,
+      emoji: a.emoji,
+      type: a.type,
+      color: a.color,
+      sort_order: a.sort_order,
+      crypto_exchange: a.crypto_exchange || null,
+      crypto_synced_at: a.crypto_synced_at || null,
+      crypto_balances: a.type === 'crypto' ? as.getCachedCrypto(a) : null,
+    })),
+  });
+}
+
+// ============================================
+// POST /api/accounts — Create account
+// ============================================
+
+async function handleCreateAccount(request, userId, as) {
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { name, emoji, type, template, currency, crypto_exchange, crypto_api_key, crypto_api_secret } = body;
+  if (!name || !name.trim()) return error('name is required');
+
+  const validTypes = ['personal', 'business', 'family_shared', 'crypto'];
+  const accountType = validTypes.includes(type) ? type : 'personal';
+
+  if (accountType === 'crypto' && !crypto_exchange) {
+    return error('crypto_exchange is required for crypto accounts');
+  }
+
+  const account = await as.createAccount(
+    userId,
+    name.trim(),
+    emoji || '💼',
+    accountType,
+    template || accountType,
+    currency || null,
+    crypto_exchange || null,
+    crypto_api_key || null,
+    crypto_api_secret || null
+  );
+
+  return json({ success: true, account: {
+    id: account.id,
+    name: account.name,
+    emoji: account.emoji,
+    type: account.type,
+    color: account.color,
+    sort_order: account.sort_order,
+  }});
+}
+
+// ============================================
+// PUT /api/accounts — Update account
+// ============================================
+
+async function handleUpdateAccount(request, userId, as) {
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { id, name, emoji, color, crypto_exchange, crypto_api_key, crypto_api_secret } = body;
+  if (!id) return error('id is required');
+
+  const updates = {};
+  if (name !== undefined) updates.name = name.trim();
+  if (emoji !== undefined) updates.emoji = emoji;
+  if (color !== undefined) updates.color = color;
+  if (crypto_exchange !== undefined) updates.crypto_exchange = crypto_exchange;
+  if (crypto_api_key !== undefined) updates.crypto_api_key = crypto_api_key;
+  if (crypto_api_secret !== undefined) updates.crypto_api_secret = crypto_api_secret;
+
+  const result = await as.updateAccount(id, userId, updates);
+  if (!result) return error('Account not found', 404);
+
+  return json({ success: true, account: result });
+}
+
+// ============================================
+// DELETE /api/accounts — Delete account
+// ============================================
+
+async function handleDeleteAccount(request, userId, as) {
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { id } = body;
+  if (!id) return error('id is required');
+
+  const result = await as.deleteAccount(id, userId);
+  if (!result.success) return error(result.error);
+
+  return json({ success: true });
+}
+
+// ============================================
+// POST /api/accounts/switch — Switch active account
+// ============================================
+
+async function handleAccountSwitch(request, userId, telegramId, as) {
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { account_id } = body; // null = go back to implicit personal mode
+
+  if (account_id !== null && account_id !== undefined) {
+    const account = await as.getById(account_id, userId);
+    if (!account) return error('Account not found', 404);
+  }
+
+  await as.switchAccount(telegramId, account_id || null);
+  return json({ success: true, active_account_id: account_id || null });
+}
+
+// ============================================
+// POST /api/accounts/sync-crypto — Sync crypto balances
+// ============================================
+
+async function handleSyncCrypto(request, userId, as) {
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { account_id } = body;
+  if (!account_id) return error('account_id is required');
+
+  const result = await as.syncCrypto(account_id, userId);
+  if (!result.success) return error(result.error || 'Sync failed');
+
+  return json({ success: true, balances: result.balances });
+}
+
+// ============================================
 // POST /api/import — Bulk import transactions from CSV
 // ============================================
 
-async function handleImportTransactions(request, userId, familyId, ts, cs) {
+async function handleImportTransactions(request, userId, familyId, accountId, ts, cs) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
@@ -974,7 +1144,7 @@ async function handleImportTransactions(request, userId, familyId, ts, cs) {
     await ts.create(
       userId, category_id, txType,
       parseFloat(amount), description || null,
-      familyId, date || null
+      familyId, date || null, accountId
     );
     imported++;
   }

@@ -24,17 +24,18 @@ export class CategoryService {
     return this.getSystemCategories('income');
   }
 
-  // Get all categories visible to a user (system + user's custom + family)
-  async getUserCategories(userId, type = null, familyId = null) {
+  // Get all categories visible to a user (system + user's custom + family + account-specific)
+  async getUserCategories(userId, type = null, familyId = null, accountId = null) {
     let query = `
       SELECT * FROM categories
       WHERE is_active = 1 AND (
         owner_type = 'system'
-        OR (owner_type = 'user' AND owner_id = ?)
+        OR (owner_type = 'user' AND owner_id = ? AND (account_id IS NULL ${accountId ? 'OR account_id = ?' : ''}))
         ${familyId ? "OR (owner_type = 'family' AND owner_id = ?)" : ''}
       )
     `;
     const params = [userId];
+    if (accountId) params.push(accountId);
     if (familyId) params.push(familyId);
 
     if (type) {
@@ -216,18 +217,19 @@ export class CategoryService {
     return this.deleteCategory(userId, categoryId);
   }
 
-  // Get all editable categories for user (system + custom + family)
-  async getEditableCategories(userId, type = null, familyId = null) {
+  // Get all editable categories for user (system + custom + family + account)
+  async getEditableCategories(userId, type = null, familyId = null, accountId = null) {
     let query = `
       SELECT c.*, (SELECT COUNT(*) FROM transactions WHERE category_id = c.id) as tx_count
       FROM categories c
       WHERE c.is_active = 1 AND (
         c.owner_type = 'system'
-        OR (c.owner_type = 'user' AND c.owner_id = ?)
+        OR (c.owner_type = 'user' AND c.owner_id = ? AND (c.account_id IS NULL ${accountId ? 'OR c.account_id = ?' : ''}))
         ${familyId ? "OR (c.owner_type = 'family' AND c.owner_id = ?)" : ''}
       )
     `;
     const params = [userId];
+    if (accountId) params.push(accountId);
     if (familyId) params.push(familyId);
 
     if (type) {

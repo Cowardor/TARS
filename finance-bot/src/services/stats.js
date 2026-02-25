@@ -53,22 +53,22 @@ export class StatsService {
   }
 
   // Generate monthly stats message with comparison
-  async generateMonthlyStats(userId, date = new Date(), familyId = null, familyName = null, lang = 'en', currency = 'USD') {
+  async generateMonthlyStats(userId, date = new Date(), familyId = null, familyName = null, lang = 'en', currency = 'USD', accountId = null) {
     const ts = this.transactionService;
     const t = getTranslations(lang);
 
     // Current month data
-    const stats = await ts.getStatsByCategory(userId, date, familyId);
-    const totalExpenses = await ts.getMonthTotal(userId, 'expense', date, familyId);
-    const totalIncome = await ts.getMonthTotal(userId, 'income', date, familyId);
-    const expenseCount = await ts.getMonthCount(userId, 'expense', date, familyId);
-    const avgExpense = await ts.getMonthAverage(userId, 'expense', date, familyId);
+    const stats = await ts.getStatsByCategory(userId, date, familyId, accountId);
+    const totalExpenses = await ts.getMonthTotal(userId, 'expense', date, familyId, accountId);
+    const totalIncome = await ts.getMonthTotal(userId, 'income', date, familyId, accountId);
+    const expenseCount = await ts.getMonthCount(userId, 'expense', date, familyId, accountId);
+    const avgExpense = await ts.getMonthAverage(userId, 'expense', date, familyId, accountId);
 
     // Previous month data
     const prevDate = ts.getPreviousMonth(date);
-    const prevExpenses = await ts.getMonthTotal(userId, 'expense', prevDate, familyId);
-    const prevIncome = await ts.getMonthTotal(userId, 'income', prevDate, familyId);
-    const prevStats = await ts.getStatsByCategory(userId, prevDate, familyId);
+    const prevExpenses = await ts.getMonthTotal(userId, 'expense', prevDate, familyId, accountId);
+    const prevIncome = await ts.getMonthTotal(userId, 'income', prevDate, familyId, accountId);
+    const prevStats = await ts.getStatsByCategory(userId, prevDate, familyId, accountId);
 
     // Create prev month lookup for comparison
     const prevByCategory = {};
@@ -77,7 +77,7 @@ export class StatsService {
     }
 
     // Get trend data (6 months)
-    const trend = await ts.getMonthlyTrend(userId, 6, familyId);
+    const trend = await ts.getMonthlyTrend(userId, 6, familyId, accountId);
 
     const monthName = getMonthName(date, lang);
     const year = date.getFullYear();
