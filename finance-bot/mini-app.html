@@ -5019,9 +5019,10 @@ function renderCatAccountChips() {
     if (!row) return;
 
     const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">Все</div>`;
-    const accountChips = state.accounts.map(acc =>
-        `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>`
-    ).join('');
+    const accountChips = state.accounts.map(acc => {
+        const icon = getAccountTypeIconHTML(acc.type).replace('<svg ', '<svg width="14" height="14" style="flex-shrink:0;" ');
+        return `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${icon} ${acc.name}</div>`;
+    }).join('');
 
     row.innerHTML = allChip + accountChips;
 }
