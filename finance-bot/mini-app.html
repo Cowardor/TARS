@@ -2318,6 +2318,94 @@ select.input-field option {
 .account-chip:active { transform: scale(0.95); }
 
 /* ============================================
+   CUSTOM PICKER (bottom-sheet select replacement)
+   ============================================ */
+
+.picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 11px 14px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    font-family: inherit;
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+.picker-trigger:active { background: var(--bg-elevated); }
+
+.picker-trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.picker-trigger-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 17px;
+}
+.picker-trigger-icon svg { width: 17px; height: 17px; }
+.picker-trigger-text {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.picker-trigger-chevron { color: var(--text-muted); flex-shrink: 0; }
+.picker-trigger-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.picker-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background 0.1s;
+    margin: 0 4px;
+}
+.picker-item:active { background: var(--bg-elevated); transform: scale(0.99); }
+.picker-item.selected { background: var(--accent-blue-soft); }
+.picker-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+}
+.picker-item-icon svg { width: 18px; height: 18px; }
+.picker-item-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+}
+.picker-item-check { color: var(--accent-blue); flex-shrink: 0; }
+
+
+/* ============================================
    ACCOUNT MANAGE LIST (settings)
    ============================================ */
 
@@ -4741,7 +4829,15 @@ function selectAccountTemplate(template) {
     // Replace only if it's currently a known template name
     const existingNames = Object.keys(nameMap).map(k => nameMap[k]);
     if (!nameInput.value || existingNames.some(n => nameInput.value === n)) {
-        nameInput.value = nameMap[template] || '';
+        const baseName = nameMap[template] || '';
+        // If name already taken — suggest unique name (e.g. "Бизнес 2")
+        const takenNames = new Set((state.accounts || []).map(a => a.name));
+        let suggestedName = baseName;
+        let counter = 2;
+        while (takenNames.has(suggestedName)) {
+            suggestedName = `${baseName} ${counter++}`;
+        }
+        nameInput.value = suggestedName;
     }
 }
 
@@ -4868,7 +4964,7 @@ function renderCatAccountChips() {
 
     const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">Все</div>`;
     const accountChips = state.accounts.map(acc =>
-        `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${acc.emoji} ${acc.name}</div>`
+        `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>`
     ).join('');
 
     row.innerHTML = allChip + accountChips;
