@@ -1398,6 +1398,9 @@ select.input-field option {
     animation: overlayIn 0.2s ease;
 }
 
+/* Custom picker always renders on top of any open modal */
+#customPickerModal { z-index: 400; }
+
 .modal-overlay.show {
     display: flex;
 }
