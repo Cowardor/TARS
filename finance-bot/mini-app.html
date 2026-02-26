@@ -3201,6 +3201,8 @@ select.input-field option {
                 <button class="modal-close" onclick="closeExportPreview()">&times;</button>
             </div>
 
+            <select id="exportAccountSelect" class="desc-input" onchange="onExportAccountChange()" style="margin-bottom:12px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
+
             <div class="balance-card" style="margin-bottom: 20px;">
                 <div class="balance-label" data-i18n="exportPeriod">Период экспорта</div>
                 <div class="balance-amount positive" id="exportPeriod">-</div>
@@ -3297,6 +3299,8 @@ select.input-field option {
             </div>
 
             <div id="csvUploadSection">
+                <select id="importAccountSelect" class="desc-input" style="margin-bottom:12px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
+
                 <div style="text-align:center;padding:28px 16px;background:var(--bg-card);border-radius:var(--radius-lg);border:2px dashed var(--border);margin-bottom:16px;cursor:pointer;" onclick="document.getElementById('csvFileInput').click()">
                     <div style="font-size:36px;margin-bottom:8px;">&#128196;</div>
                     <div style="font-weight:600;margin-bottom:4px;">Выбрать CSV файл</div>
@@ -3547,6 +3551,7 @@ select.input-field option {
 
             <div class="settings-group">
                 <div class="settings-group-title" data-i18n="addLimit">Добавить лимит</div>
+                <select id="budgetAccountSelect" class="desc-input" onchange="onBudgetAccountChange()" style="margin-bottom:8px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
                 <select id="budgetCategorySelect" class="desc-input" style="margin-bottom:8px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
                 <input type="number" class="desc-input" id="budgetAmountInput" placeholder="Сумма лимита" data-i18n="limitAmount" inputmode="decimal" style="margin-bottom:12px;">
                 <button class="submit-btn expense-mode" onclick="saveBudget()" data-i18n="setLimit">Установить лимит</button>
@@ -3739,6 +3744,7 @@ const T = {
         // Settings — new keys
         accounts: 'Счета', addAccount: 'Добавить счёт', noAccounts: 'Нет дополнительных счетов',
         accountDeleted: 'Счёт удалён', duplicateAccountName: 'Счёт с таким именем уже существует',
+        allAccounts: 'Все счета', personalAccount: 'Личный (по умолчанию)',
         sharedAccess: 'Совместный доступ', sharedAccessDesc: 'Семейный и совместный учёт',
         catAndBudgets: 'Категории и бюджеты',
         appearanceLang: 'Вид и язык',
@@ -3827,6 +3833,7 @@ const T = {
         catSalary: 'Salary', catGift: 'Gift',
         accounts: 'Accounts', addAccount: 'Add account', noAccounts: 'No additional accounts',
         accountDeleted: 'Account deleted', duplicateAccountName: 'Account with this name already exists',
+        allAccounts: 'All accounts', personalAccount: 'Personal (default)',
         sharedAccess: 'Shared Access', sharedAccessDesc: 'Family & shared tracking',
         catAndBudgets: 'Categories & Budgets',
         appearanceLang: 'Appearance & Language',
@@ -3913,6 +3920,7 @@ const T = {
         catSalary: 'Wynagrodzenie', catGift: 'Prezent',
         accounts: 'Konta', addAccount: 'Dodaj konto', noAccounts: 'Brak dodatkowych kont',
         accountDeleted: 'Konto usunięte', duplicateAccountName: 'Konto o tej nazwie już istnieje',
+        allAccounts: 'Wszystkie konta', personalAccount: 'Osobiste (domyślne)',
         sharedAccess: 'Wspólny dostęp', sharedAccessDesc: 'Rodzinne i wspólne konta',
         catAndBudgets: 'Kategorie i budżety',
         appearanceLang: 'Wygląd i język',
@@ -3999,6 +4007,7 @@ const T = {
         catSalary: 'Зарплата', catGift: 'Подарунок',
         accounts: 'Рахунки', addAccount: 'Додати рахунок', noAccounts: 'Немає додаткових рахунків',
         accountDeleted: 'Рахунок видалено', duplicateAccountName: 'Рахунок з такою назвою вже існує',
+        allAccounts: 'Всі рахунки', personalAccount: 'Особистий (за замовч.)',
         sharedAccess: 'Спільний доступ', sharedAccessDesc: 'Сімейний та спільний облік',
         catAndBudgets: 'Категорії та бюджети',
         appearanceLang: 'Вигляд і мова',
@@ -5011,7 +5020,7 @@ function updateThemeSettingsItem(theme) {
     const sw    = document.getElementById('themeToggleSwitch');
     if (!label) return;
     // SVG moon/sun visibility is handled by CSS :root[data-theme] rules
-    label.textContent = isDark ? 'Тёмная тема' : 'Светлая тема';
+    label.textContent = t(isDark ? 'themeDark' : 'themeLight');
     if (sw)   sw.style.background = isDark ? 'var(--accent-blue)' : 'var(--accent-amber)';
     if (knob) { knob.style.right = isDark ? '2px' : 'auto'; knob.style.left = isDark ? 'auto' : '2px'; }
 }
@@ -5841,12 +5850,27 @@ async function deleteCategoryItem(id) {
 
 let exportDataCache = null;
 
+async function onExportAccountChange() {
+    await loadExportData();
+}
+
 async function openExportPreview() {
     const modal = document.getElementById('exportPreview');
     modal.classList.add('show');
     haptic('medium');
+    populateAccountSelect('exportAccountSelect', t('allAccounts'));
+    if (state.activeAccountId) {
+        const sel = document.getElementById('exportAccountSelect');
+        if (sel) sel.value = state.activeAccountId;
+    }
+    await loadExportData();
+}
 
-    const data = await apiFetch('/api/export?format=html');
+async function loadExportData() {
+    const sel = document.getElementById('exportAccountSelect');
+    const accountId = sel?.value ? parseInt(sel.value) : null;
+    const qs = accountId ? `&account_id=${accountId}` : '';
+    const data = await apiFetch(`/api/export?format=html${qs}`);
     if (!data) {
         showToast('Ошибка загрузки данных экспорта');
         closeExportPreview();
@@ -5907,7 +5931,10 @@ function closeExportPreview() {
 }
 
 async function downloadExcel() {
-    const exportUrl = `${API_BASE}/api/export`;
+    const sel = document.getElementById('exportAccountSelect');
+    const accountId = sel?.value ? parseInt(sel.value) : null;
+    const qs = accountId ? `?account_id=${accountId}` : '';
+    const exportUrl = `${API_BASE}/api/export${qs}`;
 
     // In Telegram WebApp, use openLink for downloads
     if (tg && tg.openLink) {
@@ -6082,7 +6109,10 @@ function initSheetSwipe() {
             const dy = e.touches[0].clientY - startY;
 
             // Начинаем тянуть только вниз и только если лист на вершине прокрутки
-            if (!pulling && dy > 8 && sheet.scrollTop <= 2) pulling = true;
+            if (!pulling && dy > 8 && sheet.scrollTop <= 2) {
+                pulling = true;
+                sheet.style.overflowY = 'hidden'; // lock scroll while pulling
+            }
             if (!pulling) return;
 
             // Сопротивление: первые 100px — 1:1, дальше — демпфирование
@@ -6092,6 +6122,7 @@ function initSheetSwipe() {
         }, { passive: true });
 
         sheet.addEventListener('touchend', e => {
+            sheet.style.overflowY = ''; // restore scroll
             if (!pulling) { sheet.style.transition = ''; return; }
             pulling = false;
 
@@ -6316,10 +6347,30 @@ async function leaveFamily() {
 // BUDGET MANAGEMENT
 // ============================================
 
+// Fill an account <select> element; optionally prepend "All accounts" option
+function populateAccountSelect(selectId, allLabel = null) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = '';
+    if (allLabel) {
+        sel.innerHTML = `<option value="">${allLabel}</option>`;
+    }
+    for (const acc of (state.accounts || [])) {
+        const opt = document.createElement('option');
+        opt.value = acc.id;
+        opt.textContent = `${acc.emoji || ''} ${acc.name}`;
+        sel.appendChild(opt);
+    }
+}
+
 async function openBudgetManager() {
     const modal = document.getElementById('budgetManager');
     modal.classList.add('show');
     haptic('light');
+    populateAccountSelect('budgetAccountSelect', t('allAccounts'));
+    // Pre-select active account if any
+    const sel = document.getElementById('budgetAccountSelect');
+    if (sel && state.activeAccountId) sel.value = state.activeAccountId;
     await loadBudgets();
     await loadBudgetCategories();
 }
@@ -6329,8 +6380,20 @@ function closeBudgetManager() {
     haptic('light');
 }
 
+function getBudgetSelectedAccount() {
+    const sel = document.getElementById('budgetAccountSelect');
+    return sel?.value ? parseInt(sel.value) : null;
+}
+
+async function onBudgetAccountChange() {
+    await loadBudgets();
+    await loadBudgetCategories();
+}
+
 async function loadBudgets() {
-    const data = await apiFetch('/api/budgets');
+    const accountId = getBudgetSelectedAccount();
+    const qs = accountId ? `?account_id=${accountId}` : '';
+    const data = await apiFetch(`/api/budgets${qs}`);
     if (!data) return;
 
     const listEl = document.getElementById('budgetList');
@@ -6363,7 +6426,9 @@ async function loadBudgets() {
 }
 
 async function loadBudgetCategories() {
-    const cats = await apiFetch('/api/categories');
+    const accountId = getBudgetSelectedAccount();
+    const qs = accountId ? `?account_id=${accountId}` : '';
+    const cats = await apiFetch(`/api/categories${qs}`);
     if (!cats) return;
 
     const select = document.getElementById('budgetCategorySelect');
@@ -6650,6 +6715,11 @@ let csvRows = [];
 
 function openCsvImport() {
     document.getElementById('csvImportModal').classList.add('show');
+    populateAccountSelect('importAccountSelect', t('personalAccount'));
+    if (state.activeAccountId) {
+        const sel = document.getElementById('importAccountSelect');
+        if (sel) sel.value = state.activeAccountId;
+    }
     resetCsvImport();
     haptic('medium');
 }
@@ -6776,6 +6846,9 @@ async function submitCsvImport() {
     btn.disabled = true;
     btn.textContent = '...';
 
+    const importSel = document.getElementById('importAccountSelect');
+    const importAccountId = importSel?.value ? parseInt(importSel.value) : null;
+
     const transactions = csvRows.map(row => ({
         date: row.date,
         type: row.type,
@@ -6786,7 +6859,7 @@ async function submitCsvImport() {
 
     const result = await apiFetch('/api/import', {
         method: 'POST',
-        body: JSON.stringify({ transactions }),
+        body: JSON.stringify({ transactions, account_id: importAccountId }),
     });
 
     btn.disabled = false;

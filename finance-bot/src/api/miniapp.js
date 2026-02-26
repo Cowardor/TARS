@@ -154,8 +154,12 @@ export async function handleMiniAppAPI(request, env, pathname) {
     case '/api/transactions':
       return handleTransactions(request, userId, familyId, activeAccountId, transactionService, currency);
 
-    case '/api/categories':
-      return handleCategories(userId, familyId, activeAccountId, categoryService);
+    case '/api/categories': {
+      const urlQ = new URL(request.url);
+      const qAccountId = urlQ.searchParams.get('account_id');
+      const resolvedAccountId = qAccountId ? parseInt(qAccountId) : activeAccountId;
+      return handleCategories(userId, familyId, resolvedAccountId, categoryService);
+    }
 
     case '/api/transaction':
       if (request.method === 'GET') {
@@ -266,8 +270,11 @@ export async function handleMiniAppAPI(request, env, pathname) {
       return handleFamilyLeave(request, userId, user.telegram_id, familyService, userService);
 
     // Budgets
-    case '/api/budgets':
-      return handleGetBudgets(userId, familyId, budgetService);
+    case '/api/budgets': {
+      const bUrl = new URL(request.url);
+      const bAccountId = bUrl.searchParams.get('account_id') ? parseInt(bUrl.searchParams.get('account_id')) : null;
+      return handleGetBudgets(userId, familyId, bAccountId, budgetService, categoryService);
+    }
 
     case '/api/budget':
       if (request.method === 'POST') {
@@ -552,13 +559,14 @@ async function handleCurrencyChange(request, userService, userId) {
 async function handleExport(request, userId, familyId, ts, exportService, familyService, user, currency) {
   const url = new URL(request.url);
   const format = url.searchParams.get('format') || 'xls';
+  const exportAccountId = url.searchParams.get('account_id') ? parseInt(url.searchParams.get('account_id')) : null;
 
   const now = new Date();
   const { start, end } = getMonthRange(now);
 
   if (format === 'html') {
     // JSON preview for the Mini App UI
-    const transactions = await ts.getByPeriod(userId, start, end, familyId);
+    const transactions = await ts.getByPeriod(userId, start, end, familyId, null, null, exportAccountId);
     const totalExp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
     const totalInc = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
 
@@ -834,8 +842,16 @@ async function handleFamilyLeave(request, userId, telegramId, fs, us) {
 // GET /api/budgets
 // ============================================
 
-async function handleGetBudgets(userId, familyId, bs) {
-  const statuses = await bs.getAllBudgetStatuses(userId, familyId);
+async function handleGetBudgets(userId, familyId, accountId, bs, cs) {
+  let statuses = await bs.getAllBudgetStatuses(userId, familyId);
+
+  // If account_id is specified, filter budgets to only categories from that account
+  if (accountId && cs) {
+    const accCats = await cs.getUserCategories(userId, null, familyId, accountId);
+    const accCatIds = new Set(accCats.map(c => c.id));
+    statuses = statuses.filter(s => accCatIds.has(s.category_id));
+  }
+
   return json({ budgets: statuses });
 }
 
@@ -1152,14 +1168,17 @@ async function handleSyncCrypto(request, userId, as) {
 // POST /api/import — Bulk import transactions from CSV
 // ============================================
 
-async function handleImportTransactions(request, userId, familyId, accountId, ts, cs) {
+async function handleImportTransactions(request, userId, familyId, sessionAccountId, ts, cs) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
-  const { transactions } = body;
+  const { transactions, account_id: bodyAccountId } = body;
   if (!Array.isArray(transactions) || transactions.length === 0) {
     return error('transactions array is required');
   }
+
+  // account_id from body overrides session account (for explicit import target)
+  const accountId = bodyAccountId !== undefined ? (bodyAccountId || null) : sessionAccountId;
 
   let imported = 0;
   for (const tx of transactions) {
