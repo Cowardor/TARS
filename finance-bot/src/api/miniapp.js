@@ -1071,7 +1071,7 @@ async function handleCreateAccount(request, userId, as) {
     );
   } catch (err) {
     if (err.message === 'duplicate_name') {
-      return json({ success: false, error: 'duplicate_name' }, { status: 409 });
+      return json({ success: false, error: 'duplicate_name' }, 409);
     }
     return error(err.message || 'Failed to create account');
   }

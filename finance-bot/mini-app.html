@@ -1634,6 +1634,12 @@ select.input-field option {
     color: white;
     box-shadow: 0 4px 16px var(--success-soft);
 }
+/* Default submit (no mode) = primary accent gradient */
+.submit-btn:not(.expense-mode):not(.income-mode) {
+    background: var(--accent-gradient);
+    color: white;
+    box-shadow: 0 4px 16px var(--accent-blue-glow);
+}
 
 .submit-btn:active {
     transform: scale(0.93);
@@ -2165,6 +2171,7 @@ select.input-field option {
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
+    font-size: 20px;
     justify-content: center;
     font-size: 20px;
     flex-shrink: 0;
@@ -2204,7 +2211,9 @@ select.input-field option {
 }
 
 .category-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
     padding: 2px 6px;
     background: var(--accent-blue-soft);
     color: var(--accent-blue);
@@ -2214,6 +2223,12 @@ select.input-field option {
     text-transform: uppercase;
     letter-spacing: 0.03em;
     margin-left: 6px;
+}
+.category-badge svg {
+    width: 11px;
+    height: 11px;
+    display: block;
+    stroke: currentColor;
 }
 
 .category-actions {
@@ -2234,6 +2249,14 @@ select.input-field option {
     font-size: 14px;
     transition: all 0.15s ease;
 }
+.category-action-btn svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+    stroke: currentColor;
+}
+.category-action-btn.edit  { background: var(--accent-blue-soft); color: var(--accent-blue); }
+.category-action-btn.delete { background: var(--danger-soft); color: var(--danger); }
 
 .category-action-btn.edit {
     background: var(--accent-blue-soft);
@@ -3328,7 +3351,8 @@ select.input-field option {
                 <div id="csvPreviewList" style="max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
 
                 <button class="submit-btn income-mode" onclick="submitCsvImport()" id="csvImportBtn">
-                    &#128229; Импортировать
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;display:inline-block;vertical-align:-2px;margin-right:6px;"><path d="M10 2v12M5 9l5 5 5-5"/><path d="M3 17h14"/></svg>
+                    <span data-i18n="importBtn">Импортировать</span>
                 </button>
             </div>
         </div>
@@ -3473,7 +3497,7 @@ select.input-field option {
                 </div>
             </div>
 
-            <button class="submit-btn income-mode" id="newAccountSubmitBtn" onclick="submitNewAccount()">
+            <button class="submit-btn" id="newAccountSubmitBtn" onclick="submitNewAccount()">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:-3px;margin-right:6px;"><path d="M10 2v16M2 10h16"/></svg>
                 <span id="newAccountSubmitLabel">Создать счёт</span>
             </button>
@@ -4275,6 +4299,10 @@ async function apiFetch(path, options = {}) {
     try {
         const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
         if (!res.ok) {
+            // Return JSON body for handled errors (e.g. 409 duplicate_name) instead of throwing
+            if (res.status === 409 || res.status === 422) {
+                return res.json().catch(() => ({ error: res.statusText }));
+            }
             const err = await res.json().catch(() => ({ error: res.statusText }));
             throw new Error(err.error || `HTTP ${res.status}`);
         }
@@ -5631,16 +5659,25 @@ function renderCategoryManagerItem(cat, type) {
     let badge = '';
     if (cat.account_id) {
         const acc = state.accounts.find(a => a.id === cat.account_id);
-        badge = acc ? `<span class="category-badge" style="background:${acc.color}22;color:${acc.color};">${acc.emoji} ${acc.name}</span>` : '<span class="category-badge">Счёт</span>';
+        if (acc) {
+            const TC = { personal:'#4f46e5', business:'#8b5cf6', family_shared:'#10b981', crypto:'#f59e0b' };
+            const fg = TC[acc.type] || acc.color;
+            badge = `<span class="category-badge" style="background:${fg}22;color:${fg};">${getAccountTypeIconHTML(acc.type)} ${acc.name}</span>`;
+        } else {
+            badge = '<span class="category-badge">Счёт</span>';
+        }
     } else if (cat.owner_type === 'user') {
         badge = '<span class="category-badge">Своя</span>';
     } else if (cat.owner_type === 'family') {
         badge = '<span class="category-badge" style="background:rgba(34,211,238,0.12);color:#22d3ee;">Семья</span>';
     }
 
+    const iconBg    = type === 'expense' ? 'var(--danger-soft)'   : 'var(--success-soft)';
+    const iconColor = type === 'expense' ? 'var(--danger)'        : 'var(--success)';
+
     return `
         <div class="category-manager-item" data-id="${cat.id}">
-            <div class="category-manager-icon">${cat.emoji}</div>
+            <div class="category-manager-icon" style="background:${iconBg};color:${iconColor};">${cat.emoji}</div>
             <div class="category-manager-info">
                 <div class="category-manager-name">
                     <span class="cat-name-text">${cat.name}</span>
@@ -5649,8 +5686,12 @@ function renderCategoryManagerItem(cat, type) {
                 <div class="category-manager-meta">${txCountText}</div>
             </div>
             <div class="category-actions">
-                <button class="category-action-btn edit" onclick="startRenameCategoryItem(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')">✏️</button>
-                <button class="category-action-btn delete" onclick="deleteCategoryItem(${cat.id})">🗑️</button>
+                <button class="category-action-btn edit" onclick="startRenameCategoryItem(${cat.id}, '${cat.name.replace(/'/g, "'")}')">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2.5a2.121 2.121 0 0 1 3 3L6 17l-4 1 1-4 11.5-11.5z"/></svg>
+                </button>
+                <button class="category-action-btn delete" onclick="deleteCategoryItem(${cat.id})">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 17 6"/><path d="M6 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M8 9v6M12 9v6"/><rect x="4" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
             </div>
         </div>`;
 }
@@ -6407,20 +6448,27 @@ async function loadBudgets() {
 
     listEl.innerHTML = data.budgets.map(b => {
         const pct = Math.min(b.percentUsed, 100);
-        const color = b.isOver ? '#EF4444' : b.isWarning ? '#F59E0B' : 'var(--accent-blue)';
+        const barColor  = b.isOver ? 'var(--danger)' : b.isWarning ? 'var(--warning)' : 'var(--accent-blue)';
+        const textColor = b.isOver ? 'var(--danger)' : b.isWarning ? 'var(--warning)' : 'var(--accent-blue)';
+        const iconBg = 'var(--accent-blue-soft)';
         return `<div style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;margin-bottom:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <span>${b.category_emoji} ${b.category_name}</span>
-                <button onclick="deleteBudget(${b.category_id})" style="background:none;border:none;color:#EF4444;font-size:16px;cursor:pointer;">&#128465;</button>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:var(--radius-md);background:${iconBg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${b.category_emoji}</div>
+                    <span style="font-weight:500;font-size:14px;">${b.category_name}</span>
+                </div>
+                <button onclick="deleteBudget(${b.category_id})" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:4px;display:flex;align-items:center;">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="3 6 5 6 17 6"/><path d="M6 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M8 9v6M12 9v6"/><rect x="4" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);margin-bottom:4px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);margin-bottom:6px;">
                 <span>${b.spent.toFixed(0)} / ${b.budget.toFixed(0)}</span>
-                <span style="color:${color}">${pct.toFixed(0)}%</span>
+                <span style="color:${textColor};font-weight:600;">${pct.toFixed(0)}%</span>
             </div>
-            <div style="height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden;">
-                <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width 0.3s;"></div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.3s;"></div>
             </div>
-            ${b.isOver ? '<div style="color:#EF4444;font-size:12px;margin-top:4px;">' + t('exceeded') + ' ' + Math.abs(b.remaining).toFixed(0) + '</div>' : ''}
+            ${b.isOver ? `<div style="color:var(--danger);font-size:12px;margin-top:6px;font-weight:500;">${t('exceeded')} ${Math.abs(b.remaining).toFixed(0)}</div>` : ''}
         </div>`;
     }).join('');
 }
@@ -6481,7 +6529,7 @@ function updateToggle(toggleId, isOn) {
         dot.style.right = '2px';
         dot.style.left = 'auto';
     } else {
-        toggle.style.background = 'var(--bg-secondary)';
+        toggle.style.background = 'rgba(120,120,150,0.3)';
         dot.style.left = '2px';
         dot.style.right = 'auto';
     }
