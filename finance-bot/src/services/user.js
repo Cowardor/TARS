@@ -30,13 +30,17 @@ export class UserService {
   }
 
   async update(userId, updates) {
+    const ALLOWED = ['currency', 'language', 'display_name', 'daily_reminder', 'monthly_report', 'reminder_hour'];
     const fields = [];
     const values = [];
 
     for (const [key, value] of Object.entries(updates)) {
+      if (!ALLOWED.includes(key)) continue;
       fields.push(`${key} = ?`);
       values.push(value);
     }
+
+    if (fields.length === 0) return null;
 
     fields.push('updated_at = datetime("now")');
     values.push(userId);
@@ -65,20 +69,16 @@ export class UserService {
   }
 
   async setSession(telegramId, state, context = null, activeFamilyId = null) {
-    const existing = await this.getSession(telegramId);
-
-    if (existing) {
-      await this.db.prepare(`
-        UPDATE user_sessions
-        SET state = ?, context = ?, active_family_id = ?, updated_at = datetime('now')
-        WHERE telegram_id = ?
-      `).bind(state, context ? JSON.stringify(context) : null, activeFamilyId, telegramId.toString()).run();
-    } else {
-      await this.db.prepare(`
-        INSERT INTO user_sessions (telegram_id, state, context, active_family_id)
-        VALUES (?, ?, ?, ?)
-      `).bind(telegramId.toString(), state, context ? JSON.stringify(context) : null, activeFamilyId).run();
-    }
+    const ctx = context ? JSON.stringify(context) : null;
+    await this.db.prepare(`
+      INSERT INTO user_sessions (telegram_id, state, context, active_family_id)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(telegram_id) DO UPDATE SET
+        state = excluded.state,
+        context = excluded.context,
+        active_family_id = excluded.active_family_id,
+        updated_at = datetime('now')
+    `).bind(telegramId.toString(), state, ctx, activeFamilyId).run();
   }
 
   async clearSession(telegramId) {

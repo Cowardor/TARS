@@ -268,23 +268,43 @@ export class TransactionService {
     return prevDate;
   }
 
-  // Get stats for multiple months (for trends)
+  // Get stats for multiple months (for trends) — single query instead of N*2
   async getMonthlyTrend(userId, months = 6, familyId = null, accountId = null) {
-    const trends = [];
     const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+    const start = formatDate(startDate);
+    const end = formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
-    for (let i = 0; i < months; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const expenses = await this.getMonthTotal(userId, 'expense', date, familyId, accountId);
-      const income = await this.getMonthTotal(userId, 'income', date, familyId, accountId);
+    let query = `
+      SELECT
+        strftime('%Y', transaction_date) as year,
+        strftime('%m', transaction_date) as month,
+        type,
+        COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE transaction_date BETWEEN ? AND ?
+    `;
+    const params = [start, end];
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
+    query += ' GROUP BY year, month, type ORDER BY year, month';
 
-      trends.unshift({
-        month: date.getMonth(),
-        year: date.getFullYear(),
-        expenses,
-        income,
-        balance: income - expenses
-      });
+    const result = await this.db.prepare(query).bind(...params).all();
+
+    // Build map: "YYYY-MM" → {expenses, income}
+    const map = {};
+    for (const row of (result.results || [])) {
+      const key = `${row.year}-${row.month}`;
+      if (!map[key]) map[key] = { expenses: 0, income: 0 };
+      if (row.type === 'expense') map[key].expenses = row.total;
+      else map[key].income = row.total;
+    }
+
+    const trends = [];
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const { expenses = 0, income = 0 } = map[key] || {};
+      trends.push({ month: d.getMonth(), year: d.getFullYear(), expenses, income, balance: income - expenses });
     }
 
     return trends;

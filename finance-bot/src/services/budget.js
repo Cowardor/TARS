@@ -2,6 +2,22 @@
 
 import { getMonthRange } from '../utils/db.js';
 
+function buildStatus(budget, spent) {
+  const remaining = budget.amount - spent;
+  const percentUsed = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
+  return {
+    category_id:    budget.category_id,
+    category_name:  budget.category_name,
+    category_emoji: budget.category_emoji,
+    budget:         budget.amount,
+    spent,
+    remaining,
+    percentUsed,
+    isOver:    remaining < 0,
+    isWarning: percentUsed >= 80 && percentUsed < 100,
+  };
+}
+
 export class BudgetService {
   constructor(db, transactionService) {
     this.db = db;
@@ -80,47 +96,44 @@ export class BudgetService {
   async getBudgetStatus(userId, categoryId, familyId = null, date = new Date()) {
     const budget = await this.getBudget(userId, categoryId, familyId);
     if (!budget) return null;
-
     const spent = await this.transactionService.getCategoryTotal(userId, categoryId, date, familyId);
-    const remaining = budget.amount - spent;
-    const percentUsed = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
-
-    return {
-      budget: budget.amount,
-      spent,
-      remaining,
-      percentUsed,
-      isOver: remaining < 0,
-      isWarning: percentUsed >= 80 && percentUsed < 100,
-      category_name: budget.category_name,
-      category_emoji: budget.category_emoji
-    };
+    return { budget: budget.amount, ...buildStatus(budget, spent), category_name: budget.category_name, category_emoji: budget.category_emoji };
   }
 
-  // Get all budget statuses
+  // Get all budget statuses — single aggregated query instead of N+1
   async getAllBudgetStatuses(userId, familyId = null, date = new Date()) {
     const budgets = await this.getAllBudgets(userId, familyId);
-    const statuses = [];
+    if (budgets.length === 0) return [];
 
-    for (const budget of budgets) {
-      const spent = await this.transactionService.getCategoryTotal(userId, budget.category_id, date, familyId);
-      const remaining = budget.amount - spent;
-      const percentUsed = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
+    const { start, end } = getMonthRange(date);
+    const ids = budgets.map(b => b.category_id);
+    const placeholders = ids.map(() => '?').join(',');
 
-      statuses.push({
-        category_id: budget.category_id,
-        category_name: budget.category_name,
-        category_emoji: budget.category_emoji,
-        budget: budget.amount,
-        spent,
-        remaining,
-        percentUsed,
-        isOver: remaining < 0,
-        isWarning: percentUsed >= 80 && percentUsed < 100
-      });
+    // One query to get spent totals for all budget categories at once
+    let spentQuery = `
+      SELECT category_id, COALESCE(SUM(amount), 0) as spent
+      FROM transactions
+      WHERE transaction_date BETWEEN ? AND ? AND type = 'expense'
+        AND category_id IN (${placeholders})
+    `;
+    const params = [start, end, ...ids];
+
+    if (familyId) {
+      spentQuery += ' AND family_id = ?';
+      params.push(familyId);
+    } else {
+      spentQuery += ' AND user_id = ? AND family_id IS NULL AND account_id IS NULL';
+      params.push(userId);
+    }
+    spentQuery += ' GROUP BY category_id';
+
+    const spentResult = await this.db.prepare(spentQuery).bind(...params).all();
+    const spentMap = {};
+    for (const row of (spentResult.results || [])) {
+      spentMap[row.category_id] = row.spent;
     }
 
-    return statuses;
+    return budgets.map(b => buildStatus(b, spentMap[b.category_id] || 0));
   }
 
   // Check if expense would trigger a warning (used after adding expense)

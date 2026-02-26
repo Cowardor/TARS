@@ -2,13 +2,7 @@
 
 export async function sendMessage(chatId, text, env, options = {}) {
   const token = env.TELEGRAM_TOKEN?.trim();
-  console.log('Token length:', token?.length);
-  console.log('Token starts with:', token?.substring(0, 10));
-  console.log('Token ends with:', token?.substring(token.length - 5));
-
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  console.log('Full URL:', url);
-  console.log('Sending message to chat:', chatId);
 
   const payload = {
     chat_id: chatId,
@@ -23,9 +17,12 @@ export async function sendMessage(chatId, text, env, options = {}) {
     body: JSON.stringify(payload)
   });
 
-  const result = await response.json();
-  console.log('Telegram response:', JSON.stringify(result).substring(0, 200));
-  return result;
+  if (!response.ok) {
+    console.error(`Telegram sendMessage error: ${response.status}`);
+    return { ok: false };
+  }
+
+  return response.json();
 }
 
 export async function editMessage(chatId, messageId, text, env, options = {}) {

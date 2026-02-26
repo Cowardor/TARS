@@ -290,11 +290,6 @@ export class CategoryService {
     return result.results;
   }
 
-  async getCustomCategories(userId) {
-    // Now returns ALL categories (system + custom) for editing
-    return this.getEditableCategories(userId);
-  }
-
   async renameCategory(categoryId, userId, newName, familyId = null) {
     const category = await this.db.prepare(`
       SELECT * FROM categories WHERE id = ?
