@@ -1052,7 +1052,7 @@ async function handleCreateAccount(request, userId, as) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
-  const { name, emoji, type, template, currency, crypto_exchange, crypto_api_key, crypto_api_secret } = body;
+  const { name, emoji, type, template, currency, crypto_exchange, crypto_api_key, crypto_api_secret, crypto_passphrase } = body;
   if (!name || !name.trim()) return error('name is required');
 
   const validTypes = ['personal', 'business', 'family_shared', 'crypto'];
@@ -1073,7 +1073,8 @@ async function handleCreateAccount(request, userId, as) {
       currency || null,
       crypto_exchange || null,
       crypto_api_key || null,
-      crypto_api_secret || null
+      crypto_api_secret || null,
+      crypto_passphrase || null
     );
   } catch (err) {
     if (err.message === 'duplicate_name') {
@@ -1100,7 +1101,7 @@ async function handleUpdateAccount(request, userId, as) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
-  const { id, name, emoji, color, crypto_exchange, crypto_api_key, crypto_api_secret } = body;
+  const { id, name, emoji, color, crypto_exchange, crypto_api_key, crypto_api_secret, crypto_passphrase } = body;
   if (!id) return error('id is required');
 
   const updates = {};
@@ -1110,6 +1111,7 @@ async function handleUpdateAccount(request, userId, as) {
   if (crypto_exchange !== undefined) updates.crypto_exchange = crypto_exchange;
   if (crypto_api_key !== undefined) updates.crypto_api_key = crypto_api_key;
   if (crypto_api_secret !== undefined) updates.crypto_api_secret = crypto_api_secret;
+  if (crypto_passphrase !== undefined) updates.crypto_passphrase = crypto_passphrase;
 
   const result = await as.updateAccount(id, userId, updates);
   if (!result) return error('Account not found', 404);

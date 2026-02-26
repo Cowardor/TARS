@@ -3614,9 +3614,14 @@ select.input-field option {
                     <div class="input-label">API Key</div>
                     <input type="password" class="input-field" id="newAccountApiKey" placeholder="Paste API Key">
                 </div>
-                <div class="input-group" style="margin-bottom:16px;">
+                <div class="input-group" style="margin-bottom:12px;">
                     <div class="input-label">API Secret</div>
                     <input type="password" class="input-field" id="newAccountApiSecret" placeholder="Paste API Secret">
+                </div>
+                <!-- Passphrase — shown only for OKX, KuCoin, Bitget -->
+                <div class="input-group" id="passphraseGroup" style="margin-bottom:12px;display:none;">
+                    <div class="input-label">Passphrase</div>
+                    <input type="password" class="input-field" id="newAccountPassphrase" placeholder="API Passphrase">
                 </div>
                 <div style="background:var(--warning-soft);border-radius:var(--radius-md);padding:10px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;color:var(--accent-amber)"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="6.5" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.8" fill="currentColor" stroke="none"/></svg>
@@ -4832,6 +4837,7 @@ function openNewAccount() {
     document.getElementById('newAccountName').value = '';
     document.getElementById('newAccountApiKey').value = '';
     document.getElementById('newAccountApiSecret').value = '';
+    document.getElementById('newAccountPassphrase').value = '';
     selectAccountTemplate('personal');
     document.getElementById('newAccountModal').classList.add('show');
     haptic('medium');
@@ -4848,6 +4854,7 @@ function selectAccountTemplate(template) {
     const labelEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-text');
     if (iconEl) iconEl.innerHTML = '<span style="font-size:18px;">🟡</span>';
     if (labelEl) labelEl.textContent = 'Binance';
+    _updatePassphraseVisibility('binance');
     state.newAccountTemplate = template;
     document.querySelectorAll('.account-template-card').forEach(el => {
         el.classList.toggle('selected', el.dataset.template === template);
@@ -4927,6 +4934,8 @@ async function submitNewAccount() {
             haptic('error');
             return;
         }
+        const passphrase = document.getElementById('newAccountPassphrase').value.trim();
+        if (passphrase) body.crypto_passphrase = passphrase;
     }
 
     const data = await apiFetch('/api/accounts', { method: 'POST', body: JSON.stringify(body) });
@@ -6727,13 +6736,26 @@ function _refreshImportAccountTrigger() {
 }
 
 // ── Exchange picker (Investments account) ──
+// passphrase: true = exchange requires API Passphrase (OKX, KuCoin, Bitget)
 const _EXCHANGES = [
-    { value: 'binance', label: 'Binance', emoji: '🟡' },
-    { value: 'okx',     label: 'OKX',     emoji: '⚫' },
-    { value: 'bybit',   label: 'Bybit',   emoji: '🟠' },
-    { value: 'kucoin',  label: 'KuCoin',  emoji: '🟢' },
+    { value: 'binance', label: 'Binance',  emoji: '🟡', passphrase: false },
+    { value: 'bybit',   label: 'Bybit',    emoji: '🟠', passphrase: false },
+    { value: 'okx',     label: 'OKX',      emoji: '⚫', passphrase: true  },
+    { value: 'kucoin',  label: 'KuCoin',   emoji: '🟢', passphrase: true  },
+    { value: 'mexc',    label: 'MEXC',     emoji: '🔵', passphrase: false },
+    { value: 'gateio',  label: 'Gate.io',  emoji: '🟣', passphrase: false },
+    { value: 'bitget',  label: 'Bitget',   emoji: '🌊', passphrase: true  },
+    { value: 'htx',     label: 'HTX',      emoji: '🔶', passphrase: false },
 ];
 let _exchangeValue = 'binance';
+
+function _updatePassphraseVisibility(exchangeValue) {
+    const needsPass = _EXCHANGES.find(e => e.value === exchangeValue)?.passphrase ?? false;
+    const group = document.getElementById('passphraseGroup');
+    if (group) group.style.display = needsPass ? '' : 'none';
+    const input = document.getElementById('newAccountPassphrase');
+    if (input && !needsPass) input.value = '';
+}
 
 function openExchangePicker() {
     openCustomPicker({
@@ -6754,6 +6776,7 @@ function openExchangePicker() {
                 if (iconEl) iconEl.innerHTML = `<span style="font-size:18px;">${ex.emoji}</span>`;
                 if (labelEl) labelEl.textContent = ex.label;
             }
+            _updatePassphraseVisibility(val);
         },
     });
 }

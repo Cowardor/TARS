@@ -70,7 +70,8 @@ export class AccountService {
   }
 
   async createAccount(userId, name, emoji = '💼', type = 'personal', template = null,
-                      currency = null, cryptoExchange = null, cryptoKey = null, cryptoSecret = null) {
+                      currency = null, cryptoExchange = null, cryptoKey = null, cryptoSecret = null,
+                      cryptoPassphrase = null) {
     // Check duplicate name for this user
     const dup = await this.db.prepare(
       'SELECT id FROM accounts WHERE user_id = ? AND name = ?'
@@ -84,13 +85,14 @@ export class AccountService {
     const sortOrder = (last?.m ?? -1) + 1;
 
     // Encrypt API keys if provided
-    const encKey = cryptoKey ? await encrypt(cryptoKey, this.encKey) : null;
-    const encSecret = cryptoSecret ? await encrypt(cryptoSecret, this.encKey) : null;
+    const encKey        = cryptoKey        ? await encrypt(cryptoKey,        this.encKey) : null;
+    const encSecret     = cryptoSecret     ? await encrypt(cryptoSecret,     this.encKey) : null;
+    const encPassphrase = cryptoPassphrase ? await encrypt(cryptoPassphrase, this.encKey) : null;
 
     const account = await this.db.prepare(`
       INSERT INTO accounts (user_id, name, emoji, type, color, sort_order,
-                            crypto_exchange, crypto_api_key, crypto_api_secret)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            crypto_exchange, crypto_api_key, crypto_api_secret, crypto_passphrase)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *
     `).bind(
       userId, name, emoji, type,
@@ -98,7 +100,8 @@ export class AccountService {
       sortOrder,
       cryptoExchange || null,
       encKey,
-      encSecret
+      encSecret,
+      encPassphrase
     ).first();
 
     // Seed template categories (non-fatal — account is created regardless)
@@ -122,24 +125,28 @@ export class AccountService {
     const color = updates.color !== undefined ? updates.color : account.color;
 
     // Handle crypto key updates
-    let encKey    = account.crypto_api_key;
-    let encSecret = account.crypto_api_secret;
+    let encKey        = account.crypto_api_key;
+    let encSecret     = account.crypto_api_secret;
+    let encPassphrase = account.crypto_passphrase;
     if (updates.crypto_api_key !== undefined) {
       encKey = updates.crypto_api_key ? await encrypt(updates.crypto_api_key, this.encKey) : null;
     }
     if (updates.crypto_api_secret !== undefined) {
       encSecret = updates.crypto_api_secret ? await encrypt(updates.crypto_api_secret, this.encKey) : null;
     }
+    if (updates.crypto_passphrase !== undefined) {
+      encPassphrase = updates.crypto_passphrase ? await encrypt(updates.crypto_passphrase, this.encKey) : null;
+    }
     const exchange = updates.crypto_exchange !== undefined ? updates.crypto_exchange : account.crypto_exchange;
 
     const result = await this.db.prepare(`
       UPDATE accounts
       SET name = ?, emoji = ?, color = ?,
-          crypto_exchange = ?, crypto_api_key = ?, crypto_api_secret = ?,
+          crypto_exchange = ?, crypto_api_key = ?, crypto_api_secret = ?, crypto_passphrase = ?,
           updated_at = datetime('now')
       WHERE id = ? AND user_id = ?
       RETURNING *
-    `).bind(name, emoji, color, exchange, encKey, encSecret, accountId, userId).first();
+    `).bind(name, emoji, color, exchange, encKey, encSecret, encPassphrase, accountId, userId).first();
 
     return result;
   }
@@ -205,16 +212,23 @@ export class AccountService {
       return { success: false, error: 'no_keys' };
     }
 
-    const apiKey    = await decrypt(account.crypto_api_key,    this.encKey);
-    const apiSecret = await decrypt(account.crypto_api_secret, this.encKey);
+    const apiKey      = await decrypt(account.crypto_api_key,    this.encKey);
+    const apiSecret   = await decrypt(account.crypto_api_secret, this.encKey);
+    const passphrase  = account.crypto_passphrase
+      ? await decrypt(account.crypto_passphrase, this.encKey)
+      : '';
 
     try {
       let balances;
       switch (account.crypto_exchange) {
-        case 'binance': balances = await this._fetchBinance(apiKey, apiSecret); break;
-        case 'okx':     balances = await this._fetchOKX(apiKey, apiSecret);     break;
-        case 'bybit':   balances = await this._fetchBybit(apiKey, apiSecret);   break;
-        case 'kucoin':  balances = await this._fetchKuCoin(apiKey, apiSecret);  break;
+        case 'binance': balances = await this._fetchBinance(apiKey, apiSecret);              break;
+        case 'okx':     balances = await this._fetchOKX(apiKey, apiSecret, passphrase);     break;
+        case 'bybit':   balances = await this._fetchBybit(apiKey, apiSecret);               break;
+        case 'kucoin':  balances = await this._fetchKuCoin(apiKey, apiSecret, passphrase);  break;
+        case 'mexc':    balances = await this._fetchMEXC(apiKey, apiSecret);                break;
+        case 'gateio':  balances = await this._fetchGateio(apiKey, apiSecret);             break;
+        case 'bitget':  balances = await this._fetchBitget(apiKey, apiSecret, passphrase); break;
+        case 'htx':     balances = await this._fetchHTX(apiKey, apiSecret);                 break;
         default:        return { success: false, error: 'unknown_exchange' };
       }
 
@@ -406,11 +420,182 @@ export class AccountService {
       .sort((a, b) => b.amount - a.amount);
   }
 
+  // ── MEXC (Binance-compatible format) ──
+  async _fetchMEXC(apiKey, apiSecret) {
+    const timestamp = Date.now();
+    const queryString = `timestamp=${timestamp}`;
+    const signature = await this._hmacSHA256(apiSecret, queryString);
+
+    const res = await fetch(
+      `https://api.mexc.com/api/v3/account?${queryString}&signature=${signature}`,
+      { headers: { 'X-MEXC-APIKEY': apiKey } }
+    );
+    if (!res.ok) throw new Error(`MEXC API error: ${res.status}`);
+    const data = await res.json();
+
+    const nonZero = (data.balances || []).filter(b => parseFloat(b.free) > 0 || parseFloat(b.locked) > 0);
+    if (nonZero.length === 0) return [];
+
+    // Fetch prices from MEXC
+    const pricesRes = await fetch('https://api.mexc.com/api/v3/ticker/price');
+    const priceList = pricesRes.ok ? await pricesRes.json() : [];
+    const priceMap = {};
+    for (const p of (Array.isArray(priceList) ? priceList : [])) { priceMap[p.symbol] = parseFloat(p.price); }
+
+    return nonZero.map(b => {
+      const symbol = b.asset;
+      const amount = parseFloat(b.free) + parseFloat(b.locked);
+      let usdValue = 0;
+      if (['USDT','USDC','BUSD','FDUSD','TUSD'].includes(symbol)) { usdValue = amount; }
+      else { usdValue = amount * (priceMap[`${symbol}USDT`] || priceMap[`${symbol}USDC`] || 0); }
+      return { symbol, amount, usd_value: Math.round(usdValue * 100) / 100 };
+    }).filter(b => b.amount > 0).sort((a, b) => b.usd_value - a.usd_value);
+  }
+
+  // ── Gate.io (HMAC-SHA512) ──
+  async _fetchGateio(apiKey, apiSecret) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const method = 'GET';
+    const path = '/api/v4/spot/accounts';
+    const bodyHash = await this._sha512hex('');
+    const signString = `${method}\n${path}\n\n${bodyHash}\n${timestamp}`;
+    const signature = await this._hmacSHA512(apiSecret, signString);
+
+    const res = await fetch(`https://api.gateio.ws${path}`, {
+      headers: { 'KEY': apiKey, 'SIGN': signature, 'Timestamp': String(timestamp) }
+    });
+    if (!res.ok) throw new Error(`Gate.io API error: ${res.status}`);
+    const data = await res.json();
+
+    const balances = (Array.isArray(data) ? data : [])
+      .map(b => ({ symbol: b.currency, amount: parseFloat(b.available || 0) + parseFloat(b.locked || 0) }))
+      .filter(b => b.amount > 0);
+    if (balances.length === 0) return [];
+
+    // Fetch prices
+    const pricesRes = await fetch('https://api.gateio.ws/api/v4/spot/tickers');
+    const priceMap = {};
+    if (pricesRes.ok) {
+      const tickers = await pricesRes.json();
+      for (const t of (Array.isArray(tickers) ? tickers : [])) {
+        if (t.currency_pair?.endsWith('_USDT')) {
+          priceMap[t.currency_pair.replace('_USDT', '')] = parseFloat(t.last || 0);
+        }
+      }
+    }
+
+    return balances.map(b => {
+      let usd_value = 0;
+      if (['USDT','USDC','DAI','BUSD'].includes(b.symbol)) { usd_value = b.amount; }
+      else { usd_value = b.amount * (priceMap[b.symbol] || 0); }
+      return { symbol: b.symbol, amount: b.amount, usd_value: Math.round(usd_value * 100) / 100 };
+    }).filter(b => b.amount > 0).sort((a, b) => b.usd_value - a.usd_value);
+  }
+
+  // ── Bitget (HMAC-SHA256, base64 sig, passphrase required) ──
+  async _fetchBitget(apiKey, apiSecret, passphrase = '') {
+    const timestamp = String(Date.now());
+    const path = '/api/v2/spot/account/assets';
+    const signString = timestamp + 'GET' + path;
+    const signature = await this._hmacSHA256Base64(apiSecret, signString);
+
+    const res = await fetch(`https://api.bitget.com${path}`, {
+      headers: {
+        'ACCESS-KEY': apiKey,
+        'ACCESS-SIGN': signature,
+        'ACCESS-TIMESTAMP': timestamp,
+        'ACCESS-PASSPHRASE': passphrase,
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!res.ok) throw new Error(`Bitget API error: ${res.status}`);
+    const data = await res.json();
+
+    return (data?.data || [])
+      .map(b => ({
+        symbol: b.coin,
+        amount: parseFloat(b.available || 0) + parseFloat(b.frozen || 0) + parseFloat(b.locked || 0),
+        usd_value: Math.round(parseFloat(b.usdtAmount || 0) * 100) / 100,
+      }))
+      .filter(b => b.amount > 0)
+      .sort((a, b) => b.usd_value - a.usd_value);
+  }
+
+  // ── HTX / Huobi (HMAC-SHA256, URL-signed params) ──
+  async _fetchHTX(apiKey, apiSecret) {
+    // Step 1: get accounts list to find spot account ID
+    const accountsData = await this._htxRequest(apiKey, apiSecret, '/v1/account/accounts');
+    const spotAccount = (accountsData?.data || []).find(a => a.type === 'spot' && a.state === 'working');
+    if (!spotAccount) throw new Error('HTX spot account not found');
+
+    // Step 2: get balances for spot account
+    const balanceData = await this._htxRequest(apiKey, apiSecret, `/v1/account/accounts/${spotAccount.id}/balance`);
+    const map = {};
+    for (const item of (balanceData?.data?.list || [])) {
+      const bal = parseFloat(item.balance);
+      if (bal <= 0) continue;
+      const sym = item.currency.toUpperCase();
+      map[sym] = (map[sym] || 0) + bal;
+    }
+
+    // Attach USD values via Binance price feed (public, no auth needed)
+    const pricesRes = await fetch('https://api.binance.com/api/v3/ticker/price');
+    const priceMap = {};
+    if (pricesRes.ok) {
+      const list = await pricesRes.json();
+      for (const p of list) { priceMap[p.symbol] = parseFloat(p.price); }
+    }
+
+    return Object.entries(map).map(([symbol, amount]) => {
+      let usd_value = 0;
+      if (['USDT','USDC','BUSD','HUSD'].includes(symbol)) { usd_value = amount; }
+      else { usd_value = amount * (priceMap[`${symbol}USDT`] || 0); }
+      return { symbol, amount, usd_value: Math.round(usd_value * 100) / 100 };
+    }).filter(b => b.amount > 0).sort((a, b) => b.usd_value - a.usd_value);
+  }
+
+  async _htxRequest(apiKey, apiSecret, path) {
+    const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, '');
+    const params = [
+      `AccessKeyId=${encodeURIComponent(apiKey)}`,
+      `SignatureMethod=HmacSHA256`,
+      `SignatureVersion=2`,
+      `Timestamp=${encodeURIComponent(timestamp)}`,
+    ].join('&');
+    const signString = `GET\napi.huobi.pro\n${path}\n${params}`;
+    const signature = await this._hmacSHA256(apiSecret, signString);
+    const res = await fetch(`https://api.huobi.pro${path}?${params}&Signature=${encodeURIComponent(signature)}`);
+    if (!res.ok) throw new Error(`HTX API error: ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(`HTX error: ${data['err-msg'] || 'unknown'}`);
+    return data;
+  }
+
   // ── Crypto helpers ──
   async _hmacSHA256(secret, message) {
     const key = await this._importKey(secret);
     const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
     return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async _hmacSHA512(secret, message) {
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async _sha512hex(message) {
+    const hash = await crypto.subtle.digest('SHA-512', new TextEncoder().encode(message));
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async _hmacSHA256Base64(secret, message) {
+    const key = await this._importKey(secret);
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+    return btoa(String.fromCharCode(...new Uint8Array(sig)));
   }
 
   async _importKey(secret) {
