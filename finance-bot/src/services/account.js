@@ -101,9 +101,13 @@ export class AccountService {
       encSecret
     ).first();
 
-    // Seed template categories
+    // Seed template categories (non-fatal — account is created regardless)
     if (template && ACCOUNT_TEMPLATES[template]) {
-      await this._seedCategories(account.id, userId, ACCOUNT_TEMPLATES[template]);
+      try {
+        await this._seedCategories(account.id, userId, ACCOUNT_TEMPLATES[template]);
+      } catch (seedErr) {
+        console.error('Category seeding failed (non-fatal):', seedErr.message);
+      }
     }
 
     return account;

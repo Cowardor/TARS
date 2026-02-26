@@ -2724,7 +2724,19 @@ select.input-field option {
 </div>
 
     <div class="app">
-        <!-- ═══════════════════════════════════
+        <!-- CUSTOM PICKER SHEET -->
+    <div class="modal-overlay" id="customPickerModal" onclick="closeCustomPicker()">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:65vh;">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title" id="customPickerTitle">Выбор</div>
+                <button class="modal-close" onclick="closeCustomPicker()">&times;</button>
+            </div>
+            <div id="customPickerList" style="overflow-y:auto;max-height:calc(65vh - 76px);padding-bottom:20px;"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
              ALAR HEADER
              ═══════════════════════════════════ -->
         <header class="app-header">
@@ -3312,7 +3324,13 @@ select.input-field option {
                 <button class="modal-close" onclick="closeExportPreview()">&times;</button>
             </div>
 
-            <select id="exportAccountSelect" class="desc-input" onchange="onExportAccountChange()" style="margin-bottom:12px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
+            <button class="picker-trigger" id="exportAccountTrigger" onclick="openExportAccountPicker()" style="margin-bottom:12px;">
+                <div class="picker-trigger-left">
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg></div>
+                    <span class="picker-trigger-text">Все счета</span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
+            </button>
 
             <div class="balance-card" style="margin-bottom: 20px;">
                 <div class="balance-label" data-i18n="exportPeriod">Период экспорта</div>
@@ -3410,7 +3428,13 @@ select.input-field option {
             </div>
 
             <div id="csvUploadSection">
-                <select id="importAccountSelect" class="desc-input" style="margin-bottom:12px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
+                <button class="picker-trigger" id="importAccountTrigger" onclick="openImportAccountPicker()" style="margin-bottom:12px;">
+                <div class="picker-trigger-left">
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg></div>
+                    <span class="picker-trigger-text">Личный счёт</span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
+            </button>
 
                 <div style="text-align:center;padding:28px 16px;background:var(--bg-card);border-radius:var(--radius-lg);border:2px dashed var(--border);margin-bottom:16px;cursor:pointer;" onclick="document.getElementById('csvFileInput').click()">
                     <div style="font-size:36px;margin-bottom:8px;">&#128196;</div>
@@ -3564,12 +3588,13 @@ select.input-field option {
             <div class="crypto-fields" id="cryptoFields">
                 <div class="input-group" style="margin-bottom:12px;">
                     <div class="input-label" id="newAccountExchangeLabel">Биржа</div>
-                    <select class="input-field" id="newAccountExchange">
-                        <option value="binance">Binance</option>
-                        <option value="okx">OKX</option>
-                        <option value="bybit">Bybit</option>
-                        <option value="kucoin">KuCoin</option>
-                    </select>
+<button class="picker-trigger" id="exchangeTrigger" onclick="openExchangePicker()">
+                <div class="picker-trigger-left">
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><span style="font-size:18px;">🟡</span></div>
+                    <span class="picker-trigger-text">Binance</span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
+            </button>
                 </div>
                 <div class="input-group" style="margin-bottom:12px;">
                     <div class="input-label">API Key</div>
@@ -3663,10 +3688,22 @@ select.input-field option {
 
             <div class="settings-group">
                 <div class="settings-group-title" data-i18n="addLimit">Добавить лимит</div>
-                <select id="budgetAccountSelect" class="desc-input" onchange="onBudgetAccountChange()" style="margin-bottom:8px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
-                <select id="budgetCategorySelect" class="desc-input" style="margin-bottom:8px;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);padding:12px;border-radius:var(--radius-md);width:100%;"></select>
+                <button class="picker-trigger" id="budgetAccountTrigger" onclick="openBudgetAccountPicker()" style="margin-bottom:8px;">
+                <div class="picker-trigger-left">
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg></div>
+                    <span class="picker-trigger-text">Все счета</span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
+            </button>
+                <button class="picker-trigger" id="budgetCategoryTrigger" onclick="openBudgetCategoryPicker()" style="margin-bottom:8px;">
+                <div class="picker-trigger-left">
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:17px;height:17px;"><path d="M4 17V7l6-4 6 4v10"/><rect x="8" y="11" width="4" height="6"/></svg></div>
+                    <span class="picker-trigger-text">Категория расхода</span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
+            </button>
                 <input type="number" class="desc-input" id="budgetAmountInput" placeholder="Сумма лимита" data-i18n="limitAmount" inputmode="decimal" style="margin-bottom:12px;">
-                <button class="submit-btn expense-mode" onclick="saveBudget()" data-i18n="setLimit">Установить лимит</button>
+                <button class="submit-btn" onclick="saveBudget()" data-i18n="setLimit">Установить лимит</button>
             </div>
         </div>
     </div>
@@ -4791,6 +4828,12 @@ function closeNewAccount() {
 }
 
 function selectAccountTemplate(template) {
+    // Reset exchange picker when switching templates
+    _exchangeValue = 'binance';
+    const iconEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-icon');
+    const labelEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-text');
+    if (iconEl) iconEl.innerHTML = '<span style="font-size:18px;">🟡</span>';
+    if (labelEl) labelEl.textContent = 'Binance';
     state.newAccountTemplate = template;
     document.querySelectorAll('.account-template-card').forEach(el => {
         el.classList.toggle('selected', el.dataset.template === template);
@@ -4826,11 +4869,13 @@ function selectAccountTemplate(template) {
         family_shared: t('accFamily'), crypto: t('accCrypto')
     };
     const nameInput = document.getElementById('newAccountName');
-    // Replace only if it's currently a known template name
-    const existingNames = Object.keys(nameMap).map(k => nameMap[k]);
-    if (!nameInput.value || existingNames.some(n => nameInput.value === n)) {
+    // Replace if empty OR if current value is an auto-generated template name (e.g. "Business", "Business 2")
+    const allTemplateNames = Object.values(nameMap);
+    const isAutoName = !nameInput.value || allTemplateNames.some(base =>
+        nameInput.value === base || nameInput.value.startsWith(base + ' ')
+    );
+    if (isAutoName) {
         const baseName = nameMap[template] || '';
-        // If name already taken — suggest unique name (e.g. "Бизнес 2")
         const takenNames = new Set((state.accounts || []).map(a => a.name));
         let suggestedName = baseName;
         let counter = 2;
@@ -4859,7 +4904,7 @@ async function submitNewAccount() {
     };
 
     if (state.newAccountTemplate === 'crypto') {
-        body.crypto_exchange = document.getElementById('newAccountExchange').value;
+        body.crypto_exchange = _exchangeValue;
         body.crypto_api_key = document.getElementById('newAccountApiKey').value.trim();
         body.crypto_api_secret = document.getElementById('newAccountApiSecret').value.trim();
         if (!body.crypto_api_key || !body.crypto_api_secret) {
@@ -5995,17 +6040,13 @@ async function openExportPreview() {
     const modal = document.getElementById('exportPreview');
     modal.classList.add('show');
     haptic('medium');
-    populateAccountSelect('exportAccountSelect', t('allAccounts'));
-    if (state.activeAccountId) {
-        const sel = document.getElementById('exportAccountSelect');
-        if (sel) sel.value = state.activeAccountId;
-    }
+    _exportAccountId = state.activeAccountId || null;
+    _refreshExportAccountTrigger();
     await loadExportData();
 }
 
 async function loadExportData() {
-    const sel = document.getElementById('exportAccountSelect');
-    const accountId = sel?.value ? parseInt(sel.value) : null;
+    const accountId = _exportAccountId;
     const qs = accountId ? `&account_id=${accountId}` : '';
     const data = await apiFetch(`/api/export?format=html${qs}`);
     if (!data) {
@@ -6068,8 +6109,7 @@ function closeExportPreview() {
 }
 
 async function downloadExcel() {
-    const sel = document.getElementById('exportAccountSelect');
-    const accountId = sel?.value ? parseInt(sel.value) : null;
+    const accountId = _exportAccountId;
     const qs = accountId ? `?account_id=${accountId}` : '';
     const exportUrl = `${API_BASE}/api/export${qs}`;
 
@@ -6484,6 +6524,224 @@ async function leaveFamily() {
 // BUDGET MANAGEMENT
 // ============================================
 
+
+// ============================================
+// CUSTOM PICKER ENGINE (replaces native <select>)
+// ============================================
+
+let _pickerItems = [];
+let _pickerCallback = null;
+
+const _TYPE_COLORS = {
+    personal:     { bg: '#4f46e5', fg: '#4f46e5' },
+    business:     { bg: '#8b5cf6', fg: '#8b5cf6' },
+    family_shared:{ bg: '#10b981', fg: '#10b981' },
+    crypto:       { bg: '#f59e0b', fg: '#f59e0b' },
+};
+
+const _WALLET_ICON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg>`;
+const _CHECK_ICON  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:18px;height:18px;flex-shrink:0;"><path d="M4 10l4 4 8-8"/></svg>`;
+const _CHEVRON     = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>`;
+const _CAT_ICON    = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 17V7l6-4 6 4v10"/><rect x="8" y="11" width="4" height="6"/></svg>`;
+
+function openCustomPicker({ title, items, onSelect }) {
+    _pickerItems = items;
+    _pickerCallback = onSelect;
+    document.getElementById('customPickerTitle').textContent = title;
+
+    const list = document.getElementById('customPickerList');
+    list.innerHTML = items.map((item, i) => {
+        const iconHtml = item.iconHTML || (item.emoji ? `<span style="font-size:18px;">${item.emoji}</span>` : '');
+        const bgStyle = item.iconColor
+            ? `background:${item.iconColor}22;color:${item.iconColor};`
+            : 'background:var(--bg-elevated);color:var(--text-secondary);';
+        return `<div class="picker-item${item.selected ? ' selected' : ''}" onclick="_pickerSelectIdx(${i})">
+            <div class="picker-item-icon" style="${bgStyle}">${iconHtml}</div>
+            <div class="picker-item-label">${item.label}</div>
+            ${item.selected ? `<div class="picker-item-check">${_CHECK_ICON}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    document.getElementById('customPickerModal').classList.add('show');
+    haptic('light');
+}
+
+function _pickerSelectIdx(idx) {
+    const item = _pickerItems[idx];
+    closeCustomPicker();
+    if (_pickerCallback) _pickerCallback(item.value);
+}
+
+function closeCustomPicker() {
+    document.getElementById('customPickerModal').classList.remove('show');
+}
+
+function _updateTrigger(triggerId, iconHTML, iconColor, label) {
+    const btn = document.getElementById(triggerId);
+    if (!btn) return;
+    const iconEl = btn.querySelector('.picker-trigger-icon');
+    const labelEl = btn.querySelector('.picker-trigger-text');
+    if (iconEl) {
+        iconEl.innerHTML = iconHTML;
+        iconEl.style.background = iconColor ? iconColor + '22' : 'var(--bg-elevated)';
+        iconEl.style.color = iconColor || 'var(--text-secondary)';
+    }
+    if (labelEl) labelEl.textContent = label;
+}
+
+function _buildAccountItems(allowAll, selectedId) {
+    const items = [];
+    if (allowAll) {
+        items.push({ value: null, label: t('allAccounts'), iconHTML: _WALLET_ICON, iconColor: null, selected: selectedId === null });
+    }
+    for (const acc of (state.accounts || [])) {
+        const color = (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg;
+        items.push({ value: acc.id, label: acc.name, iconHTML: getAccountTypeIconHTML(acc.type), iconColor: color, selected: acc.id === selectedId });
+    }
+    return items;
+}
+
+// ── Budget pickers ──
+let _budgetAccountId = null;
+let _budgetCategoryId = null;
+let _budgetCategories = [];
+
+function openBudgetAccountPicker() {
+    openCustomPicker({
+        title: t('allAccounts'),
+        items: _buildAccountItems(true, _budgetAccountId),
+        onSelect: async (val) => {
+            _budgetAccountId = val;
+            _refreshBudgetAccountTrigger();
+            _budgetCategoryId = null;
+            _budgetCategories = [];
+            _refreshBudgetCategoryTrigger();
+            await loadBudgets();
+            await loadBudgetCategories();
+        },
+    });
+}
+
+function _refreshBudgetAccountTrigger() {
+    if (_budgetAccountId === null) {
+        _updateTrigger('budgetAccountTrigger', _WALLET_ICON, null, t('allAccounts'));
+    } else {
+        const acc = (state.accounts || []).find(a => a.id === _budgetAccountId);
+        if (acc) _updateTrigger('budgetAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
+    }
+}
+
+function openBudgetCategoryPicker() {
+    if (_budgetCategories.length === 0) { showToast(t('chooseCategory') || 'Нет категорий'); return; }
+    openCustomPicker({
+        title: t('chooseCategory') || 'Категория',
+        items: _budgetCategories.map(c => ({
+            value: c.id,
+            label: c.name,
+            iconHTML: `<span style="font-size:20px;">${c.emoji}</span>`,
+            iconColor: null,
+            selected: c.id === _budgetCategoryId,
+        })),
+        onSelect: (val) => {
+            _budgetCategoryId = val;
+            _refreshBudgetCategoryTrigger();
+        },
+    });
+}
+
+function _refreshBudgetCategoryTrigger() {
+    if (_budgetCategoryId === null) {
+        _updateTrigger('budgetCategoryTrigger', _CAT_ICON, null, t('chooseCategory') || 'Категория расхода');
+    } else {
+        const cat = _budgetCategories.find(c => c.id === _budgetCategoryId);
+        if (cat) {
+            const iconEl = document.getElementById('budgetCategoryTrigger')?.querySelector('.picker-trigger-icon');
+            const labelEl = document.getElementById('budgetCategoryTrigger')?.querySelector('.picker-trigger-text');
+            if (iconEl) { iconEl.innerHTML = `<span style="font-size:20px;">${cat.emoji}</span>`; iconEl.style.background = 'var(--bg-elevated)'; iconEl.style.color = ''; }
+            if (labelEl) labelEl.textContent = cat.name;
+        }
+    }
+}
+
+// ── Export picker ──
+let _exportAccountId = null;
+
+function openExportAccountPicker() {
+    openCustomPicker({
+        title: t('allAccounts'),
+        items: _buildAccountItems(true, _exportAccountId),
+        onSelect: async (val) => {
+            _exportAccountId = val;
+            _refreshExportAccountTrigger();
+            await loadExportData();
+        },
+    });
+}
+
+function _refreshExportAccountTrigger() {
+    if (_exportAccountId === null) {
+        _updateTrigger('exportAccountTrigger', _WALLET_ICON, null, t('allAccounts'));
+    } else {
+        const acc = (state.accounts || []).find(a => a.id === _exportAccountId);
+        if (acc) _updateTrigger('exportAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
+    }
+}
+
+// ── Import picker ──
+let _importAccountId = null;
+
+function openImportAccountPicker() {
+    openCustomPicker({
+        title: t('chooseAccount') || 'Счёт для импорта',
+        items: _buildAccountItems(false, _importAccountId),
+        onSelect: (val) => {
+            _importAccountId = val;
+            _refreshImportAccountTrigger();
+        },
+    });
+}
+
+function _refreshImportAccountTrigger() {
+    const acc = (state.accounts || []).find(a => a.id === _importAccountId);
+    if (acc) {
+        _updateTrigger('importAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
+    } else {
+        _updateTrigger('importAccountTrigger', _WALLET_ICON, null, t('personalAccount') || 'Личный счёт');
+    }
+}
+
+// ── Exchange picker (Investments account) ──
+const _EXCHANGES = [
+    { value: 'binance', label: 'Binance', emoji: '🟡' },
+    { value: 'okx',     label: 'OKX',     emoji: '⚫' },
+    { value: 'bybit',   label: 'Bybit',   emoji: '🟠' },
+    { value: 'kucoin',  label: 'KuCoin',  emoji: '🟢' },
+];
+let _exchangeValue = 'binance';
+
+function openExchangePicker() {
+    openCustomPicker({
+        title: t('accExchange') || 'Биржа',
+        items: _EXCHANGES.map(ex => ({
+            value: ex.value,
+            label: ex.label,
+            iconHTML: `<span style="font-size:18px;">${ex.emoji}</span>`,
+            iconColor: null,
+            selected: ex.value === _exchangeValue,
+        })),
+        onSelect: (val) => {
+            _exchangeValue = val;
+            const ex = _EXCHANGES.find(e => e.value === val);
+            if (ex) {
+                const iconEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-icon');
+                const labelEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-text');
+                if (iconEl) iconEl.innerHTML = `<span style="font-size:18px;">${ex.emoji}</span>`;
+                if (labelEl) labelEl.textContent = ex.label;
+            }
+        },
+    });
+}
+
 // Fill an account <select> element; optionally prepend "All accounts" option
 function populateAccountSelect(selectId, allLabel = null) {
     const sel = document.getElementById(selectId);
@@ -6504,10 +6762,12 @@ async function openBudgetManager() {
     const modal = document.getElementById('budgetManager');
     modal.classList.add('show');
     haptic('light');
-    populateAccountSelect('budgetAccountSelect', t('allAccounts'));
-    // Pre-select active account if any
-    const sel = document.getElementById('budgetAccountSelect');
-    if (sel && state.activeAccountId) sel.value = state.activeAccountId;
+    // Init budget account: pre-select active account if any
+    _budgetAccountId = state.activeAccountId || null;
+    _budgetCategoryId = null;
+    _budgetCategories = [];
+    _refreshBudgetAccountTrigger();
+    _refreshBudgetCategoryTrigger();
     await loadBudgets();
     await loadBudgetCategories();
 }
@@ -6518,14 +6778,14 @@ function closeBudgetManager() {
 }
 
 function getBudgetSelectedAccount() {
-    const sel = document.getElementById('budgetAccountSelect');
-    return sel?.value ? parseInt(sel.value) : null;
+    return _budgetAccountId;
 }
 
 async function onBudgetAccountChange() {
     await loadBudgets();
     await loadBudgetCategories();
 }
+// Legacy kept for potential direct calls
 
 async function loadBudgets() {
     const accountId = getBudgetSelectedAccount();
@@ -6574,16 +6834,16 @@ async function loadBudgetCategories() {
     const qs = accountId ? `?account_id=${accountId}` : '';
     const cats = await apiFetch(`/api/categories${qs}`);
     if (!cats) return;
-
-    const select = document.getElementById('budgetCategorySelect');
-    select.innerHTML = `<option value="">${t('chooseCategory')}</option>`;
-    for (const c of cats.expense) {
-        select.innerHTML += `<option value="${c.id}">${c.emoji} ${c.name}</option>`;
+    _budgetCategories = cats.expense || [];
+    // Reset selection if the selected category is no longer in the list
+    if (_budgetCategoryId && !_budgetCategories.find(c => c.id === _budgetCategoryId)) {
+        _budgetCategoryId = null;
     }
+    _refreshBudgetCategoryTrigger();
 }
 
 async function saveBudget() {
-    const categoryId = parseInt(document.getElementById('budgetCategorySelect').value);
+    const categoryId = _budgetCategoryId;
     const amount = parseFloat(document.getElementById('budgetAmountInput').value);
 
     if (!categoryId) { showToast(t('chooseCat')); return; }
@@ -6859,11 +7119,8 @@ let csvRows = [];
 
 function openCsvImport() {
     document.getElementById('csvImportModal').classList.add('show');
-    populateAccountSelect('importAccountSelect', t('personalAccount'));
-    if (state.activeAccountId) {
-        const sel = document.getElementById('importAccountSelect');
-        if (sel) sel.value = state.activeAccountId;
-    }
+    _importAccountId = state.activeAccountId || (state.accounts?.[0]?.id ?? null);
+    _refreshImportAccountTrigger();
     resetCsvImport();
     haptic('medium');
 }
@@ -6990,7 +7247,7 @@ async function submitCsvImport() {
     btn.disabled = true;
     btn.textContent = '...';
 
-    const importSel = document.getElementById('importAccountSelect');
+    const importSel = { value: _importAccountId };
     const importAccountId = importSel?.value ? parseInt(importSel.value) : null;
 
     const transactions = csvRows.map(row => ({
