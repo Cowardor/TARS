@@ -6684,8 +6684,8 @@ let _exportAccountId = null;
 
 function openExportAccountPicker() {
     openCustomPicker({
-        title: t('allAccounts'),
-        items: _buildAccountItems(true, _exportAccountId),
+        title: t('chooseAccount') || 'Счёт',
+        items: _buildAccountItems(false, _exportAccountId),
         onSelect: async (val) => {
             _exportAccountId = val;
             _refreshExportAccountTrigger();
@@ -6695,11 +6695,11 @@ function openExportAccountPicker() {
 }
 
 function _refreshExportAccountTrigger() {
-    if (_exportAccountId === null) {
-        _updateTrigger('exportAccountTrigger', _WALLET_ICON, null, t('allAccounts'));
+    const acc = (state.accounts || []).find(a => a.id === _exportAccountId);
+    if (acc) {
+        _updateTrigger('exportAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
     } else {
-        const acc = (state.accounts || []).find(a => a.id === _exportAccountId);
-        if (acc) _updateTrigger('exportAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
+        _updateTrigger('exportAccountTrigger', _WALLET_ICON, null, t('personalAccount') || 'Личные');
     }
 }
 

@@ -201,7 +201,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
       });
 
     case '/api/export':
-      return handleExport(request, userId, familyId, transactionService, exportService, familyService, user, currency);
+      return handleExport(request, userId, familyId, transactionService, exportService, familyService, user, currency, accountService);
 
     case '/api/category':
       if (request.method === 'POST') {
@@ -556,10 +556,16 @@ async function handleCurrencyChange(request, userService, userId) {
 // GET /api/export?format=html|xls — Export
 // ============================================
 
-async function handleExport(request, userId, familyId, ts, exportService, familyService, user, currency) {
+async function handleExport(request, userId, familyId, ts, exportService, familyService, user, currency, as) {
   const url = new URL(request.url);
   const format = url.searchParams.get('format') || 'xls';
-  const exportAccountId = url.searchParams.get('account_id') ? parseInt(url.searchParams.get('account_id')) : null;
+  let exportAccountId = url.searchParams.get('account_id') ? parseInt(url.searchParams.get('account_id')) : null;
+
+  // Personal account transactions are stored with account_id IS NULL (canonical rule)
+  if (exportAccountId && as) {
+    const acc = await as.getById(exportAccountId, userId);
+    if (acc?.type === 'personal') exportAccountId = null;
+  }
 
   const now = new Date();
   const { start, end } = getMonthRange(now);
