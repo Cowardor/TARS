@@ -2317,8 +2317,11 @@ select.input-field option {
     white-space: nowrap;
 }
 .account-chip svg {
-    width: 14px;
-    height: 14px;
+    display: block;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px;
+    max-width: 14px;
     flex-shrink: 0;
 }
 .account-chip.active {
@@ -5020,7 +5023,7 @@ function renderCatAccountChips() {
 
     const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">Все</div>`;
     const accountChips = state.accounts.map(acc => {
-        const icon = getAccountTypeIconHTML(acc.type).replace('<svg ', '<svg width="14" height="14" style="flex-shrink:0;" ');
+        const icon = getAccountTypeIconHTML(acc.type).replace('<svg ', '<svg style="display:block;width:14px;height:14px;min-width:14px;flex-shrink:0;" ');
         return `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${icon} ${acc.name}</div>`;
     }).join('');
 
