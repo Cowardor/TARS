@@ -268,6 +268,7 @@ body {
     justify-content: center;
     width: 18px;
     height: 18px;
+    position: relative;
 }
 
 /* Spin only the inner icon, not the container pill */
@@ -284,11 +285,12 @@ body {
     pointer-events: none;
 }
 
-/* show/hide moon/sun per theme */
-:root[data-theme="dark"]  .icon-sun  { display: none; }
-:root[data-theme="dark"]  .icon-moon { display: block; }
-:root[data-theme="light"] .icon-moon { display: none; }
-:root[data-theme="light"] .icon-sun  { display: block; }
+/* show/hide moon/sun per theme — opacity for smooth transition */
+.icon-moon, .icon-sun { transition: opacity 0.25s ease; position: absolute; }
+:root[data-theme="dark"]  .icon-sun  { opacity: 0; pointer-events: none; }
+:root[data-theme="dark"]  .icon-moon { opacity: 1; }
+:root[data-theme="light"] .icon-moon { opacity: 0; pointer-events: none; }
+:root[data-theme="light"] .icon-sun  { opacity: 1; }
 
 /* ── Settings icon variants ── */
 .si-emerald { background: rgba(16,185,129,0.13);  color: var(--accent-emerald); }
@@ -4588,6 +4590,9 @@ async function loadCategories() {
 }
 
 async function loadDashboard() {
+    invalidateStatsCache();
+    // Clear transaction cache to prevent memory leak on repeated reloads
+    for (const k in txDataById) delete txDataById[k];
     const data = await apiFetch('/api/dashboard');
     if (data) {
         state.dashboardData = data;
@@ -5331,12 +5336,15 @@ document.addEventListener('input', (e) => {
 // SUBMIT ENTRY
 // ============================================
 
+let _submitting = false;
 async function submitEntry() {
+    if (_submitting) return;
     const amount = parseFloat(document.getElementById('amountInput').value);
     const desc = document.getElementById('descInput').value.trim();
 
     if (!amount || amount <= 0) return;
 
+    _submitting = true;
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = '...';
@@ -5372,6 +5380,7 @@ async function submitEntry() {
         haptic('medium');
     }
 
+    _submitting = false;
     updateSubmitBtn();
 }
 
@@ -5592,13 +5601,27 @@ function changeMonth(delta) {
     haptic('light');
 }
 
+let _statsCacheKey = '';
+let _statsCacheData = null;
+
+function invalidateStatsCache() { _statsCacheKey = ''; _statsCacheData = null; }
+
 async function renderStats() {
     const month = state.statsMonth.getMonth() + 1;
     const year = state.statsMonth.getFullYear();
+    const cacheKey = `${month}-${year}`;
 
     document.getElementById('statsMonth').textContent = `${t('months')[month - 1]} ${year}`;
 
-    const data = await apiFetch(`/api/stats?month=${month}&year=${year}`);
+    // Use cached data if same month and cache is fresh
+    let data;
+    if (_statsCacheKey === cacheKey && _statsCacheData) {
+        data = _statsCacheData;
+    } else {
+        data = await apiFetch(`/api/stats?month=${month}&year=${year}`);
+        _statsCacheKey = cacheKey;
+        _statsCacheData = data;
+    }
     state.statsData = data;
     const categories = data ? data.expense_categories : [];
     const total = data ? data.expense_total : 0;
@@ -5951,28 +5974,30 @@ async function addCategory() {
 
 function startRenameCategoryItem(id, currentName) {
     const item = document.querySelector(`.category-manager-item[data-id="${id}"]`);
+    if (!item) return;
     const nameDiv = item.querySelector('.category-manager-name');
     const actionsDiv = item.querySelector('.category-actions');
 
-    // Replace name with input
-    nameDiv.innerHTML = `<input type="text" value="${currentName.replace(/"/g, '&quot;')}" id="renameInput${id}" style="flex: 1;">`;
+    // Safe DOM approach — no innerHTML with user strings
+    nameDiv.innerHTML = '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.id = `renameInput${id}`;
+    input.style.flex = '1';
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') saveRenameCategoryItem(id); });
+    nameDiv.appendChild(input);
 
-    // Replace actions with save/cancel
     actionsDiv.innerHTML = `
         <button class="category-action-btn save" onclick="saveRenameCategoryItem(${id})">✓</button>
-        <button class="category-action-btn cancel" onclick="cancelRenameCategoryItem(${id}, '${currentName.replace(/'/g, "\\'")}')">✕</button>
+        <button class="category-action-btn cancel" onclick="cancelRenameCategoryItem(${id})">✕</button>
     `;
 
-    // Focus input
-    setTimeout(() => {
-        document.getElementById(`renameInput${id}`).focus();
-        document.getElementById(`renameInput${id}`).select();
-    }, 100);
-
+    setTimeout(() => { input.focus(); input.select(); }, 100);
     haptic('light');
 }
 
-function cancelRenameCategoryItem(id, originalName) {
+function cancelRenameCategoryItem(id) {
     // Find the category in cache
     const allCats = [...editableCategoriesCache.expense, ...editableCategoriesCache.income];
     const cat = allCats.find(c => c.id === id);
@@ -6297,6 +6322,12 @@ function initSheetSwipe() {
     document.querySelectorAll('.modal-sheet').forEach(sheet => {
         const overlay = sheet.closest('.modal-overlay');
         if (!overlay) return;
+
+        // Scroll sheet to top when modal opens
+        const _openObs = new MutationObserver(() => {
+            if (overlay.classList.contains('show')) sheet.scrollTop = 0;
+        });
+        _openObs.observe(overlay, { attributes: true, attributeFilter: ['class'] });
 
         let startY = 0, startTime = 0, pulling = false;
 
