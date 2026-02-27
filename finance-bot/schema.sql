@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS categories (
     is_active INTEGER DEFAULT 1,
     sort_order INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
-    UNIQUE(owner_type, owner_id, name, type)
+    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+    UNIQUE(owner_type, owner_id, name, type, account_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_categories_owner ON categories(owner_type, owner_id);
