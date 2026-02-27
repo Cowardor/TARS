@@ -3641,7 +3641,7 @@ select.input-field option {
                     <div class="input-label" id="newAccountExchangeLabel">Биржа</div>
 <button class="picker-trigger" id="exchangeTrigger" onclick="openExchangePicker()">
                 <div class="picker-trigger-left">
-                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;"><path d="M10 2L7.5 4.5 10 7l2.5-2.5L10 2zM4.5 7.5L2 10l2.5 2.5L7 10 4.5 7.5zM15.5 7.5L13 10l2.5 2.5L18 10l-2.5-2.5zM10 13l-2.5-2.5L5 13l5 5 5-5-2.5-2.5L10 13z"/></svg></div>
+                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 126 126" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;"><path d="M38.6 53.1l24.4-24.4 24.4 24.4 14.2-14.2L63 0.1 24.2 38.9l14.4 14.2zM0 63l14.2-14.2L28.4 63 14.2 77.2zM38.6 72.9L63 97.3l24.4-24.4 14.2 14.2L63 125.9 24.2 87.1l14.4-14.2zM97.6 63l14.2-14.2L126 63l-14.2 14.2zM77.4 63L63 48.6 48.6 63 63 77.4z"/></svg></div>
                     <span class="picker-trigger-text">Binance</span>
                 </div>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
@@ -6816,7 +6816,9 @@ function openCustomPicker({ title, items, onSelect }) {
     const list = document.getElementById('customPickerList');
     list.innerHTML = items.map((item, i) => {
         const iconHtml = item.iconHTML || (item.emoji ? `<span style="font-size:18px;">${item.emoji}</span>` : '');
-        const bgStyle = item.iconColor
+        const bgStyle = item.iconBg
+            ? `background:${item.iconBg};color:var(--text-primary);`
+            : item.iconColor
             ? `background:${item.iconColor}22;color:${item.iconColor};`
             : 'background:var(--bg-elevated);color:var(--text-secondary);';
         return `<div class="picker-item${item.selected ? ' selected' : ''}" onclick="_pickerSelectIdx(${i})">
@@ -6976,41 +6978,62 @@ function _refreshImportAccountTrigger() {
 
 // ── Exchange picker (Investments account) ──
 
-// ── Exchange brand logos (20x20 SVG) ──
+// ── Exchange brand logos (20x20 icon marks) ──
 function getExchangeLogoSVG(exchange) {
     const logos = {
-        binance: `<svg viewBox="0 0 20 20" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 2L7.5 4.5 10 7l2.5-2.5L10 2zM4.5 7.5L2 10l2.5 2.5L7 10 4.5 7.5zM15.5 7.5L13 10l2.5 2.5L18 10l-2.5-2.5zM10 13l-2.5-2.5L5 13l5 5 5-5-2.5-2.5L10 13z"/>
+        // Binance — 4 diamond cross pattern (#F0B90B yellow)
+        binance: `<svg viewBox="0 0 126 126" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg">
+            <path d="M38.6 53.1l24.4-24.4 24.4 24.4 14.2-14.2L63 0.1 24.2 38.9l14.4 14.2zM0 63l14.2-14.2L28.4 63 14.2 77.2zM38.6 72.9L63 97.3l24.4-24.4 14.2 14.2L63 125.9 24.2 87.1l14.4-14.2zM97.6 63l14.2-14.2L126 63l-14.2 14.2zM77.4 63L63 48.6 48.6 63 63 77.4z"/>
         </svg>`,
-        bybit: `<svg viewBox="0 0 20 20" fill="#F7A600" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 5h3.5v10H4V5zm4.5 3h3.5v7H8.5V8zM13 5h3v10h-3V5z"/>
+
+        // Bybit — triangle arrow mark (#F7A600 orange)
+        bybit: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 17V6.5L8.5 12 3 17z" fill="#F7A600"/>
+            <path d="M8 3h4.5L8 8V3z" fill="#FF8C00"/>
+            <path d="M17 3v10.5L11.5 8 17 3z" fill="#F7A600"/>
+            <path d="M12 17H7.5L12 12v5z" fill="#FF8C00"/>
         </svg>`,
-        okx: `<svg viewBox="0 0 20 20" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="2" width="4.5" height="4.5" rx="1"/>
-            <rect x="7.75" y="2" width="4.5" height="4.5" rx="1"/>
-            <rect x="13.5" y="2" width="4.5" height="4.5" rx="1"/>
-            <rect x="2" y="7.75" width="4.5" height="4.5" rx="1"/>
-            <rect x="13.5" y="7.75" width="4.5" height="4.5" rx="1"/>
-            <rect x="2" y="13.5" width="4.5" height="4.5" rx="1"/>
-            <rect x="7.75" y="13.5" width="4.5" height="4.5" rx="1"/>
-            <rect x="13.5" y="13.5" width="4.5" height="4.5" rx="1"/>
+
+        // OKX — 8 squares cross grid, center empty (#FFF on dark bg)
+        okx: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="7.5" y="1" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="14" y="1" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="1" y="7.5" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="14" y="7.5" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="1" y="14" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="7.5" y="14" width="5" height="5" rx=".8" fill="#fff"/>
+            <rect x="14" y="14" width="5" height="5" rx=".8" fill="#fff"/>
         </svg>`,
-        kucoin: `<svg viewBox="0 0 20 20" fill="#23AF91" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 3l-4 4v6l4 4 4-4V7l-4-4zm0 2.8L12.2 8v4L10 14.2 7.8 12V8L10 5.8z"/>
-            <path d="M10 8.5L11.5 10 10 11.5 8.5 10z"/>
+
+        // KuCoin — K arrows on blue circle (#23AF91 green)
+        kucoin: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="10" fill="#23AF91"/>
+            <path d="M7 5.5v9M7 10l4.5-4.5M7 10l4.5 4.5M13 10a1.2 1.2 0 1 0 0-.01" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`,
-        mexc: `<svg viewBox="0 0 20 20" fill="#2354E6" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 15V5l3.5 5L10 5l3.5 5L17 5v10h-2.5V9.5L12 13.5l-2-3-2 3L5.5 9.5V15H3z"/>
+
+        // MEXC — two overlapping triangles (#00B897 teal)
+        mexc: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 17L10 3l5 14" fill="none" stroke="#00B897" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2.5 17h15" stroke="#00B897" stroke-width="2" stroke-linecap="round"/>
         </svg>`,
-        gateio: `<svg viewBox="0 0 20 20" fill="#2354FE" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 2.5a5.5 5.5 0 0 1 5.5 5.5H10V4.5z"/>
+
+        // Gate.io — rotated diamond G mark (#2354FE blue)
+        gateio: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 1L19 10L10 19L1 10z" fill="none" stroke="#2354FE" stroke-width="2"/>
+            <path d="M10 6L15 10H10v5" fill="none" stroke="#2354FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`,
-        bitget: `<svg viewBox="0 0 20 20" fill="#00F0FF" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 10l4-6h6l4 6-4 6H7l-4-6zm3.5 0l2.5-3.5h2L13.5 10 11 13.5H9L6.5 10z"/>
+
+        // Bitget — bowtie/X mark (#00F0FF → use #1DA2B4 for visibility)
+        bitget: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 4h5l6.5 6L7 16H2l6.5-6L2 4z" fill="#1DA2B4"/>
+            <path d="M18 16h-5L6.5 10 13 4h5l-6.5 6L18 16z" fill="#1DA2B4"/>
         </svg>`,
-        htx: `<svg viewBox="0 0 20 20" fill="#2B3499" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 2C8 5 6 7 6 10a4 4 0 0 0 8 0c0-3-2-5-4-8z" fill="#2B60DE"/>
-            <path d="M10 7c-1 1.5-2 3-2 4.5a2 2 0 0 0 4 0c0-1.5-1-3-2-4.5z" fill="#5B8DEF"/>
+
+        // HTX (ex-Huobi) — flame/drop (#2B60DE blue)
+        htx: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 1C7.5 4.5 5 7 5 11a5 5 0 0 0 10 0c0-4-2.5-6.5-5-10z" fill="#2B60DE"/>
+            <path d="M10 7c-1.2 1.8-2.2 3.2-2.2 5a2.2 2.2 0 0 0 4.4 0c0-1.8-1-3.2-2.2-5z" fill="#5B9AEF"/>
         </svg>`,
     };
     return logos[exchange] || logos.binance;
@@ -7045,6 +7068,7 @@ function openExchangePicker() {
             label: ex.label,
             iconHTML: getExchangeLogoSVG(ex.value),
             iconColor: null,
+            iconBg: ex.value === 'okx' ? '#000;border-radius:8px' : null,
             selected: ex.value === _exchangeValue,
         })),
         onSelect: (val) => {
