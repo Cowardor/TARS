@@ -11,6 +11,7 @@ import { BudgetService } from './services/budget.js';
 import { BankImportService } from './services/bank-import.js';
 import { NordigenService } from './services/nordigen.js';
 import { SaltEdgeService } from './services/saltedge.js';
+import { AccountService } from './services/account.js';
 import { sendMessage, editMessage, answerCallback, sendDocument, downloadFile, inlineKeyboard, button, buttonRow } from './utils/telegram.js';
 import { parseMonth, getMonthRange } from './utils/db.js';
 import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
@@ -32,20 +33,21 @@ const INSTALL_PAGE = `<!DOCTYPE html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#09090b;color:#fafafa;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+body{font-family:'Satoshi',sans-serif;background:#09090b;color:#fafafa;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
 .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px 40px;text-align:center;max-width:480px;width:100%}
 .logo{width:80px;height:80px;margin-bottom:24px;border-radius:20px;box-shadow:0 8px 32px rgba(59,130,246,0.3)}
-h1{font-size:32px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#3b82f6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h1{font-family:'Switzer',sans-serif;font-size:32px;font-weight:600;margin-bottom:8px;background:linear-gradient(135deg,#3b82f6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .subtitle{color:#a1a1aa;font-size:15px;margin-bottom:40px;line-height:1.5}
 .features{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:40px}
 .feature{background:#111114;border:1px solid #27272a;border-radius:16px;padding:16px;text-align:center}
 .feature-icon{font-size:28px;margin-bottom:8px}
 .feature-text{font-size:12px;color:#a1a1aa;line-height:1.4}
 .install-section{width:100%;max-width:480px;padding:0 24px}
-.install-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:12px;border:none;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:transform 0.2s,opacity 0.2s}
+.install-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:12px;border:none;font-family:'Satoshi',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:transform 0.2s,opacity 0.2s}
 .install-btn:active{transform:scale(0.97)}
 .btn-primary{background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff}
 .btn-secondary{background:#111114;color:#fafafa;border:1px solid #27272a}
@@ -70,7 +72,7 @@ h1{font-size:32px;font-weight:800;margin-bottom:8px;background:linear-gradient(1
 .ios-step-icon{font-size:24px;min-width:32px;text-align:center}
 .ios-step-text{font-size:14px;color:#d4d4d8}
 .ios-step-text b{color:#fafafa}
-.ios-close{width:100%;padding:14px;background:#2c2c2e;border:none;border-radius:12px;color:#3b82f6;font-size:16px;font-weight:600;margin-top:16px;cursor:pointer;font-family:'Inter',sans-serif}
+.ios-close{width:100%;padding:14px;background:#2c2c2e;border:none;border-radius:12px;color:#3b82f6;font-size:16px;font-weight:600;margin-top:16px;cursor:pointer;font-family:'Satoshi',sans-serif}
 
 /* Hide install section if already installed */
 @media(display-mode:standalone){
@@ -713,12 +715,13 @@ self.addEventListener('fetch', e => {
         const bankImportService = new BankImportService(env.DB, categoryService, transactionService);
         const nordigenService = new NordigenService(env.DB, env);
         const saltEdgeService = new SaltEdgeService(env.DB, env);
+        const accountService = new AccountService(env.DB, env.ENCRYPTION_KEY);
 
         // Use Salt Edge if configured, otherwise fall back to Nordigen
         const openBankingService = env.SALTEDGE_APP_ID ? saltEdgeService : nordigenService;
         const openBankingProvider = env.SALTEDGE_APP_ID ? 'saltedge' : 'nordigen';
 
-        const services = { userService, categoryService, transactionService, statsService, familyService, exportService, budgetService, bankImportService, nordigenService, saltEdgeService, openBankingService, openBankingProvider };
+        const services = { userService, categoryService, transactionService, statsService, familyService, exportService, budgetService, bankImportService, nordigenService, saltEdgeService, openBankingService, openBankingProvider, accountService };
 
         if (data.message) {
           console.log('Processing message...');
@@ -1360,10 +1363,12 @@ async function handleHistory(chatId, user, text, familyId, env, services) {
 }
 
 async function handleUndo(chatId, user, env, services) {
-  const { transactionService } = services;
+  const { transactionService, accountService } = services;
   const currency = user.currency || 'USD';
 
-  const lastTransaction = await transactionService.getLastTransaction(user.id);
+  // Scope undo to active account (null = Personal)
+  const accountId = accountService ? await accountService.getActiveAccountId(user.telegram_id) : null;
+  const lastTransaction = await transactionService.getLastTransaction(user.id, accountId);
 
   if (!lastTransaction) {
     await sendMessage(chatId, '📭 Нет транзакций для отмены', env);
@@ -1670,7 +1675,7 @@ async function handleCallback(callback, env, services) {
   const telegramId = callback.from.id.toString();
   const data = callback.data;
 
-  const { userService, categoryService, transactionService, statsService, familyService, exportService } = services;
+  const { userService, categoryService, transactionService, statsService, familyService, exportService, accountService } = services;
 
   const user = await userService.findByTelegramId(telegramId);
   if (!user) {
@@ -1704,7 +1709,8 @@ async function handleCallback(callback, env, services) {
 
   // Handle undo
   if (data.startsWith('undo:')) {
-    const lastTransaction = await transactionService.getLastTransaction(user.id);
+    const undoAccountId = accountService ? await accountService.getActiveAccountId(user.telegram_id) : null;
+    const lastTransaction = await transactionService.getLastTransaction(user.id, undoAccountId);
     if (lastTransaction) {
       const currency = user.currency || 'USD';
       await transactionService.delete(lastTransaction.id, user.id);

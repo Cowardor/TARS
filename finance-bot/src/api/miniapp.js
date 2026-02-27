@@ -182,7 +182,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/undo':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleUndo(userId, activeAccountId, transactionService, currency);
+      return handleUndo(request, userId, activeAccountId, transactionService, currency);
 
     case '/api/currency':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -298,6 +298,10 @@ export async function handleMiniAppAPI(request, env, pathname) {
     // Trend
     case '/api/trend':
       return handleTrend(userId, familyId, activeAccountId, transactionService);
+
+    // Crypto portfolio stats
+    case '/api/crypto-stats':
+      return handleCryptoStats(request, userId, accountService);
 
     default:
       return error('Not found', 404);
@@ -510,7 +514,15 @@ async function handleDeleteTransaction(request, userId, ts) {
 // POST /api/undo — delete last transaction
 // ============================================
 
-async function handleUndo(userId, accountId, ts, currency) {
+async function handleUndo(request, userId, sessionAccountId, ts, currency) {
+  // Prefer explicit account_id from body over session — avoids race conditions
+  let accountId = sessionAccountId;
+  try {
+    const body = await request.json();
+    if (body && body.account_id !== undefined) {
+      accountId = body.account_id || null;
+    }
+  } catch { /* no body — use session */ }
   const last = await ts.getLastTransaction(userId, accountId);
   if (!last) return error('No transactions to undo', 404);
 
@@ -1170,6 +1182,34 @@ async function handleSyncCrypto(request, userId, as) {
   if (!result.success) return error(result.error || 'Sync failed');
 
   return json({ success: true, balances: result.balances });
+}
+
+// ============================================
+// GET /api/crypto-stats — Portfolio stats + history for chart
+// ============================================
+
+async function handleCryptoStats(request, userId, as) {
+  const url = new URL(request.url);
+  const accountId = parseInt(url.searchParams.get('account_id'));
+  if (!accountId) return error('account_id is required');
+
+  const account = await as.getById(accountId, userId);
+  if (!account || account.type !== 'crypto') return error('Crypto account not found', 404);
+
+  const balances = as.getCachedCrypto(account);
+  const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
+  const snapshots = await as.getCryptoSnapshots(accountId);
+
+  return json({
+    balances,
+    total_usd: Math.round(totalUsd * 100) / 100,
+    synced_at: account.crypto_synced_at || null,
+    exchange: account.crypto_exchange,
+    snapshots: snapshots.map(s => ({
+      total_usd: s.total_usd,
+      date: s.created_at,
+    })),
+  });
 }
 
 // ============================================

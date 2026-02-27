@@ -232,11 +232,21 @@ export class AccountService {
         default:        return { success: false, error: 'unknown_exchange' };
       }
 
-      await this.db.prepare(`
-        UPDATE accounts
-        SET crypto_cached_balance = ?, crypto_synced_at = datetime('now'), updated_at = datetime('now')
-        WHERE id = ?
-      `).bind(JSON.stringify(balances), accountId).run();
+      const balancesJson = JSON.stringify(balances);
+      const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
+
+      await this.db.batch([
+        this.db.prepare(`
+          UPDATE accounts
+          SET crypto_cached_balance = ?, crypto_synced_at = datetime('now'), updated_at = datetime('now')
+          WHERE id = ?
+        `).bind(balancesJson, accountId),
+        // Save snapshot for portfolio history chart
+        this.db.prepare(`
+          INSERT INTO crypto_snapshots (account_id, total_usd, balances_json)
+          VALUES (?, ?, ?)
+        `).bind(accountId, Math.round(totalUsd * 100) / 100, balancesJson),
+      ]);
 
       return { success: true, balances };
     } catch (err) {
@@ -247,6 +257,16 @@ export class AccountService {
   getCachedCrypto(account) {
     if (!account?.crypto_cached_balance) return [];
     try { return JSON.parse(account.crypto_cached_balance); } catch { return []; }
+  }
+
+  async getCryptoSnapshots(accountId, limit = 90) {
+    const result = await this.db.prepare(`
+      SELECT total_usd, created_at FROM crypto_snapshots
+      WHERE account_id = ?
+      ORDER BY created_at ASC
+      LIMIT ?
+    `).bind(accountId, limit).all();
+    return result.results || [];
   }
 
   // ─── PRIVATE HELPERS ──────────────────────────────────────────────────────────

@@ -17,13 +17,15 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
     <style>
 /* ============================================
    ALAR DESIGN SYSTEM - DEEP COSMOS PALETTE
    ① #4f46e5 Deep Indigo  ② #818cf8 Soft Indigo
    ③ #22d3ee Cyan Spark   ④ #10b981 Emerald
-   ⑤ #f59e0b Amber        Font: Inter, JetBrains Mono
+   ⑤ #f59e0b Amber
+   Font: Satoshi (UI), Zodiak (headings), DM Mono (numbers)
    ============================================ */
 
 /* ============================================================
@@ -166,7 +168,7 @@ html, body {
 }
 
 body {
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Satoshi', -apple-system, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.5;
@@ -236,7 +238,7 @@ body {
 }
 
 .header-wordmark {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-weight: 800;
     font-size: 15px;
     letter-spacing: 4px;
@@ -248,7 +250,7 @@ body {
 }
 
 .header-product {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 9px;
     font-weight: 400;
     letter-spacing: 2px;
@@ -351,7 +353,7 @@ body {
     border: none;
     background: none;
     color: var(--text-muted);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -757,20 +759,20 @@ body {
 }
 
 .crypto-symbol {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .crypto-amount {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 12px;
     color: var(--text-secondary);
 }
 
 .crypto-usd {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 13px;
     font-weight: 600;
     color: var(--warning);
@@ -1012,7 +1014,7 @@ body {
     border: 1.5px solid var(--border);
     border-radius: var(--radius-lg);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 15px;
     font-weight: 400;
     padding: 0 14px;
@@ -1056,8 +1058,9 @@ select.input-field option {
 }
 
 .greeting-name {
+    font-family: 'Switzer', sans-serif;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 600;
     margin-top: 2px;
 }
 
@@ -1104,7 +1107,7 @@ select.input-field option {
 }
 
 .balance-amount {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 36px;
     font-weight: 500;
     letter-spacing: -0.02em;
@@ -1139,7 +1142,7 @@ select.input-field option {
 }
 
 .balance-stat-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 16px;
     font-weight: 500;
 }
@@ -1184,7 +1187,7 @@ select.input-field option {
     border: none;
     border-radius: var(--radius-lg);
     color: white;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -1227,7 +1230,7 @@ select.input-field option {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     color: var(--text-secondary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -1262,8 +1265,9 @@ select.input-field option {
 }
 
 .section-title {
+    font-family: 'Switzer', sans-serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .section-link {
@@ -1273,7 +1277,7 @@ select.input-field option {
     cursor: pointer;
     border: none;
     background: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
 }
 
 .transaction-list {
@@ -1371,7 +1375,7 @@ select.input-field option {
 }
 
 .transaction-amount {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 14px;
     font-weight: 500;
 }
@@ -1443,8 +1447,9 @@ select.input-field option {
 }
 
 .modal-title {
+    font-family: 'Switzer', sans-serif;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .modal-close {
@@ -1475,7 +1480,7 @@ select.input-field option {
     padding: 10px;
     border: none;
     border-radius: var(--radius-sm);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -1501,7 +1506,7 @@ select.input-field option {
 }
 
 .amount-display {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 48px;
     font-weight: 500;
     color: var(--text-primary);
@@ -1548,7 +1553,7 @@ select.input-field option {
     border: 2px solid transparent;
     border-radius: var(--radius-md);
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     -webkit-tap-highlight-color: transparent;
     /* Alar spring */
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -1593,7 +1598,7 @@ select.input-field option {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 14px;
     outline: none;
     margin-bottom: 20px;
@@ -1614,7 +1619,7 @@ select.input-field option {
     padding: 16px;
     border: none;
     border-radius: var(--radius-lg);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -1668,8 +1673,9 @@ select.input-field option {
 }
 
 .stats-title {
+    font-family: 'Switzer', sans-serif;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 600;
     margin-bottom: 4px;
 }
 
@@ -1740,7 +1746,7 @@ select.input-field option {
 }
 
 .chart-center-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 20px;
     font-weight: 500;
 }
@@ -1803,7 +1809,7 @@ select.input-field option {
 }
 
 .breakdown-amount {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-size: 14px;
     font-weight: 500;
 }
@@ -1834,7 +1840,7 @@ select.input-field option {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-full);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -2201,7 +2207,7 @@ select.input-field option {
     border: 1px solid var(--accent-blue);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     font-size: 14px;
     font-weight: 500;
     padding: 4px 8px;
@@ -2489,7 +2495,7 @@ select.input-field option {
 }
 
 #exportTable .export-amount {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
     font-weight: 500;
 }
 
@@ -2877,30 +2883,58 @@ select.input-field option {
 
             <!-- STATS -->
             <div class="screen" id="screenStats">
-                <div class="stats-header">
-                    <div class="stats-title" data-i18n="tabStats">Статистика</div>
-                    <div class="stats-subtitle" data-i18n="expensesByCategory">Расходы по категориям</div>
-                </div>
+                <!-- Regular stats (expense categories) -->
+                <div id="regularStatsView">
+                    <div class="stats-header">
+                        <div class="stats-title" data-i18n="tabStats">Статистика</div>
+                        <div class="stats-subtitle" data-i18n="expensesByCategory">Расходы по категориям</div>
+                    </div>
 
-                <div class="month-selector">
-                    <button class="month-nav" onclick="changeMonth(-1)">&#8249;</button>
-                    <div class="month-current" id="statsMonth">Февраль 2026</div>
-                    <button class="month-nav" onclick="changeMonth(1)">&#8250;</button>
-                </div>
+                    <div class="month-selector">
+                        <button class="month-nav" onclick="changeMonth(-1)">&#8249;</button>
+                        <div class="month-current" id="statsMonth">Февраль 2026</div>
+                        <button class="month-nav" onclick="changeMonth(1)">&#8250;</button>
+                    </div>
 
-                <div class="chart-container">
-                    <svg class="donut-chart" viewBox="0 0 200 200" id="donutChart"></svg>
-                    <div class="chart-center-text">
-                        <div class="chart-center-label" data-i18n="expenses">Всего</div>
-                        <div class="chart-center-value" id="chartTotal">0 USD</div>
+                    <div class="chart-container">
+                        <svg class="donut-chart" viewBox="0 0 200 200" id="donutChart"></svg>
+                        <div class="chart-center-text">
+                            <div class="chart-center-label" data-i18n="expenses">Всего</div>
+                            <div class="chart-center-value" id="chartTotal">0 USD</div>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-list" id="breakdownList"></div>
+
+                    <div class="settings-group" id="trendSection" style="display:none; margin-top: 20px;">
+                        <div class="settings-group-title" data-i18n="trend6m">Тренд за 6 месяцев</div>
+                        <div id="trendChart" style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;"></div>
                     </div>
                 </div>
 
-                <div class="breakdown-list" id="breakdownList"></div>
+                <!-- Crypto portfolio stats -->
+                <div id="cryptoStatsView" style="display:none;">
+                    <div class="stats-header">
+                        <div class="stats-title">Портфель</div>
+                        <div class="stats-subtitle" id="cryptoStatsExchange"></div>
+                    </div>
 
-                <div class="settings-group" id="trendSection" style="display:none; margin-top: 20px;">
-                    <div class="settings-group-title" data-i18n="trend6m">Тренд за 6 месяцев</div>
-                    <div id="trendChart" style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;"></div>
+                    <div class="settings-group" style="margin-top:12px;">
+                        <div class="crypto-portfolio-total" id="cryptoPortfolioTotal" style="text-align:center;padding:16px 0 8px;">
+                            <div style="font-size:28px;font-weight:700;color:var(--text-primary);">$0.00</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="cryptoSyncedAt"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group" id="cryptoChartSection" style="margin-top:12px;display:none;">
+                        <div class="settings-group-title">Динамика портфеля</div>
+                        <div id="cryptoLineChart" style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;"></div>
+                    </div>
+
+                    <div class="settings-group" style="margin-top:12px;">
+                        <div class="settings-group-title">Активы</div>
+                        <div id="cryptoCoinList" class="breakdown-list"></div>
+                    </div>
                 </div>
             </div>
 
@@ -4634,6 +4668,10 @@ async function loadAccounts() {
 
     renderAccountsCarousel();
     renderSettingsAccountsList();
+
+    // Auto-sync crypto accounts if stale
+    const activeAcc = state.accounts[state.accountIndex];
+    _maybeSyncCrypto(activeAcc);
 }
 
 function getAccountTypeIconHTML(type) {
@@ -4650,14 +4688,17 @@ function _renderAccountCard(acc) {
     if (acc.type === 'crypto') {
         const balances = acc.crypto_balances || [];
         const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
+        const syncInfo = acc.crypto_synced_at
+            ? `<div style="text-align:center;padding:4px 0 0;color:var(--text-muted);font-size:10px;">Обновлено: ${new Date(acc.crypto_synced_at + 'Z').toLocaleTimeString()}</div>`
+            : '';
         return `
         <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
             <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
             <div class="balance-label">${t('cryptoPortfolio')}</div>
             <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
-            <div class="crypto-balance-list">
+            <div class="crypto-balance-list" id="cryptoBalList${acc.id}">
                 ${balances.length === 0
-                    ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">${t('tapToRefresh')}</div>`
+                    ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">⏳ Загрузка...</div>`
                     : balances.slice(0, 6).map(b => `
                         <div class="crypto-balance-row">
                             <span class="crypto-symbol">${b.symbol}</span>
@@ -4665,9 +4706,7 @@ function _renderAccountCard(acc) {
                             <span class="crypto-usd">$${(b.usd_value||0).toFixed(2)}</span>
                         </div>`).join('')}
             </div>
-            <button class="crypto-sync-btn" onclick="syncCryptoAccount(${acc.id})" id="cryptoSyncBtn${acc.id}">
-                🔄 Обновить
-            </button>
+            ${syncInfo}
         </div>`;
     }
     return `
@@ -4759,26 +4798,52 @@ async function switchToAccountIndex(idx) {
     await Promise.all([loadDashboard(), loadCategories()]);
     buildCategoryGrid();
     haptic('light');
+
+    // Auto-sync crypto if stale
+    const switchedAcc = state.accounts[idx];
+    _maybeSyncCrypto(switchedAcc);
 }
 
-async function syncCryptoAccount(accountId) {
-    const btn = document.getElementById(`cryptoSyncBtn${accountId}`);
-    if (btn) { btn.textContent = '⏳ Загрузка...'; btn.disabled = true; }
+let _cryptoSyncing = false;
+
+async function syncCryptoAccount(accountId, silent = false) {
+    if (_cryptoSyncing) return;
+    _cryptoSyncing = true;
+
+    // Show loading indicator on the balance list
+    const listEl = document.getElementById(`cryptoBalList${accountId}`);
+    if (!silent && listEl) {
+        listEl.insertAdjacentHTML('beforeend',
+            '<div id="cryptoSyncSpinner" style="text-align:center;padding:6px;color:var(--text-muted);font-size:11px;">⏳ Обновляю...</div>');
+    }
 
     const data = await apiFetch('/api/accounts/sync-crypto', {
         method: 'POST',
         body: JSON.stringify({ account_id: accountId }),
     });
 
+    _cryptoSyncing = false;
+    const spinner = document.getElementById('cryptoSyncSpinner');
+    if (spinner) spinner.remove();
+
     if (data && data.success) {
-        // Update cached balances in state
         const acc = state.accounts.find(a => a.id === accountId);
-        if (acc) acc.crypto_balances = data.balances;
+        if (acc) {
+            acc.crypto_balances = data.balances;
+            acc.crypto_synced_at = new Date().toISOString().replace('Z','');
+        }
         renderAccountsCarousel();
-        haptic('medium');
-    } else {
-        if (btn) { btn.textContent = '❌ Ошибка'; btn.disabled = false; }
-        setTimeout(() => { if (btn) { btn.textContent = '🔄 Обновить'; btn.disabled = false; } }, 2000);
+        if (!silent) haptic('medium');
+    }
+}
+
+// Auto-sync crypto when switching to crypto account (if stale > 5 min)
+function _maybeSyncCrypto(acc) {
+    if (!acc || acc.type !== 'crypto' || !acc.crypto_exchange) return;
+    const STALE_MS = 5 * 60 * 1000; // 5 minutes
+    const lastSync = acc.crypto_synced_at ? new Date(acc.crypto_synced_at + 'Z').getTime() : 0;
+    if (Date.now() - lastSync > STALE_MS) {
+        syncCryptoAccount(acc.id, true);
     }
 }
 
@@ -5391,6 +5456,7 @@ async function submitEntry() {
 async function undoLast() {
     const result = await apiFetch('/api/undo', {
         method: 'POST',
+        body: JSON.stringify({ account_id: state.activeAccountId }),
     });
 
     if (result && result.success) {
@@ -5606,7 +5672,27 @@ let _statsCacheData = null;
 
 function invalidateStatsCache() { _statsCacheKey = ''; _statsCacheData = null; }
 
+function _getActiveAccountType() {
+    if (!state.activeAccountId) return 'personal';
+    const acc = state.accounts.find(a => a.id === state.activeAccountId);
+    return acc?.type || 'personal';
+}
+
 async function renderStats() {
+    const accType = _getActiveAccountType();
+    const regularView = document.getElementById('regularStatsView');
+    const cryptoView = document.getElementById('cryptoStatsView');
+
+    if (accType === 'crypto') {
+        regularView.style.display = 'none';
+        cryptoView.style.display = '';
+        await renderCryptoStats();
+        return;
+    }
+
+    regularView.style.display = '';
+    cryptoView.style.display = 'none';
+
     const month = state.statsMonth.getMonth() + 1;
     const year = state.statsMonth.getFullYear();
     const cacheKey = `${month}-${year}`;
@@ -5665,6 +5751,127 @@ async function renderStats() {
     }).join('');
 
     await loadTrend();
+}
+
+async function renderCryptoStats() {
+    const acc = state.accounts.find(a => a.id === state.activeAccountId);
+    if (!acc) return;
+
+    document.getElementById('cryptoStatsExchange').textContent =
+        (acc.crypto_exchange || '').toUpperCase();
+
+    const data = await apiFetch(`/api/crypto-stats?account_id=${acc.id}`);
+    if (!data) return;
+
+    // Total
+    document.getElementById('cryptoPortfolioTotal').innerHTML = `
+        <div style="font-size:28px;font-weight:700;color:var(--text-primary);">$${(data.total_usd || 0).toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${data.synced_at ? new Date(data.synced_at + 'Z').toLocaleString() : 'Не синхронизировано'}</div>
+    `;
+
+    // Coin list
+    const coins = data.balances || [];
+    const coinList = document.getElementById('cryptoCoinList');
+    if (coins.length === 0) {
+        coinList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">₿</div>
+                <div class="empty-state-title">Нет данных</div>
+                <div class="empty-state-text">Синхронизируйте портфель на главной</div>
+            </div>`;
+    } else {
+        coinList.innerHTML = coins.map((c, i) => {
+            const pct = data.total_usd > 0 ? (c.usd_value / data.total_usd * 100) : 0;
+            const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+            return `
+            <div class="breakdown-item">
+                <div class="breakdown-color" style="background:${color}"></div>
+                <div class="breakdown-icon" style="font-size:11px;font-weight:600;">${c.symbol}</div>
+                <div class="breakdown-info">
+                    <div class="breakdown-category">${c.symbol}</div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" style="width:${pct.toFixed(0)}%;background:${color}"></div>
+                    </div>
+                </div>
+                <div class="breakdown-right">
+                    <div class="breakdown-amount">$${(c.usd_value || 0).toFixed(2)}</div>
+                    <div class="breakdown-percent">${c.amount.toFixed(4)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Line chart
+    const snapshots = data.snapshots || [];
+    const chartSection = document.getElementById('cryptoChartSection');
+    if (snapshots.length >= 2) {
+        chartSection.style.display = '';
+        drawCryptoLineChart(snapshots);
+    } else {
+        chartSection.style.display = 'none';
+    }
+}
+
+function drawCryptoLineChart(snapshots) {
+    const container = document.getElementById('cryptoLineChart');
+    const W = 320, H = 140, PAD = 30, PADR = 10, PADT = 10, PADB = 25;
+
+    const values = snapshots.map(s => s.total_usd);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+
+    const plotW = W - PAD - PADR;
+    const plotH = H - PADT - PADB;
+
+    // Build SVG points
+    const points = snapshots.map((s, i) => {
+        const x = PAD + (i / (snapshots.length - 1)) * plotW;
+        const y = PADT + plotH - ((s.total_usd - min) / range) * plotH;
+        return { x, y, val: s.total_usd, date: s.date };
+    });
+
+    const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+
+    // Gradient fill area
+    const areaPath = `M${points[0].x},${PADT + plotH} ` +
+        points.map(p => `L${p.x},${p.y}`).join(' ') +
+        ` L${points[points.length-1].x},${PADT + plotH} Z`;
+
+    // Y-axis labels (3 ticks)
+    const yLabels = [min, min + range/2, max].map(v => {
+        const y = PADT + plotH - ((v - min) / range) * plotH;
+        return `<text x="${PAD - 4}" y="${y + 3}" text-anchor="end" fill="var(--text-muted)" font-size="9">${v >= 1000 ? (v/1000).toFixed(1) + 'k' : v.toFixed(0)}</text>
+                <line x1="${PAD}" y1="${y}" x2="${W - PADR}" y2="${y}" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+    }).join('');
+
+    // X-axis labels (first, mid, last)
+    const fmtDate = d => { const dt = new Date(d + 'Z'); return `${dt.getDate()}.${dt.getMonth()+1}`; };
+    const xIdxs = [0, Math.floor(snapshots.length / 2), snapshots.length - 1];
+    const xLabels = xIdxs.map(i => {
+        if (!points[i]) return '';
+        return `<text x="${points[i].x}" y="${H - 4}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${fmtDate(snapshots[i].date)}</text>`;
+    }).join('');
+
+    // Color: green if up, red if down
+    const isUp = values[values.length - 1] >= values[0];
+    const lineColor = isUp ? 'var(--accent-emerald)' : '#ef4444';
+    const fillColor = isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)';
+
+    container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">
+        <defs>
+            <linearGradient id="cryptoFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        ${yLabels}
+        ${xLabels}
+        <path d="${areaPath}" fill="url(#cryptoFill)"/>
+        <polyline points="${polyline}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        ${points.length > 0 ? `<circle cx="${points[points.length-1].x}" cy="${points[points.length-1].y}" r="3" fill="${lineColor}"/>` : ''}
+    </svg>`;
 }
 
 function drawDonut(data, total) {
