@@ -109,15 +109,15 @@ export class TransactionService {
   }
 
   // Helper: append the right user/family/account filter clause + params
+  // When accountId is set → filter by that specific account.
+  // When accountId is null → personal slot: only transactions with no account and no family.
+  // (family_shared accounts always have their own accountId, so no special familyId branch needed)
   _accountFilter(query, params, userId, familyId, accountId) {
     if (accountId) {
       query += ' AND t.account_id = ?';
       params.push(accountId);
-    } else if (familyId) {
-      query += ' AND t.family_id = ?';
-      params.push(familyId);
     } else {
-      query += ' AND t.user_id = ? AND t.family_id IS NULL AND (t.account_id IS NULL)';
+      query += ' AND t.user_id = ? AND t.family_id IS NULL AND t.account_id IS NULL';
       params.push(userId);
     }
     return query;
@@ -128,11 +128,8 @@ export class TransactionService {
     if (accountId) {
       query += ' AND account_id = ?';
       params.push(accountId);
-    } else if (familyId) {
-      query += ' AND family_id = ?';
-      params.push(familyId);
     } else {
-      query += ' AND user_id = ? AND family_id IS NULL AND (account_id IS NULL)';
+      query += ' AND user_id = ? AND family_id IS NULL AND account_id IS NULL';
       params.push(userId);
     }
     return query;
