@@ -3969,6 +3969,7 @@ const T = {
         tplFamIncome: '💼 ЗП партнёра, 💰 ЗП, 🎁 Подарки',
         tplPersonalPreview: 'Стандартные категории',
         tplCryptoPreview: 'Только баланс биржи (read-only)',
+        cryptoNoTx: 'Инвестиционный счёт только для просмотра',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -4057,6 +4058,7 @@ const T = {
         tplFamIncome: '💼 Partner salary, 💰 Salary, 🎁 Gifts',
         tplPersonalPreview: 'Default categories',
         tplCryptoPreview: 'Exchange balance only (read-only)',
+        cryptoNoTx: 'Investment account is read-only',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -4144,6 +4146,7 @@ const T = {
         tplFamIncome: '💼 Wynagrodzenie partnera, 💰 Wynagrodzenie, 🎁 Prezenty',
         tplPersonalPreview: 'Standardowe kategorie',
         tplCryptoPreview: 'Tylko saldo giełdy (tylko do odczytu)',
+        cryptoNoTx: 'Konto inwestycyjne jest tylko do odczytu',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -4231,6 +4234,7 @@ const T = {
         tplFamIncome: '💼 ЗП партнера, 💰 ЗП, 🎁 Подарунки',
         tplPersonalPreview: 'Стандартні категорії',
         tplCryptoPreview: 'Тільки баланс біржі (read-only)',
+        cryptoNoTx: 'Інвестиційний рахунок тільки для перегляду',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -5336,6 +5340,13 @@ function selectCategory(key) {
 // ============================================
 
 function openAddModal() {
+    // Block transactions on crypto (investment) accounts — read-only
+    const activeAcc = state.accounts?.find(a => a.id === state.activeAccountId);
+    if (activeAcc?.type === 'crypto') {
+        showToast(t('cryptoNoTx') || 'Инвестиционный счёт только для просмотра');
+        return;
+    }
+
     const modal = document.getElementById('addModal');
     modal.classList.add('show');
 
