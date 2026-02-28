@@ -3641,7 +3641,7 @@ select.input-field option {
                     <div class="input-label" id="newAccountExchangeLabel">Биржа</div>
 <button class="picker-trigger" id="exchangeTrigger" onclick="openExchangePicker()">
                 <div class="picker-trigger-left">
-                    <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 126 126" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;"><path d="M38.6 53.1l24.4-24.4 24.4 24.4 14.2-14.2L63 0.1 24.2 38.9l14.4 14.2zM0 63l14.2-14.2L28.4 63 14.2 77.2zM38.6 72.9L63 97.3l24.4-24.4 14.2 14.2L63 125.9 24.2 87.1l14.4-14.2zM97.6 63l14.2-14.2L126 63l-14.2 14.2zM77.4 63L63 48.6 48.6 63 63 77.4z"/></svg></div>
+                    <div class="picker-trigger-icon" style="background:#F0B90B;"><svg viewBox="0 0 126 126" fill="#fff" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;"><path d="M38.6 53.1l24.4-24.4 24.4 24.4 14.2-14.2L63 0.1 24.2 38.9l14.4 14.2zM0 63l14.2-14.2L28.4 63 14.2 77.2zM38.6 72.9L63 97.3l24.4-24.4 14.2 14.2L63 125.9 24.2 87.1l14.4-14.2zM97.6 63l14.2-14.2L126 63l-14.2 14.2zM77.4 63L63 48.6 48.6 63 63 77.4z"/></svg></div>
                     <span class="picker-trigger-text">Binance</span>
                 </div>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
@@ -6981,15 +6981,15 @@ function _refreshImportAccountTrigger() {
 // ── Exchange brand logos (20x20 icon marks) ──
 function getExchangeLogoSVG(exchange) {
     const logos = {
-        // Binance — 4 diamond cross pattern (#F0B90B yellow)
-        binance: `<svg viewBox="0 0 126 126" fill="#F0B90B" xmlns="http://www.w3.org/2000/svg">
+        // Binance — 4 diamond cross pattern (white on #F0B90B yellow bg)
+        binance: `<svg viewBox="0 0 126 126" fill="#fff" xmlns="http://www.w3.org/2000/svg">
             <path d="M38.6 53.1l24.4-24.4 24.4 24.4 14.2-14.2L63 0.1 24.2 38.9l14.4 14.2zM0 63l14.2-14.2L28.4 63 14.2 77.2zM38.6 72.9L63 97.3l24.4-24.4 14.2 14.2L63 125.9 24.2 87.1l14.4-14.2zM97.6 63l14.2-14.2L126 63l-14.2 14.2zM77.4 63L63 48.6 48.6 63 63 77.4z"/>
         </svg>`,
 
-        // Bybit — black square with BYBIT wordmark
+        // Bybit — "B" lettermark on orange bg (brand: #F7A600 bg, dark mark)
         bybit: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <rect width="20" height="20" rx="4" fill="#17181e"/>
-            <text x="10" y="13.2" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="5.8" letter-spacing=".3"><tspan fill="#fff">BY</tspan><tspan fill="#F7A600">I</tspan><tspan fill="#fff">T</tspan></text>
+            <path d="M7 5h3.8a2.2 2.2 0 0 1 0 4.4H7zm0 5.6h4.1a2.4 2.4 0 0 1 0 4.8H7z" fill="#17181e"/>
+            <rect x="10.2" y="8.8" width="2" height="2.8" rx=".8" fill="#17181e" opacity=".5"/>
         </svg>`,
 
         // OKX — 8 squares cross grid, center empty (#FFF on dark bg)
@@ -7004,49 +7004,49 @@ function getExchangeLogoSVG(exchange) {
             <rect x="14" y="14" width="5" height="5" rx=".8" fill="#fff"/>
         </svg>`,
 
-        // KuCoin — K arrows on blue circle (#23AF91 green)
+        // KuCoin — K arrows (white on #23AF91 green bg)
         kucoin: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="10" r="10" fill="#23AF91"/>
             <path d="M7 5.5v9M7 10l4.5-4.5M7 10l4.5 4.5M13 10a1.2 1.2 0 1 0 0-.01" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`,
 
-        // MEXC — two overlapping triangles (#00B897 teal)
+        // MEXC — M triangle mark (white on dark bg)
         mexc: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 17L10 3l5 14" fill="none" stroke="#00B897" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M2.5 17h15" stroke="#00B897" stroke-width="2" stroke-linecap="round"/>
         </svg>`,
 
-        // Gate.io — rotated diamond G mark (#2354FE blue)
+        // Gate.io — diamond G mark (white on #2354FE blue bg)
         gateio: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 1L19 10L10 19L1 10z" fill="none" stroke="#2354FE" stroke-width="2"/>
-            <path d="M10 6L15 10H10v5" fill="none" stroke="#2354FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 1L19 10L10 19L1 10z" fill="none" stroke="#fff" stroke-width="2"/>
+            <path d="M10 6L15 10H10v5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`,
 
-        // Bitget — bowtie/X mark (#00F0FF → use #1DA2B4 for visibility)
+        // Bitget — bowtie X (white on #1DA2B4 teal bg)
         bitget: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 4h5l6.5 6L7 16H2l6.5-6L2 4z" fill="#1DA2B4"/>
-            <path d="M18 16h-5L6.5 10 13 4h5l-6.5 6L18 16z" fill="#1DA2B4"/>
+            <path d="M2 4h5l6.5 6L7 16H2l6.5-6L2 4z" fill="#fff"/>
+            <path d="M18 16h-5L6.5 10 13 4h5l-6.5 6L18 16z" fill="#fff"/>
         </svg>`,
 
-        // HTX (ex-Huobi) — flame/drop (#2B60DE blue)
+        // HTX (ex-Huobi) — flame drop (white on #2B60DE blue bg)
         htx: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 1C7.5 4.5 5 7 5 11a5 5 0 0 0 10 0c0-4-2.5-6.5-5-10z" fill="#2B60DE"/>
-            <path d="M10 7c-1.2 1.8-2.2 3.2-2.2 5a2.2 2.2 0 0 0 4.4 0c0-1.8-1-3.2-2.2-5z" fill="#5B9AEF"/>
+            <path d="M10 1C7.5 4.5 5 7 5 11a5 5 0 0 0 10 0c0-4-2.5-6.5-5-10z" fill="#fff"/>
+            <path d="M10 7c-1.2 1.8-2.2 3.2-2.2 5a2.2 2.2 0 0 0 4.4 0c0-1.8-1-3.2-2.2-5z" fill="rgba(255,255,255,0.5)"/>
         </svg>`,
     };
     return logos[exchange] || logos.binance;
 }
 
 // passphrase: true = exchange requires API Passphrase (OKX, KuCoin, Bitget)
+// bg = brand background color for icon container
 const _EXCHANGES = [
-    { value: 'binance', label: 'Binance',  emoji: '🟡', passphrase: false },
-    { value: 'bybit',   label: 'Bybit',    emoji: '🟠', passphrase: false },
-    { value: 'okx',     label: 'OKX',      emoji: '⚫', passphrase: true  },
-    { value: 'kucoin',  label: 'KuCoin',   emoji: '🟢', passphrase: true  },
-    { value: 'mexc',    label: 'MEXC',     emoji: '🔵', passphrase: false },
-    { value: 'gateio',  label: 'Gate.io',  emoji: '🟣', passphrase: false },
-    { value: 'bitget',  label: 'Bitget',   emoji: '🌊', passphrase: true  },
-    { value: 'htx',     label: 'HTX',      emoji: '🔶', passphrase: false },
+    { value: 'binance', label: 'Binance',  emoji: '🟡', passphrase: false, bg: '#F0B90B' },
+    { value: 'bybit',   label: 'Bybit',    emoji: '🟠', passphrase: false, bg: '#F7A600' },
+    { value: 'okx',     label: 'OKX',      emoji: '⚫', passphrase: true,  bg: '#000000' },
+    { value: 'kucoin',  label: 'KuCoin',   emoji: '🟢', passphrase: true,  bg: '#23AF91' },
+    { value: 'mexc',    label: 'MEXC',     emoji: '🔵', passphrase: false, bg: '#1a2332' },
+    { value: 'gateio',  label: 'Gate.io',  emoji: '🟣', passphrase: false, bg: '#2354FE' },
+    { value: 'bitget',  label: 'Bitget',   emoji: '🌊', passphrase: true,  bg: '#1DA2B4' },
+    { value: 'htx',     label: 'HTX',      emoji: '🔶', passphrase: false, bg: '#2B60DE' },
 ];
 let _exchangeValue = 'binance';
 
@@ -7066,7 +7066,7 @@ function openExchangePicker() {
             label: ex.label,
             iconHTML: getExchangeLogoSVG(ex.value),
             iconColor: null,
-            iconBg: ex.value === 'okx' ? '#000;border-radius:8px' : null,
+            iconBg: ex.bg || null,
             selected: ex.value === _exchangeValue,
         })),
         onSelect: (val) => {
@@ -7075,7 +7075,10 @@ function openExchangePicker() {
             if (ex) {
                 const iconEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-icon');
                 const labelEl = document.getElementById('exchangeTrigger')?.querySelector('.picker-trigger-text');
-                if (iconEl) iconEl.innerHTML = getExchangeLogoSVG(ex.value);
+                if (iconEl) {
+                    iconEl.innerHTML = getExchangeLogoSVG(ex.value);
+                    iconEl.style.background = ex.bg || 'var(--bg-elevated)';
+                }
                 if (labelEl) labelEl.textContent = ex.label;
             }
             _updatePassphraseVisibility(val);
