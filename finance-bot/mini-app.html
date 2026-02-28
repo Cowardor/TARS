@@ -2876,8 +2876,8 @@ select.input-field option {
                 <div class="transaction-list" id="recentTransactions">
                     <div class="empty-state">
                         <div class="empty-state-icon">&#128200;</div>
-                        <div class="empty-state-title">Пока пусто</div>
-                        <div class="empty-state-text">Добавь первый расход<br>и он появится здесь</div>
+                        <div class="empty-state-title" id="emptyStateTitle">Пока пусто</div>
+                        <div class="empty-state-text" id="emptyStateText">Добавь первый расход<br>и он появится здесь</div>
                     </div>
                 </div>
             </div>
@@ -2916,7 +2916,7 @@ select.input-field option {
                 <!-- Crypto portfolio stats -->
                 <div id="cryptoStatsView" style="display:none;">
                     <div class="stats-header">
-                        <div class="stats-title">Портфель</div>
+                        <div class="stats-title" id="cryptoPortfolioTitleEl">Портфель</div>
                         <div class="stats-subtitle" id="cryptoStatsExchange"></div>
                     </div>
 
@@ -2928,12 +2928,12 @@ select.input-field option {
                     </div>
 
                     <div class="settings-group" id="cryptoChartSection" style="margin-top:12px;display:none;">
-                        <div class="settings-group-title">Динамика портфеля</div>
+                        <div class="settings-group-title" id="cryptoTrendTitleEl">Динамика портфеля</div>
                         <div id="cryptoLineChart" style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;"></div>
                     </div>
 
                     <div class="settings-group" style="margin-top:12px;">
-                        <div class="settings-group-title">Активы</div>
+                        <div class="settings-group-title" id="cryptoAssetsTitleEl">Активы</div>
                         <div id="cryptoCoinList" class="breakdown-list"></div>
                     </div>
                 </div>
@@ -3182,8 +3182,8 @@ select.input-field option {
                                 </svg>
                             </div>
                             <div class="settings-text">
-                                <div class="settings-label">Импорт CSV</div>
-                                <div class="settings-desc">Загрузить транзакции из файла</div>
+                                <div class="settings-label" data-i18n="importCsv">Импорт CSV</div>
+                                <div class="settings-desc" data-i18n="importDesc">Загрузить транзакции из файла</div>
                             </div>
                             <div class="settings-chevron">&#8250;</div>
                         </div>
@@ -3353,7 +3353,7 @@ select.input-field option {
 
             <!-- Scope toggle: shown only when user is in a family -->
             <div id="catScopeSection" style="display:none;margin-bottom:16px;">
-                <div class="category-label" style="margin-bottom:8px;">Видимость категории</div>
+                <div class="category-label" style="margin-bottom:8px;" id="catVisibilityLabel">Видимость категории</div>
                 <div class="type-toggle">
                     <button class="type-btn active-expense" id="catScopePersonal" onclick="setCategoryScope('personal')" style="">&#128100; Личная</button>
                     <button class="type-btn" id="catScopeFamily" onclick="setCategoryScope('family')">&#128106; Семейная</button>
@@ -3442,13 +3442,13 @@ select.input-field option {
         <div class="modal-sheet">
             <div class="modal-handle"></div>
             <div class="modal-header">
-                <div class="modal-title">Редактировать операцию</div>
+                <div class="modal-title" id="editModalTitle">Редактировать операцию</div>
                 <button class="modal-close" onclick="closeEditModal()">&times;</button>
             </div>
 
             <div class="type-toggle">
-                <button class="type-btn active-expense" id="editBtnExpense" onclick="setEditType('expense')">Расход</button>
-                <button class="type-btn" id="editBtnIncome" onclick="setEditType('income')">Доход</button>
+                <button class="type-btn active-expense" id="editBtnExpense" onclick="setEditType('expense')" data-i18n="expense">Расход</button>
+                <button class="type-btn" id="editBtnIncome" onclick="setEditType('income')" data-i18n="incomeType">Доход</button>
             </div>
 
             <div class="amount-input-wrap">
@@ -3457,14 +3457,14 @@ select.input-field option {
             </div>
 
             <div>
-                <div class="category-label">Категория</div>
+                <div class="category-label" data-i18n="category">Категория</div>
                 <div class="category-grid" id="editCategoryGrid"></div>
             </div>
 
-            <input type="text" class="desc-input" id="editDescInput" placeholder="Описание (необязательно)">
+            <input type="text" class="desc-input" id="editDescInput" placeholder="Описание (необязательно)" data-i18n="descOptional">
 
             <button class="submit-btn expense-mode" id="editSubmitBtn" onclick="submitEditTransaction()">
-                Сохранить изменения
+                <span id="editSubmitLabel">Сохранить изменения</span>
             </button>
         </div>
     </div>
@@ -3474,7 +3474,7 @@ select.input-field option {
         <div class="modal-sheet" style="max-height:90vh;">
             <div class="modal-handle"></div>
             <div class="modal-header">
-                <div class="modal-title">&#128229; Импорт CSV</div>
+                <div class="modal-title" id="csvImportTitleEl">&#128229; Импорт CSV</div>
                 <button class="modal-close" onclick="closeCsvImport()">&times;</button>
             </div>
 
@@ -3489,13 +3489,13 @@ select.input-field option {
 
                 <div style="text-align:center;padding:28px 16px;background:var(--bg-card);border-radius:var(--radius-lg);border:2px dashed var(--border);margin-bottom:16px;cursor:pointer;" onclick="document.getElementById('csvFileInput').click()">
                     <div style="font-size:36px;margin-bottom:8px;">&#128196;</div>
-                    <div style="font-weight:600;margin-bottom:4px;">Выбрать CSV файл</div>
-                    <div style="font-size:12px;color:var(--text-muted);">Нажмите чтобы выбрать файл</div>
+                    <div style="font-weight:600;margin-bottom:4px;" id="csvPickFileLabel">Выбрать CSV файл</div>
+                    <div style="font-size:12px;color:var(--text-muted);" id="csvTapLabel">Нажмите чтобы выбрать файл</div>
                 </div>
                 <input type="file" id="csvFileInput" accept=".csv,.txt" style="display:none;" onchange="handleCsvFile(this)">
 
                 <div style="background:var(--bg-card);border-radius:var(--radius-md);padding:14px;font-size:12px;color:var(--text-muted);">
-                    <div style="font-weight:600;color:var(--text-secondary);margin-bottom:8px;">Формат CSV:</div>
+                    <div style="font-weight:600;color:var(--text-secondary);margin-bottom:8px;" id="csvFormatLabel">Формат CSV:</div>
                     <div style="font-family:monospace;margin-bottom:2px;">date,type,amount,description</div>
                     <div style="font-family:monospace;color:var(--danger);">2026-01-15,expense,45.50,Biedronka</div>
                     <div style="font-family:monospace;color:var(--success);">2026-01-31,income,3400,Зарплата</div>
@@ -3508,7 +3508,7 @@ select.input-field option {
             <div id="csvPreviewSection" style="display:none;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                     <div style="font-weight:600;" id="csvPreviewCount">0 строк</div>
-                    <button onclick="resetCsvImport()" style="background:none;border:none;color:var(--accent-blue);font-size:13px;cursor:pointer;font-family:inherit;">&#8592; Назад</button>
+                    <button onclick="resetCsvImport()" id="csvBackBtn" style="background:none;border:none;color:var(--accent-blue);font-size:13px;cursor:pointer;font-family:inherit;">&#8592; Назад</button>
                 </div>
 
                 <div id="csvPreviewList" style="max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
@@ -3970,6 +3970,32 @@ const T = {
         tplPersonalPreview: 'Стандартные категории',
         tplCryptoPreview: 'Только баланс биржи (read-only)',
         cryptoNoTx: 'Инвестиционный счёт только для просмотра',
+        // UI strings
+        emptyStateTitle: 'Пока пусто', emptyStateText: 'Добавь первый расход и он появится здесь',
+        editTitle: 'Редактировать операцию', saveChanges: 'Сохранить изменения',
+        deleteTxConfirm: 'Удалить эту операцию?', txDeleted: 'Операция удалена', txUpdated: 'Операция обновлена',
+        errSave: 'Ошибка сохранения', errDeleteTx: 'Ошибка удаления', errUpdate: 'Ошибка обновления',
+        errDeleteAcc: 'Ошибка удаления счёта', errCurrency: 'Ошибка смены валюты',
+        errCategories: 'Ошибка загрузки категорий', errExport: 'Ошибка загрузки данных', errImport: 'Ошибка импорта',
+        catAdded: 'Категория добавлена', catRenamed: 'Категория переименована', catDeleted: 'Категория удалена',
+        errAdd: 'Ошибка добавления', errRename: 'Ошибка переименования',
+        fillAllFields: 'Заполните все поля', nameEmpty: 'Имя не может быть пустым',
+        deleteAccConfirm: 'Удалить счёт', deleteAccBody: 'Транзакции сохранятся, но потеряют привязку к счёту.',
+        deleteCatConfirm: 'Удалить категорию', deleteCatBody: 'У неё {n} операций.',
+        csvEmpty: 'Файл пустой', csvNoRows: 'Не удалось распознать строки',
+        csvImported: 'Импортировано', txMany: 'операций', csvRows: 'строк',
+        cryptoLoading: '⏳ Загрузка...', cryptoSyncing: '⏳ Обновляю...', cryptoUpdated: 'Обновлено:',
+        notSynced: 'Не синхронизировано', noPortfolioData: 'Нет данных',
+        syncOnMain: 'Синхронизируйте портфель на главной',
+        catBadgeAccount: 'Счёт', catBadgeOwn: 'Своя', catBadgeFamily: 'Семья',
+        dataRefreshed: 'Данные обновлены', budgetCount: 'лимитов',
+        importCsvTitle: '📥 Импорт CSV', importBtn: 'Импортировать',
+        pickCsvFile: 'Выбрать CSV файл', tapToChooseFile: 'Нажмите чтобы выбрать файл',
+        csvFormat: 'Формат CSV:', csvBack: '← Назад',
+        cryptoPortfolioTitle: 'Портфель', cryptoTrend: 'Динамика портфеля', cryptoAssets: 'Активы',
+        catVisibility: 'Видимость категории', catPersonalScope: '👤 Личная', catFamilyScope: '👨\u200d👩\u200d👧 Семейная',
+        undone: 'Отменено:', nothingToUndo: 'Нечего отменять', currencyChanged: 'Валюта изменена на',
+        notUsed: 'Не использовалась',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -4059,6 +4085,32 @@ const T = {
         tplPersonalPreview: 'Default categories',
         tplCryptoPreview: 'Exchange balance only (read-only)',
         cryptoNoTx: 'Investment account is read-only',
+        // UI strings
+        emptyStateTitle: 'Nothing yet', emptyStateText: 'Add your first expense and it will appear here',
+        editTitle: 'Edit transaction', saveChanges: 'Save changes',
+        deleteTxConfirm: 'Delete this transaction?', txDeleted: 'Transaction deleted', txUpdated: 'Transaction updated',
+        errSave: 'Save error', errDeleteTx: 'Delete error', errUpdate: 'Update error',
+        errDeleteAcc: 'Account delete error', errCurrency: 'Currency change error',
+        errCategories: 'Categories load error', errExport: 'Export data error', errImport: 'Import error',
+        catAdded: 'Category added', catRenamed: 'Category renamed', catDeleted: 'Category deleted',
+        errAdd: 'Add error', errRename: 'Rename error',
+        fillAllFields: 'Please fill all fields', nameEmpty: 'Name cannot be empty',
+        deleteAccConfirm: 'Delete account', deleteAccBody: 'Transactions will be kept but unlinked.',
+        deleteCatConfirm: 'Delete category', deleteCatBody: 'It has {n} transactions.',
+        csvEmpty: 'File is empty', csvNoRows: 'Could not parse rows',
+        csvImported: 'Imported', txMany: 'transactions', csvRows: 'rows',
+        cryptoLoading: '⏳ Loading...', cryptoSyncing: '⏳ Syncing...', cryptoUpdated: 'Updated:',
+        notSynced: 'Not synced', noPortfolioData: 'No data',
+        syncOnMain: 'Sync portfolio on the main screen',
+        catBadgeAccount: 'Account', catBadgeOwn: 'Custom', catBadgeFamily: 'Family',
+        dataRefreshed: 'Data refreshed', budgetCount: 'limits',
+        importCsvTitle: '📥 Import CSV', importBtn: 'Import',
+        pickCsvFile: 'Choose CSV file', tapToChooseFile: 'Tap to choose file',
+        csvFormat: 'CSV format:', csvBack: '← Back',
+        cryptoPortfolioTitle: 'Portfolio', cryptoTrend: 'Portfolio dynamics', cryptoAssets: 'Assets',
+        catVisibility: 'Category visibility', catPersonalScope: '👤 Personal', catFamilyScope: '👨\u200d👩\u200d👧 Family',
+        undone: 'Undone:', nothingToUndo: 'Nothing to undo', currencyChanged: 'Currency changed to',
+        notUsed: 'Not used',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -4147,6 +4199,32 @@ const T = {
         tplPersonalPreview: 'Standardowe kategorie',
         tplCryptoPreview: 'Tylko saldo giełdy (tylko do odczytu)',
         cryptoNoTx: 'Konto inwestycyjne jest tylko do odczytu',
+        // UI strings
+        emptyStateTitle: 'Jeszcze nic', emptyStateText: 'Dodaj swój pierwszy wydatek i pojawi się tutaj',
+        editTitle: 'Edytuj operację', saveChanges: 'Zapisz zmiany',
+        deleteTxConfirm: 'Usunąć tę operację?', txDeleted: 'Operacja usunięta', txUpdated: 'Operacja zaktualizowana',
+        errSave: 'Błąd zapisu', errDeleteTx: 'Błąd usuwania', errUpdate: 'Błąd aktualizacji',
+        errDeleteAcc: 'Błąd usuwania konta', errCurrency: 'Błąd zmiany waluty',
+        errCategories: 'Błąd ładowania kategorii', errExport: 'Błąd danych eksportu', errImport: 'Błąd importu',
+        catAdded: 'Kategoria dodana', catRenamed: 'Kategoria przemianowana', catDeleted: 'Kategoria usunięta',
+        errAdd: 'Błąd dodawania', errRename: 'Błąd zmiany nazwy',
+        fillAllFields: 'Wypełnij wszystkie pola', nameEmpty: 'Nazwa nie może być pusta',
+        deleteAccConfirm: 'Usuń konto', deleteAccBody: 'Transakcje zostaną zachowane, ale odłączone.',
+        deleteCatConfirm: 'Usuń kategorię', deleteCatBody: 'Ma {n} transakcji.',
+        csvEmpty: 'Plik jest pusty', csvNoRows: 'Nie udało się przetworzyć wierszy',
+        csvImported: 'Zaimportowano', txMany: 'transakcji', csvRows: 'wierszy',
+        cryptoLoading: '⏳ Ładowanie...', cryptoSyncing: '⏳ Synchronizuję...', cryptoUpdated: 'Zaktualizowano:',
+        notSynced: 'Nie zsynchronizowano', noPortfolioData: 'Brak danych',
+        syncOnMain: 'Zsynchronizuj portfel na ekranie głównym',
+        catBadgeAccount: 'Konto', catBadgeOwn: 'Własna', catBadgeFamily: 'Rodzina',
+        dataRefreshed: 'Dane odświeżone', budgetCount: 'limitów',
+        importCsvTitle: '📥 Import CSV', importBtn: 'Importuj',
+        pickCsvFile: 'Wybierz plik CSV', tapToChooseFile: 'Kliknij aby wybrać plik',
+        csvFormat: 'Format CSV:', csvBack: '← Wstecz',
+        cryptoPortfolioTitle: 'Portfel', cryptoTrend: 'Dynamika portfela', cryptoAssets: 'Aktywa',
+        catVisibility: 'Widoczność kategorii', catPersonalScope: '👤 Osobista', catFamilyScope: '👨\u200d👩\u200d👧 Rodzinna',
+        undone: 'Cofnięto:', nothingToUndo: 'Nic do cofnięcia', currencyChanged: 'Waluta zmieniona na',
+        notUsed: 'Nie używana',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -4235,6 +4313,32 @@ const T = {
         tplPersonalPreview: 'Стандартні категорії',
         tplCryptoPreview: 'Тільки баланс біржі (read-only)',
         cryptoNoTx: 'Інвестиційний рахунок тільки для перегляду',
+        // UI strings
+        emptyStateTitle: 'Поки порожньо', emptyStateText: 'Додай перший витрат і він з\'явиться тут',
+        editTitle: 'Редагувати операцію', saveChanges: 'Зберегти зміни',
+        deleteTxConfirm: 'Видалити цю операцію?', txDeleted: 'Операцію видалено', txUpdated: 'Операцію оновлено',
+        errSave: 'Помилка збереження', errDeleteTx: 'Помилка видалення', errUpdate: 'Помилка оновлення',
+        errDeleteAcc: 'Помилка видалення рахунку', errCurrency: 'Помилка зміни валюти',
+        errCategories: 'Помилка завантаження категорій', errExport: 'Помилка даних експорту', errImport: 'Помилка імпорту',
+        catAdded: 'Категорію додано', catRenamed: 'Категорію перейменовано', catDeleted: 'Категорію видалено',
+        errAdd: 'Помилка додавання', errRename: 'Помилка перейменування',
+        fillAllFields: 'Заповніть усі поля', nameEmpty: 'Назва не може бути порожньою',
+        deleteAccConfirm: 'Видалити рахунок', deleteAccBody: 'Транзакції збережуться, але втратять прив\'язку до рахунку.',
+        deleteCatConfirm: 'Видалити категорію', deleteCatBody: 'Має {n} транзакцій.',
+        csvEmpty: 'Файл порожній', csvNoRows: 'Не вдалося розпізнати рядки',
+        csvImported: 'Імпортовано', txMany: 'операцій', csvRows: 'рядків',
+        cryptoLoading: '⏳ Завантаження...', cryptoSyncing: '⏳ Оновлюю...', cryptoUpdated: 'Оновлено:',
+        notSynced: 'Не синхронізовано', noPortfolioData: 'Немає даних',
+        syncOnMain: 'Синхронізуйте портфель на головній',
+        catBadgeAccount: 'Рахунок', catBadgeOwn: 'Своя', catBadgeFamily: 'Сім\'я',
+        dataRefreshed: 'Дані оновлено', budgetCount: 'лімітів',
+        importCsvTitle: '📥 Імпорт CSV', importBtn: 'Імпортувати',
+        pickCsvFile: 'Вибрати CSV файл', tapToChooseFile: 'Натисніть щоб вибрати файл',
+        csvFormat: 'Формат CSV:', csvBack: '← Назад',
+        cryptoPortfolioTitle: 'Портфель', cryptoTrend: 'Динаміка портфеля', cryptoAssets: 'Активи',
+        catVisibility: 'Видимість категорії', catPersonalScope: '👤 Особиста', catFamilyScope: '👨\u200d👩\u200d👧 Сімейна',
+        undone: 'Скасовано:', nothingToUndo: 'Нічого скасовувати', currencyChanged: 'Валюту змінено на',
+        notUsed: 'Не використовувалась',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -4324,6 +4428,36 @@ function applyLanguage() {
     const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
     setText('themeSettingsLabel', t(isDark ? 'themeDark' : 'themeLight'));
     setText('themeDesc', t('themeDesc'));
+
+    // Empty state on home
+    setText('emptyStateTitle', t('emptyStateTitle'));
+    setText('emptyStateText', t('emptyStateText'));
+
+    // Edit transaction modal
+    setText('editModalTitle', t('editTitle'));
+    setText('editSubmitLabel', t('saveChanges'));
+
+    // New account modal - template preview
+    setText('tplPreviewLabel', t('tplPreview'));
+
+    // Stats crypto section
+    setText('cryptoPortfolioTitleEl', t('cryptoPortfolioTitle'));
+    setText('cryptoTrendTitleEl', t('cryptoTrend'));
+    setText('cryptoAssetsTitleEl', t('cryptoAssets'));
+
+    // CSV import modal
+    setText('csvImportTitleEl', t('importCsvTitle'));
+    setText('csvPickFileLabel', t('pickCsvFile'));
+    setText('csvTapLabel', t('tapToChooseFile'));
+    setText('csvFormatLabel', t('csvFormat'));
+    setText('csvBackBtn', t('csvBack'));
+
+    // Category scope
+    setText('catVisibilityLabel', t('catVisibility'));
+    const scopePersonal = document.getElementById('catScopePersonal');
+    if (scopePersonal) scopePersonal.textContent = t('catPersonalScope');
+    const scopeFamily = document.getElementById('catScopeFamily');
+    if (scopeFamily) scopeFamily.textContent = t('catFamilyScope');
 
     // Re-render account chips in category manager
     renderCatAccountChips();
@@ -4694,7 +4828,7 @@ function _renderAccountCard(acc) {
         const balances = acc.crypto_balances || [];
         const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
         const syncInfo = acc.crypto_synced_at
-            ? `<div style="text-align:center;padding:4px 0 0;color:var(--text-muted);font-size:10px;">Обновлено: ${new Date(acc.crypto_synced_at + 'Z').toLocaleTimeString()}</div>`
+            ? `<div style="text-align:center;padding:4px 0 0;color:var(--text-muted);font-size:10px;">${t('cryptoUpdated')} ${new Date(acc.crypto_synced_at + 'Z').toLocaleTimeString()}</div>`
             : '';
         return `
         <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
@@ -4703,7 +4837,7 @@ function _renderAccountCard(acc) {
             <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
             <div class="crypto-balance-list" id="cryptoBalList${acc.id}">
                 ${balances.length === 0
-                    ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">⏳ Загрузка...</div>`
+                    ? `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px;">${t('cryptoLoading')}</div>`
                     : balances.slice(0, 6).map(b => `
                         <div class="crypto-balance-row">
                             <span class="crypto-symbol">${b.symbol}</span>
@@ -4819,7 +4953,7 @@ async function syncCryptoAccount(accountId, silent = false) {
     const listEl = document.getElementById(`cryptoBalList${accountId}`);
     if (!silent && listEl) {
         listEl.insertAdjacentHTML('beforeend',
-            '<div id="cryptoSyncSpinner" style="text-align:center;padding:6px;color:var(--text-muted);font-size:11px;">⏳ Обновляю...</div>');
+            `<div id="cryptoSyncSpinner" style="text-align:center;padding:6px;color:var(--text-muted);font-size:11px;">${t('cryptoSyncing')}</div>`);
     }
 
     const data = await apiFetch('/api/accounts/sync-crypto', {
@@ -5075,7 +5209,7 @@ function renderSettingsAccountsList() {
 }
 
 async function deleteAccount(accountId, accountName) {
-    const confirmed = confirm(`Удалить счёт "${accountName}"?\n\nТранзакции сохранятся, но потеряют привязку к счёту.`);
+    const confirmed = confirm(`${t('deleteAccConfirm')} "${accountName}"?\n\n${t('deleteAccBody')}`);
     if (!confirmed) return;
 
     const result = await apiFetch('/api/accounts', {
@@ -5094,7 +5228,7 @@ async function deleteAccount(accountId, accountName) {
         await loadAccounts();
         await loadDashboard();
     } else {
-        showToast(result?.error || 'Ошибка удаления счёта');
+        showToast(result?.error || t('errDeleteAcc'));
     }
 }
 
@@ -5108,7 +5242,7 @@ function renderCatAccountChips() {
     const row = document.getElementById('catAccountChips');
     if (!row) return;
 
-    const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">Все</div>`;
+    const allChip = `<div class="account-chip ${catManagerAccountId === null ? 'active' : ''}" onclick="setCatAccountFilter(null)">${t('all')}</div>`;
     const accountChips = state.accounts.map(acc => {
         const icon = getAccountTypeIconHTML(acc.type).replace('<svg ', '<svg style="display:block;width:14px;height:14px;min-width:14px;flex-shrink:0;" ');
         return `<div class="account-chip ${catManagerAccountId === acc.id ? 'active' : ''}" onclick="setCatAccountFilter(${acc.id})">${icon} ${acc.name}</div>`;
@@ -5456,7 +5590,7 @@ async function submitEntry() {
 
         await loadDashboard();
     } else {
-        showToast('Ошибка сохранения');
+        showToast(t('errSave'));
         haptic('medium');
     }
 
@@ -5475,11 +5609,11 @@ async function undoLast() {
     });
 
     if (result && result.success) {
-        showToast(`Отменено: ${result.deleted.type === 'expense' ? '-' : '+'}${result.deleted.amount} ${state.userCurrency}`);
+        showToast(`${t('undone')} ${result.deleted.type === 'expense' ? '-' : '+'}${result.deleted.amount} ${state.userCurrency}`);
         haptic('success');
         await loadDashboard();
     } else {
-        showToast(result?.error || 'Нечего отменять');
+        showToast(result?.error || t('nothingToUndo'));
         haptic('medium');
     }
 }
@@ -5521,12 +5655,12 @@ async function changeCurrency(code) {
     if (result && result.success) {
         state.userCurrency = code;
         updateCurrencyDisplay();
-        showToast(`Валюта изменена на ${code}`);
+        showToast(`${t('currencyChanged')} ${code}`);
         haptic('success');
         closeCurrencyPicker();
         await loadDashboard();
     } else {
-        showToast('Ошибка смены валюты');
+        showToast(t('errCurrency'));
         haptic('medium');
     }
 }
@@ -5610,7 +5744,7 @@ function renderTransactionItem(tx) {
 
     const isIncome = tx.type === 'income';
     const emoji = tx.category_emoji || '📦';
-    const label = tx.category_name ? `${tx.category_emoji || ''} ${tx.category_name}` : 'Другое';
+    const label = tx.category_name ? `${tx.category_emoji || ''} ${tx.category_name}` : t('catOther');
     const amtClass = isIncome ? 'income' : 'expense';
     const sign = isIncome ? '+' : '-';
 
@@ -5644,7 +5778,7 @@ function renderTransactionItem(tx) {
 // ============================================
 
 async function deleteTransaction(id) {
-    if (!confirm('Удалить эту операцию?')) return;
+    if (!confirm(t('deleteTxConfirm'))) return;
 
     // Alar shake + dissolve on the transaction row
     const row = document.querySelector(`[data-tx-id="${id}"]`);
@@ -5661,13 +5795,13 @@ async function deleteTransaction(id) {
     });
 
     if (result && result.success) {
-        showToast('Операция удалена');
+        showToast(t('txDeleted'));
         haptic('success');
         await loadDashboard();
         if (state.currentTab === 'history') renderHistory();
     } else {
         if (row) row.classList.remove('alar-deleting');
-        showToast('Ошибка удаления');
+        showToast(t('errDeleteTx'));
         haptic('medium');
     }
 }
@@ -5781,7 +5915,7 @@ async function renderCryptoStats() {
     // Total
     document.getElementById('cryptoPortfolioTotal').innerHTML = `
         <div style="font-size:28px;font-weight:700;color:var(--text-primary);">$${(data.total_usd || 0).toFixed(2)}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${data.synced_at ? new Date(data.synced_at + 'Z').toLocaleString() : 'Не синхронизировано'}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${data.synced_at ? new Date(data.synced_at + 'Z').toLocaleString() : t('notSynced')}</div>
     `;
 
     // Coin list
@@ -5791,8 +5925,8 @@ async function renderCryptoStats() {
         coinList.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">₿</div>
-                <div class="empty-state-title">Нет данных</div>
-                <div class="empty-state-text">Синхронизируйте портфель на главной</div>
+                <div class="empty-state-title">${t('noPortfolioData')}</div>
+                <div class="empty-state-text">${t('syncOnMain')}</div>
             </div>`;
     } else {
         coinList.innerHTML = coins.map((c, i) => {
@@ -6049,7 +6183,7 @@ async function loadEditableCategories() {
     const qs = catManagerAccountId !== null ? `?account_id=${catManagerAccountId}` : '';
     const data = await apiFetch(`/api/categories/editable${qs}`);
     if (!data) {
-        showToast('Ошибка загрузки категорий');
+        showToast(t('errCategories'));
         return;
     }
 
@@ -6065,7 +6199,7 @@ async function loadEditableCategories() {
 }
 
 function renderCategoryManagerItem(cat, type) {
-    const txCountText = cat.tx_count ? `${cat.tx_count} ${cat.tx_count === 1 ? 'операция' : cat.tx_count < 5 ? 'операции' : 'операций'}` : 'Не использовалась';
+    const txCountText = cat.tx_count ? `${cat.tx_count} ${t('txMany')}` : t('notUsed');
     let badge = '';
     if (cat.account_id) {
         const acc = state.accounts.find(a => a.id === cat.account_id);
@@ -6074,12 +6208,12 @@ function renderCategoryManagerItem(cat, type) {
             const fg = TC[acc.type] || acc.color;
             badge = `<span class="category-badge" style="background:${fg}22;color:${fg};">${getAccountTypeIconHTML(acc.type)} ${acc.name}</span>`;
         } else {
-            badge = '<span class="category-badge">Счёт</span>';
+            badge = `<span class="category-badge">${t('catBadgeAccount')}</span>`;
         }
     } else if (cat.owner_type === 'user') {
-        badge = '<span class="category-badge">Своя</span>';
+        badge = `<span class="category-badge">${t('catBadgeOwn')}</span>`;
     } else if (cat.owner_type === 'family') {
-        badge = '<span class="category-badge" style="background:rgba(34,211,238,0.12);color:#22d3ee;">Семья</span>';
+        badge = `<span class="category-badge" style="background:rgba(34,211,238,0.12);color:#22d3ee;">${t('catBadgeFamily')}</span>`;
     }
 
     const iconBg    = type === 'expense' ? 'var(--danger-soft)'   : 'var(--success-soft)';
@@ -6159,7 +6293,7 @@ async function addCategory() {
     const name = document.getElementById('newCatName').value.trim();
 
     if (!emoji || !name) {
-        showToast('Заполните все поля');
+        showToast(t('fillAllFields'));
         return;
     }
 
@@ -6178,7 +6312,7 @@ async function addCategory() {
     });
 
     if (result && result.success) {
-        showToast(`Категория "${name}" добавлена`);
+        showToast(t('catAdded'));
         haptic('success');
         closeAddCategoryForm();
 
@@ -6189,7 +6323,7 @@ async function addCategory() {
         await loadCategories();
         buildCategoryGrid();
     } else {
-        showToast(result?.error || 'Ошибка добавления');
+        showToast(result?.error || t('errAdd'));
         haptic('medium');
     }
 }
@@ -6237,7 +6371,7 @@ async function saveRenameCategoryItem(id) {
     const newName = input.value.trim();
 
     if (!newName) {
-        showToast('Имя не может быть пустым');
+        showToast(t('nameEmpty'));
         return;
     }
 
@@ -6252,7 +6386,7 @@ async function saveRenameCategoryItem(id) {
     });
 
     if (result && result.success) {
-        showToast('Категория переименована');
+        showToast(t('catRenamed'));
         haptic('success');
 
         // Reload categories in manager
@@ -6262,7 +6396,7 @@ async function saveRenameCategoryItem(id) {
         await loadCategories();
         buildCategoryGrid();
     } else {
-        showToast(result?.error || 'Ошибка переименования');
+        showToast(result?.error || t('errRename'));
         haptic('medium');
     }
 }
@@ -6272,8 +6406,8 @@ async function deleteCategoryItem(id) {
     const cat = allCats.find(c => c.id === id);
 
     const confirmMsg = cat && cat.tx_count > 0
-        ? `Удалить категорию "${cat.name}"?\n\nУ неё ${cat.tx_count} ${cat.tx_count === 1 ? 'операция' : cat.tx_count < 5 ? 'операции' : 'операций'}.`
-        : `Удалить категорию "${cat ? cat.name : ''}"?`;
+        ? `${t('deleteCatConfirm')} "${cat.name}"?\n\n${t('deleteCatBody').replace('{n}', cat.tx_count)}`
+        : `${t('deleteCatConfirm')} "${cat ? cat.name : ''}"?`;
 
     if (!confirm(confirmMsg)) return;
 
@@ -6282,7 +6416,7 @@ async function deleteCategoryItem(id) {
     });
 
     if (result && result.success) {
-        showToast('Категория удалена');
+        showToast(t('catDeleted'));
         haptic('success');
 
         // Reload categories in manager
@@ -6292,7 +6426,7 @@ async function deleteCategoryItem(id) {
         await loadCategories();
         buildCategoryGrid();
     } else {
-        showToast(result?.error || 'Ошибка удаления');
+        showToast(result?.error || t('errDeleteTx'));
         haptic('medium');
     }
 }
@@ -6321,7 +6455,7 @@ async function loadExportData() {
     const qs = accountId ? `&account_id=${accountId}` : '';
     const data = await apiFetch(`/api/export?format=html${qs}`);
     if (!data) {
-        showToast('Ошибка загрузки данных экспорта');
+        showToast(t('errExport'));
         closeExportPreview();
         return;
     }
@@ -6333,7 +6467,7 @@ async function loadExportData() {
     if (periodText.includes(' — ')) {
         const parts = periodText.split(' — ');
         const startParts = parts[0].split('-');
-        const monthNames = { '01':'Янв','02':'Фев','03':'Мар','04':'Апр','05':'Май','06':'Июн','07':'Июл','08':'Авг','09':'Сен','10':'Окт','11':'Ноя','12':'Дек' };
+        const monthNames = Object.fromEntries(['01','02','03','04','05','06','07','08','09','10','11','12'].map((m,i) => [m, (T[state.language]||T.en).monthsShort[i]]));
         if (startParts.length === 3) {
             periodText = `${monthNames[startParts[1]] || startParts[1]} ${startParts[0]}`;
         }
@@ -6412,7 +6546,7 @@ async function refreshData() {
     if (state.currentTab === 'stats') renderStats();
     if (state.currentTab === 'history') renderHistory();
 
-    showToast('Данные обновлены');
+    showToast(t('dataRefreshed'));
     haptic('success');
 }
 
@@ -7108,7 +7242,7 @@ async function loadBudgets() {
         return;
     }
 
-    document.getElementById('budgetSummary').textContent = `${data.budgets.length} лимитов`;
+    document.getElementById('budgetSummary').textContent = `${data.budgets.length} ${t('budgetCount')}`;
 
     listEl.innerHTML = data.budgets.map(b => {
         const pct = Math.min(b.percentUsed, 100);
@@ -7404,17 +7538,17 @@ async function submitEditTransaction() {
     });
 
     btn.disabled = false;
-    btn.textContent = 'Сохранить изменения';
+    setText('editSubmitLabel', t('saveChanges'));
 
     if (result && result.success) {
         closeEditModal();
-        showToast('Операция обновлена');
+        showToast(t('txUpdated'));
         haptic('success');
         await loadDashboard();
         if (state.currentTab === 'history') renderHistory();
         if (state.currentTab === 'stats') renderStats();
     } else {
-        showToast(result?.error || 'Ошибка обновления');
+        showToast(result?.error || t('errUpdate'));
         haptic('medium');
     }
 }
@@ -7461,7 +7595,7 @@ function detectCategoryFromDescription(description, type) {
     const cats = type === 'income' ? CATEGORIES.income : CATEGORIES.expense;
 
     for (const cat of cats) {
-        if (cat.name !== 'Другое' && cat.name !== 'Other' && cat.name !== 'Inne') {
+        if (cat.name !== t('catOther') && !cat.i18nKey?.includes('Other')) {
             if (desc.includes(cat.name.toLowerCase())) return cat;
         }
     }
@@ -7470,7 +7604,7 @@ function detectCategoryFromDescription(description, type) {
 
 function parseCsvText(text) {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
-    if (!lines.length) { showToast('Файл пустой'); return; }
+    if (!lines.length) { showToast(t('csvEmpty')); return; }
 
     const firstLine = lines[0].toLowerCase();
     const hasHeader = firstLine.includes('date') || firstLine.includes('amount') ||
@@ -7515,14 +7649,14 @@ function parseCsvText(text) {
         csvRows.push({ date, type, amount: amt, description: description || '', category_id: cat?.id || null, category: cat });
     }
 
-    if (!csvRows.length) { showToast('Не удалось распознать строки'); return; }
+    if (!csvRows.length) { showToast(t('csvNoRows')); return; }
     renderCsvPreview();
 }
 
 function renderCsvPreview() {
     document.getElementById('csvUploadSection').style.display = 'none';
     document.getElementById('csvPreviewSection').style.display = 'block';
-    document.getElementById('csvPreviewCount').textContent = `${csvRows.length} строк`;
+    document.getElementById('csvPreviewCount').textContent = `${csvRows.length} ${t('csvRows')}`;
 
     const list = document.getElementById('csvPreviewList');
     list.innerHTML = csvRows.map((row, idx) => {
@@ -7572,16 +7706,16 @@ async function submitCsvImport() {
     });
 
     btn.disabled = false;
-    btn.textContent = '📥 Импортировать';
+    btn.textContent = `📥 ${t('importBtn')}`;
 
     if (result && result.success) {
         closeCsvImport();
-        showToast(`Импортировано: ${result.imported} операций`);
+        showToast(`${t('csvImported')}: ${result.imported} ${t('txMany')}`);
         haptic('success');
         await loadDashboard();
         if (state.currentTab === 'history') renderHistory();
     } else {
-        showToast(result?.error || 'Ошибка импорта');
+        showToast(result?.error || t('errImport'));
         haptic('medium');
     }
 }
