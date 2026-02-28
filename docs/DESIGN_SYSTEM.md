@@ -35,7 +35,7 @@
 ## Типографика (V12 — Editorial Finance)
 
 - **UI основной:** `Switzer` (fontshare.com) — 300–700
-- **Заголовки:** `Zodiak` (fontshare.com, serif) — greeting-name, modal-title, section-title, stats-title — `font-weight: 500–600`
+- **Заголовки:** `Satoshi` (fontshare.com) — greeting-name, modal-title, section-title, stats-title — `font-weight: 500–700`
 - **Числа/суммы:** `DM Mono` (Google Fonts) — `font-weight: 500`
 - Заголовки секций: `11px`, `font-weight: 600`, `letter-spacing: 0.06em`, `text-transform: uppercase`, `color: var(--text-muted)`
 - Основной текст: `14–16px`, `font-weight: 500`
@@ -44,10 +44,10 @@
 **Импорт шрифтов:**
 ```html
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,600,700&f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
 ```
 
-**ЗАПРЕЩЕНО:** использовать `Inter`, `JetBrains Mono` — заменены на `Switzer`, `DM Mono`
+**ЗАПРЕЩЕНО:** использовать `Inter`, `JetBrains Mono`, `Zodiak` — заменены на `Switzer`, `Satoshi`, `DM Mono`
 
 ---
 
