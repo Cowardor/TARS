@@ -17,184 +17,21 @@ import { parseMonth, getMonthRange } from './utils/db.js';
 import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
 import { handleMiniAppAPI } from './api/miniapp.js';
 import { handleAuth } from './api/auth.js';
-import MINIAPP_HTML from '../mini-app.html';
-
 // ============================================
-// INSTALL LANDING PAGE
+// STATIC ASSETS: served from public/ via Cloudflare Workers Static Assets
 // ============================================
-const INSTALL_PAGE = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Alar Finance — Install App</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#09090b">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Satoshi',sans-serif;background:#09090b;color:#fafafa;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
-.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px 40px;text-align:center;max-width:480px;width:100%}
-.logo{width:80px;height:80px;margin-bottom:24px;border-radius:20px;box-shadow:0 8px 32px rgba(59,130,246,0.3)}
-h1{font-family:'Switzer',sans-serif;font-size:32px;font-weight:600;margin-bottom:8px;background:linear-gradient(135deg,#3b82f6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{color:#a1a1aa;font-size:15px;margin-bottom:40px;line-height:1.5}
-.features{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:40px}
-.feature{background:#111114;border:1px solid #27272a;border-radius:16px;padding:16px;text-align:center}
-.feature-icon{font-size:28px;margin-bottom:8px}
-.feature-text{font-size:12px;color:#a1a1aa;line-height:1.4}
-.install-section{width:100%;max-width:480px;padding:0 24px}
-.install-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:12px;border:none;font-family:'Satoshi',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:transform 0.2s,opacity 0.2s}
-.install-btn:active{transform:scale(0.97)}
-.btn-primary{background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff}
-.btn-secondary{background:#111114;color:#fafafa;border:1px solid #27272a}
-.btn-icon{width:20px;height:20px}
-.web-link{display:block;text-align:center;color:#a1a1aa;font-size:13px;padding:16px;text-decoration:none;margin-bottom:20px}
-.web-link span{color:#3b82f6;text-decoration:underline}
-.steps{width:100%;max-width:480px;padding:0 24px 40px}
-.steps h3{font-size:16px;font-weight:600;margin-bottom:16px;color:#a1a1aa}
-.step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
-.step-num{min-width:28px;height:28px;background:linear-gradient(135deg,#3b82f6,#22d3ee);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.step-text{font-size:14px;line-height:1.5;color:#d4d4d8;padding-top:3px}
-.step-text b{color:#fafafa}
-.footer{text-align:center;padding:24px;color:#52525b;font-size:12px;border-top:1px solid #18181b;width:100%;margin-top:auto}
+// Landing page, mini-app, icons, manifest, sw.js — all served from public/
+// via [assets] in wrangler.toml. Use env.ASSETS.fetch(request) as fallback.
 
-/* iOS install modal */
-.ios-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:flex-end;justify-content:center;padding:16px}
-.ios-modal.show{display:flex}
-.ios-modal-content{background:#1c1c1e;border-radius:20px;padding:24px;max-width:360px;width:100%;margin-bottom:env(safe-area-inset-bottom,20px)}
-.ios-modal h3{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
-.ios-step{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #2c2c2e}
-.ios-step:last-child{border:none}
-.ios-step-icon{font-size:24px;min-width:32px;text-align:center}
-.ios-step-text{font-size:14px;color:#d4d4d8}
-.ios-step-text b{color:#fafafa}
-.ios-close{width:100%;padding:14px;background:#2c2c2e;border:none;border-radius:12px;color:#3b82f6;font-size:16px;font-weight:600;margin-top:16px;cursor:pointer;font-family:'Satoshi',sans-serif}
-
-/* Hide install section if already installed */
-@media(display-mode:standalone){
-  .install-section,.steps{display:none}
-  .hero{padding-bottom:20px}
-}
-</style>
-</head>
-<body>
-<div class="hero">
-  <img src="/icon-192.png" alt="Alar" class="logo">
-  <h1>Alar Finance</h1>
-  <p class="subtitle">Track expenses, income & budgets.<br>Auto-convert currencies. Bank sync.</p>
-  <div class="features">
-    <div class="feature"><div class="feature-icon">💰</div><div class="feature-text">Expense & Income tracking</div></div>
-    <div class="feature"><div class="feature-icon">📊</div><div class="feature-text">Statistics & Trends</div></div>
-    <div class="feature"><div class="feature-icon">💱</div><div class="feature-text">Auto currency conversion</div></div>
-    <div class="feature"><div class="feature-icon">🏦</div><div class="feature-text">Bank sync (Open Banking)</div></div>
-    <div class="feature"><div class="feature-icon">👨‍👩‍👧</div><div class="feature-text">Family budgets</div></div>
-    <div class="feature"><div class="feature-icon">📥</div><div class="feature-text">Excel export</div></div>
-  </div>
-</div>
-
-<div class="install-section">
-  <a class="install-btn btn-primary" id="androidBtn" href="/download/android" style="display:none;text-decoration:none">
-    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Download for Android
-  </a>
-  <button class="install-btn btn-primary" id="iosBtn" style="display:none" onclick="showIosModal()">
-    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Install on iPhone
-  </button>
-  <button class="install-btn btn-secondary" onclick="location.href='/app'">
-    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    Open in Browser
-  </button>
-  <a href="/app" class="web-link">or <span>continue in browser</span></a>
-</div>
-
-<div class="steps" id="androidSteps" style="display:none">
-  <h3>How to install:</h3>
-  <div class="step"><div class="step-num">1</div><div class="step-text">Tap <b>"Install App"</b> above</div></div>
-  <div class="step"><div class="step-num">2</div><div class="step-text">Confirm in the popup</div></div>
-  <div class="step"><div class="step-num">3</div><div class="step-text">App appears on your <b>home screen</b></div></div>
-</div>
-
-<div class="steps" id="iosSteps" style="display:none">
-  <h3>How to install on iPhone:</h3>
-  <div class="step"><div class="step-num">1</div><div class="step-text">Open this page in <b>Safari</b></div></div>
-  <div class="step"><div class="step-num">2</div><div class="step-text">Tap the <b>Share</b> button (square with arrow ↑)</div></div>
-  <div class="step"><div class="step-num">3</div><div class="step-text">Scroll down, tap <b>"Add to Home Screen"</b></div></div>
-  <div class="step"><div class="step-num">4</div><div class="step-text">Tap <b>"Add"</b> — done!</div></div>
-</div>
-
-<div class="ios-modal" id="iosModal">
-  <div class="ios-modal-content">
-    <h3>Install Alar Finance</h3>
-    <div class="ios-step"><div class="ios-step-icon">↑</div><div class="ios-step-text">Tap the <b>Share</b> button below</div></div>
-    <div class="ios-step"><div class="ios-step-icon">➕</div><div class="ios-step-text">Tap <b>"Add to Home Screen"</b></div></div>
-    <div class="ios-step"><div class="ios-step-icon">✓</div><div class="ios-step-text">Tap <b>"Add"</b> to install</div></div>
-    <button class="ios-close" onclick="hideIosModal()">Got it</button>
-  </div>
-</div>
-
-<div class="footer">Alar Finance · Automate with discipline ▲</div>
-
-<script>
-let deferredPrompt = null;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const isAndroid = /Android/.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-
-// If already installed as PWA, redirect to app
-if (isStandalone) { location.href = '/app'; }
-
-// Android: show download APK button
-if (isAndroid && !isStandalone) {
-  document.getElementById('androidBtn').style.display = 'flex';
-  document.getElementById('androidSteps').style.display = 'block';
-}
-
-// iOS: show install button
-if (isIOS && !isStandalone) {
-  document.getElementById('iosBtn').style.display = 'flex';
-  document.getElementById('iosSteps').style.display = 'block';
-}
-
-// Desktop: show both buttons
-if (!isIOS && !isAndroid && !isStandalone) {
-  document.getElementById('androidBtn').style.display = 'flex';
-}
-
-function showIosModal() {
-  document.getElementById('iosModal').classList.add('show');
-}
-
-function hideIosModal() {
-  document.getElementById('iosModal').classList.remove('show');
-}
-
-// Register SW
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
-}
-</script>
-</body>
-</html>`;
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     // ============================================
-    // MINI APP: Serve HTML + REST API
+    // MINI APP: REST API + Telegram webhook
+    // Static assets (/, /app, /manifest.json, icons) served from public/ via env.ASSETS
     // ============================================
-
-    // Landing / Install page (GET only — POST is reserved for Telegram webhook)
-    if (url.pathname === '/' && request.method === 'GET') {
-      return new Response(INSTALL_PAGE, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      });
-    }
 
     // Download Android APK from KV
     if (url.pathname === '/download/android') {
@@ -208,94 +45,6 @@ export default {
           'Content-Disposition': 'attachment; filename="AlarFinance.apk"',
           'Content-Length': apk.byteLength.toString(),
         },
-      });
-    }
-
-    // Serve Mini App HTML (Telegram + standalone PWA)
-    if (url.pathname === '/webapp' || url.pathname === '/app') {
-      return new Response(MINIAPP_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      });
-    }
-
-    // PWA Manifest
-    if (url.pathname === '/manifest.json') {
-      const manifest = {
-        name: 'Alar Finance',
-        short_name: 'Alar',
-        description: 'Personal finance tracker — expenses, income, budgets & bank sync',
-        start_url: '/app',
-        display: 'standalone',
-        background_color: '#09090b',
-        theme_color: '#09090b',
-        orientation: 'portrait',
-        icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-        ],
-        categories: ['finance', 'productivity'],
-        lang: 'en',
-      };
-      return new Response(JSON.stringify(manifest), {
-        headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'public, max-age=86400' },
-      });
-    }
-
-    // PWA Service Worker
-    if (url.pathname === '/sw.js') {
-      const sw = `
-const CACHE = 'alar-v1';
-const PRECACHE = ['/', '/app', '/manifest.json'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  if (e.request.url.includes('/api/')) return; // never cache API
-  e.respondWith(
-    fetch(e.request).then(r => {
-      const clone = r.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return r;
-    }).catch(() => caches.match(e.request))
-  );
-});`;
-      return new Response(sw, {
-        headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-cache' },
-      });
-    }
-
-    // PWA Icons (generated SVG → PNG-like SVG wrapped)
-    if (url.pathname === '/icon-192.png' || url.pathname === '/icon-512.png') {
-      const size = url.pathname.includes('512') ? 512 : 192;
-      const svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${size}" height="${size}" rx="${size * 0.2}" fill="url(#g)"/>
-        <path d="${`M${size/2} ${size*0.17} L${size*0.79} ${size*0.79} L${size*0.21} ${size*0.79} Z`}" stroke="white" stroke-width="${size*0.04}" stroke-linejoin="round" fill="none"/>
-        <line x1="${size*0.58}" y1="${size*0.48}" x2="${size*0.83}" y2="${size*0.35}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.8"/>
-        <line x1="${size*0.6}" y1="${size*0.54}" x2="${size*0.83}" y2="${size*0.54}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.6"/>
-        <line x1="${size*0.58}" y1="${size*0.6}" x2="${size*0.83}" y2="${size*0.73}" stroke="white" stroke-width="${size*0.03}" stroke-linecap="round" opacity="0.4"/>
-        <defs><linearGradient id="g" x1="0" y1="0" x2="${size}" y2="${size}"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
-      </svg>`;
-      return new Response(svg, {
-        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' },
-      });
-    }
-
-    // Favicon
-    if (url.pathname === '/favicon.ico' || url.pathname === '/favicon.svg') {
-      const svg = `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="url(#g)"/><path d="M24 8 L38 38 L10 38 Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/><line x1="28" y1="23" x2="40" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/><line x1="29" y1="26" x2="40" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/><line x1="28" y1="29" x2="40" y2="35" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><defs><linearGradient id="g" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>`;
-      return new Response(svg, {
-        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' },
       });
     }
 
@@ -333,7 +82,7 @@ self.addEventListener('fetch', e => {
     // One-time setup: configure Menu Button in Telegram
     if (url.pathname === '/setup-webapp') {
       try {
-        const webappUrl = `${url.origin}/webapp`;
+        const webappUrl = `${url.origin}/app`;
         const botApi = `https://api.telegram.org/bot${env.TELEGRAM_TOKEN}`;
 
         // Verify bot token
@@ -684,8 +433,9 @@ self.addEventListener('fetch', e => {
       });
     }
 
-    if (request.method === 'GET') {
-      return new Response('Finance Bot v2.0 is running!');
+    // Serve static assets from public/ (landing, mini-app, icons, etc.)
+    if (request.method === 'GET' && env.ASSETS) {
+      return env.ASSETS.fetch(request);
     }
 
     if (request.method === 'POST') {
