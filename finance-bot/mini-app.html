@@ -6980,9 +6980,10 @@ function _refreshImportAccountTrigger() {
 
 // ── Exchange brand logos (20x20 icon marks) ──
 function getExchangeLogoSVG(exchange) {
-    const known = ['binance','bybit','okx','kucoin','mexc','gateio','bitget','htx'];
-    const slug = known.includes(exchange) ? exchange : 'binance';
-    return `<img src="/assets/logos/${slug}.svg" width="100%" height="100%" style="display:block;object-fit:contain;" alt="${slug}">`;
+    const exts = { binance:'svg',bybit:'svg',okx:'svg',kucoin:'png',mexc:'svg',gateio:'svg',bitget:'svg',htx:'svg' };
+    const slug = exts[exchange] ? exchange : 'binance';
+    const ext = exts[slug] || 'svg';
+    return `<img src="/assets/logos/${slug}.${ext}" width="100%" height="100%" style="display:block;object-fit:contain;" alt="${slug}">`;
 }
 
 // passphrase: true = exchange requires API Passphrase (OKX, KuCoin, Bitget)

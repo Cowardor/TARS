@@ -1,4 +1,13 @@
-<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M10 1L19 10L10 19L1 10z" stroke="#fff" stroke-width="2"/>
-  <path d="M10 6L15 10H10v5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="52 41 812 733" style="enable-background:new 52 41 812 733;" xml:space="preserve">
+ <style type="text/css">
+  .st0{fill:#DE5959;}
+ </style>
+ <g>
+  <path class="st0" d="M397.4,403.1l-4.9-4.9c-3.7-3.7-10-1.1-10,4.1v69.7c0,3.2,2.6,5.8,5.9,5.8h69.7c5.2,0,7.8-6.3,4.1-10
+		c-2.3-2.3-2.3-6,0-8.2l74.2-74.4c2.3-2.3,2.3-6,0-8.2l-6.8-6.7c-3.7-3.7-1.1-10,4.1-10h69.7c3.2,0,5.9,2.6,5.9,5.8v69.7
+		c0,5.2-6.3,7.8-10,4.1l-4.7-4.7c-2.3-2.3-6-2.3-8.2,0l-125.1,125c-2.3,2.3-6,2.3-8.3,0l-153-153c-2.3-2.3-2.3-6,0-8.3L512,187.2
+		c2.3-2.3,2.3-6,0-8.3l-49.8-49.8c-2.3-2.3-6-2.3-8.3,0L179.7,403.4c-2.3,2.3-2.3,6,0,8.3l274.2,274.2c2.3,2.3,6,2.3,8.3,0
+		l274.2-274.2c2.3-2.3,2.3-6,0-8.3L575,242.1c-2.3-2.3-6-2.3-8.3,0l-161,161C403.4,405.4,399.7,405.4,397.4,403.1L397.4,403.1z">
+  </path>
+ </g>
 </svg>
