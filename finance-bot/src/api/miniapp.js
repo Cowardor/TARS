@@ -141,24 +141,42 @@ export async function handleMiniAppAPI(request, env, pathname) {
     activeAccountId = session?.active_account_id || null;
   }
 
+  // Resolve context: determine effective familyId/accountId for transaction filters
+  // - Personal slot (accountId=null): familyId must be null to avoid showing family txns
+  // - family_shared account: use familyId filter (txns stored with family_id, not account_id)
+  // - Other accounts (business, crypto, etc.): use accountId filter directly
+  let effectiveFamilyId = null;
+  let effectiveAccountId = activeAccountId;
+  if (activeAccountId) {
+    const activeAccount = await accountService.getById(activeAccountId, userId);
+    if (activeAccount?.type === 'family_shared') {
+      // Family transactions are stored with family_id=X, account_id=NULL
+      // So we filter by familyId, not by accountId
+      effectiveFamilyId = familyId;
+      effectiveAccountId = null;
+    }
+  }
+  // When activeAccountId is null (Personal slot), both effective values stay null
+  // → _accountFilter falls to the "else" branch → personal-only transactions
+
   const currency = user.currency || 'USD';
 
   // Route
   switch (pathname) {
     case '/api/dashboard':
-      return handleDashboard(userId, familyId, activeAccountId, transactionService, currency);
+      return handleDashboard(userId, effectiveFamilyId, effectiveAccountId, transactionService, currency);
 
     case '/api/stats':
-      return handleStats(request, userId, familyId, activeAccountId, transactionService, currency);
+      return handleStats(request, userId, effectiveFamilyId, effectiveAccountId, transactionService, currency);
 
     case '/api/transactions':
-      return handleTransactions(request, userId, familyId, activeAccountId, transactionService, currency);
+      return handleTransactions(request, userId, effectiveFamilyId, effectiveAccountId, transactionService, currency);
 
     case '/api/categories': {
       const urlQ = new URL(request.url);
       const qAccountId = urlQ.searchParams.get('account_id');
       const resolvedAccountId = qAccountId ? parseInt(qAccountId) : activeAccountId;
-      return handleCategories(userId, familyId, resolvedAccountId, categoryService);
+      return handleCategories(userId, effectiveFamilyId, resolvedAccountId, categoryService);
     }
 
     case '/api/transaction':
@@ -166,7 +184,8 @@ export async function handleMiniAppAPI(request, env, pathname) {
         return handleGetTransaction(request, userId, transactionService);
       }
       if (request.method === 'POST') {
-        return handleCreateTransaction(request, userId, familyId, activeAccountId, transactionService, categoryService, currency);
+        // CREATE uses original familyId/activeAccountId to store the correct foreign keys
+        return handleCreateTransaction(request, userId, effectiveFamilyId, effectiveAccountId, transactionService, categoryService, currency);
       }
       if (request.method === 'PUT') {
         return handleUpdateTransaction(request, userId, transactionService);
@@ -178,11 +197,11 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/import':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleImportTransactions(request, userId, familyId, activeAccountId, transactionService, categoryService);
+      return handleImportTransactions(request, userId, effectiveFamilyId, effectiveAccountId, transactionService, categoryService);
 
     case '/api/undo':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleUndo(request, userId, activeAccountId, transactionService, currency);
+      return handleUndo(request, userId, effectiveAccountId, transactionService, currency);
 
     case '/api/currency':
       if (request.method !== 'POST') return error('Method not allowed', 405);

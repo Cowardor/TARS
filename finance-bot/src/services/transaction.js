@@ -116,6 +116,9 @@ export class TransactionService {
     if (accountId) {
       query += ' AND t.account_id = ?';
       params.push(accountId);
+    } else if (familyId) {
+      query += ' AND t.family_id = ?';
+      params.push(familyId);
     } else {
       query += ' AND t.user_id = ? AND t.family_id IS NULL AND t.account_id IS NULL';
       params.push(userId);
@@ -128,6 +131,9 @@ export class TransactionService {
     if (accountId) {
       query += ' AND account_id = ?';
       params.push(accountId);
+    } else if (familyId) {
+      query += ' AND family_id = ?';
+      params.push(familyId);
     } else {
       query += ' AND user_id = ? AND family_id IS NULL AND account_id IS NULL';
       params.push(userId);
