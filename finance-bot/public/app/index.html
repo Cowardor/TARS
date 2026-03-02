@@ -188,80 +188,7 @@ body {
     overflow: hidden;
 }
 
-/* ---- APP HEADER ---- */
-.app-header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px 10px;
-    background: var(--header-bg);
-    border-bottom: 1px solid var(--header-border);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    z-index: 50;
-    flex-shrink: 0;
-    /* Subtle gradient glow under logo */
-    box-shadow: 0 1px 0 var(--border-subtle),
-                0 4px 24px rgba(79, 70, 229, 0.06);
-}
 
-.header-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-}
-
-/* Gradient pill — the logo background, always visible on any bg */
-.header-icon-pill {
-    width: 40px;
-    height: 40px;
-    border-radius: 11px;
-    background: var(--accent-gradient);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 3px 14px var(--accent-blue-glow);
-}
-
-.header-icon-pill svg {
-    width: 26px;
-    height: 26px;
-}
-
-.header-logo-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-}
-
-.header-wordmark {
-    font-family: 'Switzer', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 4px;
-    /* Gradient text — always visible on any background */
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.header-product {
-    font-family: 'DM Mono', monospace;
-    font-size: 9px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    /* gradient text */
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-top: 1px;
-}
 
 /* ── Theme icon inner wrapper ── */
 .theme-icon-inner {
@@ -1047,20 +974,60 @@ select.input-field option {
    DASHBOARD SCREEN
    ============================================ */
 
-.greeting {
+/* ── Dashboard logo bar (replaces greeting) ── */
+.dash-logo-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
+    padding-top: 4px;
 }
 
-.greeting-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-weight: 500;
+.dash-logo-left {
+    display: flex;
+    align-items: center;
 }
 
-.greeting-name {
-    font-family: 'Satoshi', 'Switzer', sans-serif;
-    font-size: 24px;
-    font-weight: 600;
+.dash-logo-pill {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px var(--accent-blue-glow);
+}
+
+.dash-logo-pill svg {
+    width: 22px;
+    height: 22px;
+}
+
+.dash-logo-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1;
+}
+
+.dash-wordmark {
+    font-family: 'Switzer', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+}
+
+.dash-product {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.7;
     margin-top: 2px;
 }
 
@@ -2789,62 +2756,27 @@ select.input-field option {
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════
-             ALAR HEADER
-             ═══════════════════════════════════ -->
-        <header class="app-header">
-            <div class="header-logo">
-                <!-- Gradient pill — logo bg always visible against any theme -->
-                <div class="header-icon-pill">
-                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Prism triangle — white on gradient bg, always visible -->
-                        <path d="M24 9 L39 39 L9 39 Z"
-                              stroke="white" stroke-width="2.8"
-                              stroke-linejoin="round" fill="none"/>
-                        <!-- Input beam — semi-white -->
-                        <line x1="4"  y1="24" x2="19" y2="24"
-                              stroke="rgba(255,255,255,0.5)"
-                              stroke-width="2" stroke-linecap="round"/>
-                        <!-- 3 refracted beams — white, varying opacity -->
-                        <line x1="29" y1="20" x2="44" y2="13"
-                              stroke="rgba(255,255,255,0.95)"
-                              stroke-width="2" stroke-linecap="round"/>
-                        <line x1="30" y1="24" x2="44" y2="24"
-                              stroke="rgba(255,255,255,0.75)"
-                              stroke-width="2" stroke-linecap="round"/>
-                        <line x1="29" y1="28" x2="44" y2="35"
-                              stroke="rgba(255,255,255,0.55)"
-                              stroke-width="2" stroke-linecap="round"/>
-                        <!-- Refraction dot -->
-                        <circle cx="24" cy="24" r="2.5" fill="white" opacity="0.9"/>
-                    </svg>
-                </div>
-                <div class="header-logo-text">
-                    <span class="header-wordmark">ALAR</span>
-                    <span class="header-product">Finance</span>
-                </div>
-            </div>
-
-
-        </header>
-
         <div class="app-content" id="appContent">
         <div id="screenTrack">
             <!-- DASHBOARD -->
             <div class="screen active" id="screenDashboard">
-                <div class="greeting">
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <div>
-                            <div class="greeting-label" id="greetingLabel">Добрый день</div>
-                            <div class="greeting-name" id="greetingName">&#128075;</div>
+                <!-- Compact logo bar -->
+                <div class="dash-logo-bar">
+                    <div class="dash-logo-left">
+                        <div class="dash-logo-pill">
+                            <svg viewBox="0 0 48 48" fill="none">
+                                <path d="M24 9 L39 39 L9 39 Z" stroke="white" stroke-width="2.8" stroke-linejoin="round" fill="none"/>
+                                <line x1="4" y1="24" x2="19" y2="24" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="29" y1="20" x2="44" y2="13" stroke="rgba(255,255,255,0.95)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="30" y1="24" x2="44" y2="24" stroke="rgba(255,255,255,0.75)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="29" y1="28" x2="44" y2="35" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"/>
+                                <circle cx="24" cy="24" r="2.5" fill="white" opacity="0.9"/>
+                            </svg>
                         </div>
-                        <svg width="32" height="26" viewBox="0 0 160 160" fill="none" style="opacity:0.7;">
-                            <path d="M80 25 L130 130 L30 130 Z" stroke="url(#ap-dash)" stroke-width="5" stroke-linejoin="round" fill="none"/>
-                            <line x1="95" y1="75" x2="145" y2="55" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
-                            <line x1="97" y1="85" x2="145" y2="85" stroke="#818cf8" stroke-width="3" stroke-linecap="round"/>
-                            <line x1="95" y1="95" x2="145" y2="115" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
-                            <defs><linearGradient id="ap-dash" x1="30" y1="130" x2="130" y2="25"><stop stop-color="#4f46e5"/><stop offset="0.5" stop-color="#818cf8"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
-                        </svg>
+                    </div>
+                    <div class="dash-logo-right">
+                        <span class="dash-wordmark">ALAR</span>
+                        <span class="dash-product">Finance</span>
                     </div>
                 </div>
 
@@ -2989,14 +2921,17 @@ select.input-field option {
             <div class="screen" id="screenSettings">
                 <div class="stats-header" style="display:flex;flex-direction:column;align-items:center;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                        <svg width="28" height="22" viewBox="0 0 160 160" fill="none">
-                            <path d="M80 25 L130 130 L30 130 Z" stroke="url(#ap-settings)" stroke-width="5" stroke-linejoin="round" fill="none"/>
-                            <line x1="95" y1="75" x2="145" y2="55" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
-                            <line x1="97" y1="85" x2="145" y2="85" stroke="#818cf8" stroke-width="3" stroke-linecap="round"/>
-                            <line x1="95" y1="95" x2="145" y2="115" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
-                            <defs><linearGradient id="ap-settings" x1="30" y1="130" x2="130" y2="25"><stop stop-color="#4f46e5"/><stop offset="0.5" stop-color="#818cf8"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
-                        </svg>
-                        <span class="header-wordmark" style="font-size:20px;">ALAR</span>
+                        <div class="dash-logo-pill">
+                            <svg viewBox="0 0 48 48" fill="none">
+                                <path d="M24 9 L39 39 L9 39 Z" stroke="white" stroke-width="2.8" stroke-linejoin="round" fill="none"/>
+                                <line x1="4" y1="24" x2="19" y2="24" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="29" y1="20" x2="44" y2="13" stroke="rgba(255,255,255,0.95)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="30" y1="24" x2="44" y2="24" stroke="rgba(255,255,255,0.75)" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="29" y1="28" x2="44" y2="35" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"/>
+                                <circle cx="24" cy="24" r="2.5" fill="white" opacity="0.9"/>
+                            </svg>
+                        </div>
+                        <span class="dash-wordmark" style="font-size:20px;letter-spacing:5px;color:var(--text-primary);">ALAR</span>
                     </div>
                     <div class="stats-subtitle">Finance</div>
                 </div>
@@ -5247,7 +5182,12 @@ function renderSettingsAccountsList() {
 }
 
 async function deleteAccount(accountId, accountName) {
-    const confirmed = confirm(`${t('deleteAccConfirm')} "${accountName}"?\n\n${t('deleteAccBody')}`);
+    const confirmed = await openCustomConfirm({
+        title: `${t('deleteAccConfirm')} "${accountName}"?`,
+        body: t('deleteAccBody'),
+        okLabel: t('deleted'),
+        danger: true,
+    });
     if (!confirmed) return;
 
     const result = await apiFetch('/api/accounts', {
@@ -5312,15 +5252,6 @@ function updateCurrencyDisplay() {
 // ============================================
 
 function setGreeting() {
-    const hour = new Date().getHours();
-    let greeting = t('greetDay');
-    if (hour < 6) greeting = t('greetNight');
-    else if (hour < 12) greeting = t('greetMorning');
-    else if (hour < 18) greeting = t('greetDay');
-    else greeting = t('greetEvening');
-
-    document.getElementById('greetingLabel').textContent = greeting;
-    document.getElementById('greetingName').textContent = state.userName;
     document.getElementById('settingsUserName').textContent = state.userName;
 }
 
@@ -5816,7 +5747,8 @@ function renderTransactionItem(tx) {
 // ============================================
 
 async function deleteTransaction(id) {
-    if (!confirm(t('deleteTxConfirm'))) return;
+    const ok = await openCustomConfirm({ title: t('deleteTxConfirm'), okLabel: t('deleted'), danger: true });
+    if (!ok) return;
 
     // Alar shake + dissolve on the transaction row
     const row = document.querySelector(`[data-tx-id="${id}"]`);
@@ -6443,11 +6375,10 @@ async function deleteCategoryItem(id) {
     const allCats = [...editableCategoriesCache.expense, ...editableCategoriesCache.income];
     const cat = allCats.find(c => c.id === id);
 
-    const confirmMsg = cat && cat.tx_count > 0
-        ? `${t('deleteCatConfirm')} "${cat.name}"?\n\n${t('deleteCatBody').replace('{n}', cat.tx_count)}`
-        : `${t('deleteCatConfirm')} "${cat ? cat.name : ''}"?`;
-
-    if (!confirm(confirmMsg)) return;
+    const catTitle = `${t('deleteCatConfirm')} "${cat ? cat.name : ''}"?`;
+    const catBody = cat && cat.tx_count > 0 ? t('deleteCatBody').replace('{n}', cat.tx_count) : '';
+    const ok = await openCustomConfirm({ title: catTitle, body: catBody, okLabel: t('deleted'), danger: true });
+    if (!ok) return;
 
     const result = await apiFetch(`/api/category?id=${id}`, {
         method: 'DELETE',
@@ -7409,7 +7340,8 @@ async function saveBudget() {
 }
 
 async function deleteBudget(categoryId) {
-    if (!confirm(t('deleteLimitConfirm'))) return;
+    const ok = await openCustomConfirm({ title: t('deleteLimitConfirm'), okLabel: t('deleted'), danger: true });
+    if (!ok) return;
     const data = await apiFetch(`/api/budget?category_id=${categoryId}`, { method: 'DELETE' });
     if (data && data.success) {
         showToast(t('limitDeleted'));
