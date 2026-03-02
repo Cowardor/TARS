@@ -3949,7 +3949,7 @@ const T = {
         // Settings — new keys
         accounts: 'Счета', addAccount: 'Добавить счёт', noAccounts: 'Нет дополнительных счетов',
         accountDeleted: 'Счёт удалён', duplicateAccountName: 'Счёт с таким именем уже существует',
-        allAccounts: 'Все счета', personalAccount: 'Личный (по умолчанию)',
+        allAccounts: 'Все счета', personalAccount: 'Личный (по умолчанию)', chooseAccount: 'Выберите счёт',
         sharedAccess: 'Совместный доступ', sharedAccessDesc: 'Семейный и совместный учёт',
         catAndBudgets: 'Категории и бюджеты',
         appearanceLang: 'Вид и язык',
@@ -4065,7 +4065,7 @@ const T = {
         catSalary: 'Salary', catGift: 'Gift',
         accounts: 'Accounts', addAccount: 'Add account', noAccounts: 'No additional accounts',
         accountDeleted: 'Account deleted', duplicateAccountName: 'Account with this name already exists',
-        allAccounts: 'All accounts', personalAccount: 'Personal (default)',
+        allAccounts: 'All accounts', personalAccount: 'Personal (default)', chooseAccount: 'Choose account',
         sharedAccess: 'Shared Access', sharedAccessDesc: 'Family & shared tracking',
         catAndBudgets: 'Categories & Budgets',
         appearanceLang: 'Appearance & Language',
@@ -4179,7 +4179,7 @@ const T = {
         catSalary: 'Wynagrodzenie', catGift: 'Prezent',
         accounts: 'Konta', addAccount: 'Dodaj konto', noAccounts: 'Brak dodatkowych kont',
         accountDeleted: 'Konto usunięte', duplicateAccountName: 'Konto o tej nazwie już istnieje',
-        allAccounts: 'Wszystkie konta', personalAccount: 'Osobiste (domyślne)',
+        allAccounts: 'Wszystkie konta', personalAccount: 'Osobiste (domyślne)', chooseAccount: 'Wybierz konto',
         sharedAccess: 'Wspólny dostęp', sharedAccessDesc: 'Rodzinne i wspólne konta',
         catAndBudgets: 'Kategorie i budżety',
         appearanceLang: 'Wygląd i język',
@@ -4293,7 +4293,7 @@ const T = {
         catSalary: 'Зарплата', catGift: 'Подарунок',
         accounts: 'Рахунки', addAccount: 'Додати рахунок', noAccounts: 'Немає додаткових рахунків',
         accountDeleted: 'Рахунок видалено', duplicateAccountName: 'Рахунок з такою назвою вже існує',
-        allAccounts: 'Всі рахунки', personalAccount: 'Особистий (за замовч.)',
+        allAccounts: 'Всі рахунки', personalAccount: 'Особистий (за замовч.)', chooseAccount: 'Оберіть рахунок',
         sharedAccess: 'Спільний доступ', sharedAccessDesc: 'Сімейний та спільний облік',
         catAndBudgets: 'Категорії та бюджети',
         appearanceLang: 'Вигляд і мова',
@@ -7082,7 +7082,7 @@ let _exportAccountId = null;
 
 function openExportAccountPicker() {
     openCustomPicker({
-        title: t('chooseAccount') || 'Счёт',
+        title: t('chooseAccount'),
         items: _buildAccountItems(false, _exportAccountId),
         onSelect: async (val) => {
             _exportAccountId = val;
@@ -7097,7 +7097,7 @@ function _refreshExportAccountTrigger() {
     if (acc) {
         _updateTrigger('exportAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
     } else {
-        _updateTrigger('exportAccountTrigger', _WALLET_ICON, null, t('personalAccount') || 'Личные');
+        _updateTrigger('exportAccountTrigger', _WALLET_ICON, null, t('personalAccount'));
     }
 }
 
@@ -7106,7 +7106,7 @@ let _importAccountId = null;
 
 function openImportAccountPicker() {
     openCustomPicker({
-        title: t('chooseAccount') || 'Счёт для импорта',
+        title: t('chooseAccount'),
         items: _buildAccountItems(false, _importAccountId),
         onSelect: (val) => {
             _importAccountId = val;
@@ -7120,7 +7120,7 @@ function _refreshImportAccountTrigger() {
     if (acc) {
         _updateTrigger('importAccountTrigger', getAccountTypeIconHTML(acc.type), (_TYPE_COLORS[acc.type] || _TYPE_COLORS.personal).bg, acc.name);
     } else {
-        _updateTrigger('importAccountTrigger', _WALLET_ICON, null, t('personalAccount') || 'Личный счёт');
+        _updateTrigger('importAccountTrigger', _WALLET_ICON, null, t('personalAccount'));
     }
 }
 
