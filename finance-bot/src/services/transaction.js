@@ -89,7 +89,7 @@ export class TransactionService {
     return this._dec(result);
   }
 
-  async getLastTransaction(userId, accountId = null) {
+  async getLastTransaction(userId, familyId = null, accountId = null) {
     let query = `
       SELECT t.*, c.name as category_name, c.emoji as category_emoji
       FROM transactions t
@@ -97,12 +97,7 @@ export class TransactionService {
       WHERE t.user_id = ?
     `;
     const params = [userId];
-    if (accountId) {
-      query += ' AND t.account_id = ?';
-      params.push(accountId);
-    } else {
-      query += ' AND t.account_id IS NULL';
-    }
+    query = this._accountFilter(query, params, userId, familyId, accountId);
     query += ' ORDER BY t.created_at DESC LIMIT 1';
     const result = await this.db.prepare(query).bind(...params).first();
     return this._dec(result);

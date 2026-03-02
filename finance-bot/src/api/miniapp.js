@@ -182,7 +182,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/undo':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleUndo(request, userId, activeAccountId, transactionService, currency);
+      return handleUndo(request, userId, familyId, activeAccountId, transactionService, currency);
 
     case '/api/currency':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -514,7 +514,7 @@ async function handleDeleteTransaction(request, userId, ts) {
 // POST /api/undo — delete last transaction
 // ============================================
 
-async function handleUndo(request, userId, sessionAccountId, ts, currency) {
+async function handleUndo(request, userId, familyId, sessionAccountId, ts, currency) {
   // Prefer explicit account_id from body over session — avoids race conditions
   let accountId = sessionAccountId;
   try {
@@ -523,7 +523,7 @@ async function handleUndo(request, userId, sessionAccountId, ts, currency) {
       accountId = body.account_id || null;
     }
   } catch { /* no body — use session */ }
-  const last = await ts.getLastTransaction(userId, accountId);
+  const last = await ts.getLastTransaction(userId, familyId, accountId);
   if (!last) return error('No transactions to undo', 404);
 
   await ts.delete(last.id, userId);
