@@ -2759,6 +2759,37 @@ select.input-field option {
         </div>
     </div>
 
+    <!-- CUSTOM PROMPT / CONFIRM MODAL -->
+    <div class="modal-overlay" id="customPromptModal" onclick="closeCustomPrompt()" style="z-index:410;">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:50vh;">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title" id="customPromptTitle"></div>
+                <button class="modal-close" onclick="closeCustomPrompt()">&times;</button>
+            </div>
+            <div style="padding:0 16px 24px;">
+                <!-- Input row (hidden for confirm mode) -->
+                <div id="customPromptInputWrap" style="margin-bottom:16px;">
+                    <input type="text" id="customPromptInput" class="edit-input"
+                           style="width:100%;font-size:16px;padding:14px 16px;"
+                           autocomplete="off"
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();_customPromptSubmit();}" />
+                </div>
+                <!-- Confirm body text (hidden for prompt mode) -->
+                <div id="customPromptBody" style="display:none;color:var(--text-secondary);font-size:14px;margin-bottom:16px;line-height:1.5;"></div>
+                <!-- Buttons -->
+                <div style="display:flex;gap:8px;">
+                    <button class="quick-add-btn" id="customPromptCancel" onclick="closeCustomPrompt()"
+                            style="flex:1;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);">
+                    </button>
+                    <button class="quick-add-btn" id="customPromptOk" onclick="_customPromptSubmit()"
+                            style="flex:1;">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══════════════════════════════════
              ALAR HEADER
              ═══════════════════════════════════ -->
@@ -3928,7 +3959,9 @@ const T = {
         joinedTo: 'Присоединился к',
         onlyOwnerInvite: 'Только владелец может создать приглашение',
         familyNamePrompt: 'Название семьи:', inviteCodePrompt: 'Код приглашения (6 символов):',
+        cancel: 'Отмена',
         deleteLimitConfirm: 'Удалить лимит?', leaveFamilyConfirm: 'Покинуть семью?',
+        leaveFamilyBody: 'Вы больше не будете видеть семейные транзакции.',
         chooseAmount: 'Введите сумму', chooseCat: 'Выберите категорию',
         // New account modal
         newAccount: 'Новый счёт', accountType: 'Тип счёта', accountName: 'Название',
@@ -4048,7 +4081,9 @@ const T = {
         joinedTo: 'Joined',
         onlyOwnerInvite: 'Only owner can generate invite',
         familyNamePrompt: 'Family name:', inviteCodePrompt: 'Invite code (6 characters):',
+        cancel: 'Cancel',
         deleteLimitConfirm: 'Delete limit?', leaveFamilyConfirm: 'Leave family?',
+        leaveFamilyBody: 'You will no longer see family transactions.',
         chooseAmount: 'Enter amount', chooseCat: 'Choose category',
         newAccount: 'New Account', accountType: 'Account type', accountName: 'Name',
         accPersonal: 'Personal', accPersonalDesc: 'Daily expenses',
@@ -4162,7 +4197,9 @@ const T = {
         joinedTo: 'Dołączono do',
         onlyOwnerInvite: 'Tylko właściciel może wygenerować zaproszenie',
         familyNamePrompt: 'Nazwa rodziny:', inviteCodePrompt: 'Kod zaproszenia (6 znaków):',
+        cancel: 'Anuluj',
         deleteLimitConfirm: 'Usunąć limit?', leaveFamilyConfirm: 'Opuścić rodzinę?',
+        leaveFamilyBody: 'Nie będziesz już widzieć rodzinnych transakcji.',
         chooseAmount: 'Wprowadź kwotę', chooseCat: 'Wybierz kategorię',
         newAccount: 'Nowe konto', accountType: 'Typ konta', accountName: 'Nazwa',
         accPersonal: 'Osobiste', accPersonalDesc: 'Codzienne wydatki',
@@ -4276,7 +4313,9 @@ const T = {
         joinedTo: 'Приєднався до',
         onlyOwnerInvite: 'Тільки власник може створити запрошення',
         familyNamePrompt: 'Назва сім\'ї:', inviteCodePrompt: 'Код запрошення (6 символів):',
+        cancel: 'Скасувати',
         deleteLimitConfirm: 'Видалити ліміт?', leaveFamilyConfirm: 'Покинути сім\'ю?',
+        leaveFamilyBody: 'Ви більше не бачитимете сімейні транзакції.',
         chooseAmount: 'Введіть суму', chooseCat: 'Оберіть категорію',
         newAccount: 'Новий рахунок', accountType: 'Тип рахунку', accountName: 'Назва',
         accPersonal: 'Особистий', accPersonalDesc: 'Звичайні витрати',
@@ -6858,7 +6897,11 @@ async function switchFamily(familyId) {
 }
 
 async function createFamily() {
-    const name = prompt(t('familyNamePrompt'));
+    const name = await openCustomPrompt({
+        title: t('createFamily'),
+        placeholder: t('familyNamePrompt'),
+        okLabel: t('createFamily'),
+    });
     if (!name || !name.trim()) return;
 
     const data = await apiFetch('/api/family/create', {
@@ -6874,7 +6917,11 @@ async function createFamily() {
 }
 
 async function joinFamily() {
-    const code = prompt(t('inviteCodePrompt'));
+    const code = await openCustomPrompt({
+        title: t('joinFamily'),
+        placeholder: t('inviteCodePrompt'),
+        okLabel: t('joinFamily'),
+    });
     if (!code || !code.trim()) return;
 
     const data = await apiFetch('/api/family/join', {
@@ -6914,7 +6961,13 @@ async function generateInvite() {
 }
 
 async function leaveFamily() {
-    if (!confirm(t('leaveFamilyConfirm'))) return;
+    const ok = await openCustomConfirm({
+        title: t('leaveFamilyConfirm'),
+        body: t('leaveFamilyBody') || '',
+        okLabel: t('leaveFamily'),
+        danger: true,
+    });
+    if (!ok) return;
     const familyData = await apiFetch('/api/family');
     if (!familyData || !familyData.active_family_id) return;
 
@@ -6988,6 +7041,58 @@ function _pickerSelectIdx(idx) {
 
 function closeCustomPicker() {
     document.getElementById('customPickerModal').classList.remove('show');
+}
+
+// ── Custom Prompt / Confirm ──────────────────────────────────────────────
+let _customPromptResolve = null;
+
+function openCustomPrompt({ title, placeholder = '', value = '', okLabel, cancelLabel }) {
+    document.getElementById('customPromptTitle').textContent = title;
+    const input = document.getElementById('customPromptInput');
+    input.value = value;
+    input.placeholder = placeholder;
+    document.getElementById('customPromptInputWrap').style.display = 'block';
+    document.getElementById('customPromptBody').style.display = 'none';
+    document.getElementById('customPromptOk').textContent = okLabel || 'OK';
+    document.getElementById('customPromptOk').style.background = '';
+    document.getElementById('customPromptOk').style.color = '';
+    document.getElementById('customPromptCancel').textContent = cancelLabel || t('cancel') || 'Cancel';
+    document.getElementById('customPromptModal').classList.add('show');
+    setTimeout(() => input.focus(), 200);
+    haptic('light');
+    return new Promise(resolve => { _customPromptResolve = resolve; });
+}
+
+function openCustomConfirm({ title, body = '', okLabel, cancelLabel, danger = false }) {
+    document.getElementById('customPromptTitle').textContent = title;
+    document.getElementById('customPromptInputWrap').style.display = 'none';
+    const bodyEl = document.getElementById('customPromptBody');
+    if (body) { bodyEl.textContent = body; bodyEl.style.display = 'block'; }
+    else { bodyEl.style.display = 'none'; }
+    const okBtn = document.getElementById('customPromptOk');
+    okBtn.textContent = okLabel || 'OK';
+    if (danger) { okBtn.style.background = 'var(--danger)'; okBtn.style.color = '#fff'; }
+    else { okBtn.style.background = ''; okBtn.style.color = ''; }
+    document.getElementById('customPromptCancel').textContent = cancelLabel || t('cancel') || 'Cancel';
+    document.getElementById('customPromptModal').classList.add('show');
+    haptic('light');
+    return new Promise(resolve => { _customPromptResolve = resolve; });
+}
+
+function _customPromptSubmit() {
+    const input = document.getElementById('customPromptInput');
+    const isPrompt = document.getElementById('customPromptInputWrap').style.display !== 'none';
+    const resolve = _customPromptResolve;
+    _customPromptResolve = null;
+    document.getElementById('customPromptModal').classList.remove('show');
+    if (resolve) resolve(isPrompt ? input.value : true);
+}
+
+function closeCustomPrompt() {
+    const resolve = _customPromptResolve;
+    _customPromptResolve = null;
+    document.getElementById('customPromptModal').classList.remove('show');
+    if (resolve) resolve(null);
 }
 
 function _updateTrigger(triggerId, iconHTML, iconColor, label) {
