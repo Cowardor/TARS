@@ -3893,7 +3893,7 @@ const T = {
         joinedTo: 'Присоединился к',
         onlyOwnerInvite: 'Только владелец может создать приглашение',
         familyNamePrompt: 'Название семьи:', inviteCodePrompt: 'Код приглашения (6 символов):',
-        cancel: 'Отмена',
+        cancel: 'Отмена', deleteAction: 'Удалить',
         deleteLimitConfirm: 'Удалить лимит?', leaveFamilyConfirm: 'Покинуть семью?',
         leaveFamilyBody: 'Вы больше не будете видеть семейные транзакции.',
         chooseAmount: 'Введите сумму', chooseCat: 'Выберите категорию',
@@ -4015,7 +4015,7 @@ const T = {
         joinedTo: 'Joined',
         onlyOwnerInvite: 'Only owner can generate invite',
         familyNamePrompt: 'Family name:', inviteCodePrompt: 'Invite code (6 characters):',
-        cancel: 'Cancel',
+        cancel: 'Cancel', deleteAction: 'Delete',
         deleteLimitConfirm: 'Delete limit?', leaveFamilyConfirm: 'Leave family?',
         leaveFamilyBody: 'You will no longer see family transactions.',
         chooseAmount: 'Enter amount', chooseCat: 'Choose category',
@@ -4131,7 +4131,7 @@ const T = {
         joinedTo: 'Dołączono do',
         onlyOwnerInvite: 'Tylko właściciel może wygenerować zaproszenie',
         familyNamePrompt: 'Nazwa rodziny:', inviteCodePrompt: 'Kod zaproszenia (6 znaków):',
-        cancel: 'Anuluj',
+        cancel: 'Anuluj', deleteAction: 'Usuń',
         deleteLimitConfirm: 'Usunąć limit?', leaveFamilyConfirm: 'Opuścić rodzinę?',
         leaveFamilyBody: 'Nie będziesz już widzieć rodzinnych transakcji.',
         chooseAmount: 'Wprowadź kwotę', chooseCat: 'Wybierz kategorię',
@@ -4247,7 +4247,7 @@ const T = {
         joinedTo: 'Приєднався до',
         onlyOwnerInvite: 'Тільки власник може створити запрошення',
         familyNamePrompt: 'Назва сім\'ї:', inviteCodePrompt: 'Код запрошення (6 символів):',
-        cancel: 'Скасувати',
+        cancel: 'Скасувати', deleteAction: 'Видалити',
         deleteLimitConfirm: 'Видалити ліміт?', leaveFamilyConfirm: 'Покинути сім\'ю?',
         leaveFamilyBody: 'Ви більше не бачитимете сімейні транзакції.',
         chooseAmount: 'Введіть суму', chooseCat: 'Оберіть категорію',
@@ -5185,7 +5185,7 @@ async function deleteAccount(accountId, accountName) {
     const confirmed = await openCustomConfirm({
         title: `${t('deleteAccConfirm')} "${accountName}"?`,
         body: t('deleteAccBody'),
-        okLabel: t('deleted'),
+        okLabel: t('deleteAction'),
         danger: true,
     });
     if (!confirmed) return;
@@ -5747,7 +5747,7 @@ function renderTransactionItem(tx) {
 // ============================================
 
 async function deleteTransaction(id) {
-    const ok = await openCustomConfirm({ title: t('deleteTxConfirm'), okLabel: t('deleted'), danger: true });
+    const ok = await openCustomConfirm({ title: t('deleteTxConfirm'), okLabel: t('deleteAction'), danger: true });
     if (!ok) return;
 
     // Alar shake + dissolve on the transaction row
@@ -6377,7 +6377,7 @@ async function deleteCategoryItem(id) {
 
     const catTitle = `${t('deleteCatConfirm')} "${cat ? cat.name : ''}"?`;
     const catBody = cat && cat.tx_count > 0 ? t('deleteCatBody').replace('{n}', cat.tx_count) : '';
-    const ok = await openCustomConfirm({ title: catTitle, body: catBody, okLabel: t('deleted'), danger: true });
+    const ok = await openCustomConfirm({ title: catTitle, body: catBody, okLabel: t('deleteAction'), danger: true });
     if (!ok) return;
 
     const result = await apiFetch(`/api/category?id=${id}`, {
@@ -7340,7 +7340,7 @@ async function saveBudget() {
 }
 
 async function deleteBudget(categoryId) {
-    const ok = await openCustomConfirm({ title: t('deleteLimitConfirm'), okLabel: t('deleted'), danger: true });
+    const ok = await openCustomConfirm({ title: t('deleteLimitConfirm'), okLabel: t('deleteAction'), danger: true });
     if (!ok) return;
     const data = await apiFetch(`/api/budget?category_id=${categoryId}`, { method: 'DELETE' });
     if (data && data.success) {
