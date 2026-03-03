@@ -2974,11 +2974,11 @@ select.input-field option {
 
                 <!-- ── Счета ── -->
                 <div class="settings-group">
-                    <div class="settings-group-title" data-i18n="accounts">Счета</div>
+                    <div class="settings-group-title" data-i18n="accounts">Профили</div>
                     <div id="settingsAccountsList"></div>
                     <button class="quick-add-btn" onclick="openNewAccount()" style="margin-top:10px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        <span data-i18n="addAccount">Добавить счёт</span>
+                        <span data-i18n="addAccount">Добавить профиль</span>
                     </button>
                 </div>
 
@@ -3518,7 +3518,7 @@ select.input-field option {
                     </svg>
                 </div>
                 <div>
-                    <div style="font-weight:600;" id="actionSheetAccLabel">Новый счёт</div>
+                    <div style="font-weight:600;" id="actionSheetAccLabel">Новый профиль</div>
                     <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetAccDesc">Личный, Бизнес, Семья, Инвестиции</div>
                 </div>
             </div>
@@ -3534,7 +3534,7 @@ select.input-field option {
         <div class="modal-sheet" style="max-height:92vh;">
             <div class="modal-handle"></div>
             <div class="modal-header">
-                <div class="modal-title" id="newAccountModalTitle">Новый счёт</div>
+                <div class="modal-title" id="newAccountModalTitle">Новый профиль</div>
                 <button class="modal-close" onclick="closeNewAccount()">&times;</button>
             </div>
 
@@ -3652,7 +3652,7 @@ select.input-field option {
                 </div>
 
                 <div class="settings-group">
-                    <div class="settings-group-title" data-i18n="switchAccount">Переключить аккаунт</div>
+                    <div class="settings-group-title" data-i18n="switchAccount">Переключить профиль</div>
                     <div class="settings-list" id="familyAccountsList"></div>
                 </div>
 
@@ -3665,8 +3665,8 @@ select.input-field option {
 
                 <div id="familySharedAccountsSection" style="display:none;">
                     <div class="settings-group">
-                        <div class="settings-group-title" data-i18n="sharedAccounts">ОБЩИЕ СЧЕТА</div>
-                        <div style="color:var(--text-secondary);font-size:12px;margin-bottom:8px;" data-i18n="shareAccountDesc">Включите тогл, чтобы участники видели этот счёт</div>
+                        <div class="settings-group-title" data-i18n="sharedAccounts">ОБЩИЕ ПРОФИЛИ</div>
+                        <div style="color:var(--text-secondary);font-size:12px;margin-bottom:8px;" data-i18n="shareAccountDesc">Включите тогл, чтобы участники видели этот профиль</div>
                         <div class="settings-list" id="familySharedAccountsList"></div>
                     </div>
                 </div>
@@ -3852,7 +3852,7 @@ const T = {
         all: 'Все', expensesFilter: 'Расходы', incomeFilter: 'Доходы',
         // Settings
         profile: 'Профиль', currency: 'Валюта', familyAccount: 'Семейный учет',
-        personalAccount: 'Личный аккаунт', language: 'Язык',
+        personalAccount: 'Личный профиль', language: 'Язык',
         categories: 'Категории', manageCategories: 'Управление категориями',
         addEditDelete: 'Добавить, изменить или удалить',
         notifications: 'Уведомления', dailyReminder: 'Ежедневное напоминание',
@@ -3876,8 +3876,8 @@ const T = {
         exportTitle: 'Экспорт данных', exportPeriod: 'Период экспорта',
         downloadExcelBtn: 'Скачать Excel',
         // Family
-        familyTitle: 'Семейный учет', activeAccount: 'Активный аккаунт',
-        personal: 'Личный', switchAccount: 'Переключить аккаунт',
+        familyTitle: 'Семейный учет', activeAccount: 'Активный профиль',
+        personal: 'Личный', switchAccount: 'Переключить профиль',
         members: 'Участники', invitation: 'Приглашение',
         inviteCode24h: 'Код приглашения (24ч)',
         createFamily: 'Создать семью', joinFamily: 'Присоединиться',
@@ -3900,14 +3900,14 @@ const T = {
         onlyOwnerInvite: 'Только владелец может создать приглашение',
         familyNamePrompt: 'Название семьи:', inviteCodePrompt: 'Код приглашения (6 символов):',
         cancel: 'Отмена', deleteAction: 'Удалить',
-        sharedAccounts: 'ОБЩИЕ СЧЕТА', shareAccountDesc: 'Включите тогл, чтобы участники видели этот счёт',
+        sharedAccounts: 'ОБЩИЕ ПРОФИЛИ', shareAccountDesc: 'Включите тогл, чтобы участники видели этот профиль',
         sharedBy: 'от', fullAccess: 'Полный доступ', viewOnly: 'Только просмотр',
-        readOnlyAccount: 'Этот счёт доступен только для просмотра',
+        readOnlyAccount: 'Этот профиль доступен только для просмотра',
         deleteLimitConfirm: 'Удалить лимит?', leaveFamilyConfirm: 'Покинуть семью?',
         leaveFamilyBody: 'Вы больше не будете видеть семейные транзакции.',
         chooseAmount: 'Введите сумму', chooseCat: 'Выберите категорию',
         // New account modal
-        newAccount: 'Новый счёт', accountType: 'Тип счёта', accountName: 'Название',
+        newAccount: 'Новый профиль', accountType: 'Тип профиля', accountName: 'Название',
         accPersonal: 'Личный', accPersonalDesc: 'Обычные расходы',
         accBusiness: 'Бизнес', accBusinessDesc: 'Реклама, налоги, ЗП',
         accFamily: 'Семейный', accFamilyDesc: 'Продукты, ЖКХ, дети',
@@ -3915,7 +3915,7 @@ const T = {
         accExchange: 'Биржа', createAccount: 'Создать счёт',
         // Action sheet
         txLabel: 'Расход / Доход', txDesc: 'Добавить транзакцию',
-        accLabel: 'Новый счёт', accDesc: 'Личный, Бизнес, Семья, Инвестиции',
+        accLabel: 'Новый профиль', accDesc: 'Личный, Бизнес, Семья, Инвестиции',
         // Categories (system — for translation)
         catGroceries: 'Продукты', catDining: 'Заведения', catTransport: 'Транспорт',
         catHousing: 'Квартира', catSubscriptions: 'Регулярные', catShopping: 'Шоппинг',
@@ -3923,9 +3923,9 @@ const T = {
         catHome: 'Дом и сад', catOther: 'Другое',
         catSalary: 'Зарплата', catGift: 'Подарок',
         // Settings — new keys
-        accounts: 'Счета', addAccount: 'Добавить счёт', noAccounts: 'Нет дополнительных счетов',
-        accountDeleted: 'Счёт удалён', duplicateAccountName: 'Счёт с таким именем уже существует',
-        allAccounts: 'Все счета', personalAccount: 'Личный (по умолчанию)', chooseAccount: 'Выберите счёт',
+        accounts: 'Профили', addAccount: 'Добавить профиль', noAccounts: 'Нет дополнительных профилей', noProfiles: 'Создайте профили чтобы делиться ими',
+        accountDeleted: 'Профиль удалён', duplicateAccountName: 'Профиль с таким именем уже существует',
+        allAccounts: 'Все профили', personalAccount: 'Личный (по умолчанию)', chooseAccount: 'Выберите профиль',
         sharedAccess: 'Совместный доступ', sharedAccessDesc: 'Семейный и совместный учёт',
         catAndBudgets: 'Категории и бюджеты',
         appearanceLang: 'Вид и язык',
@@ -3956,7 +3956,7 @@ const T = {
         catAdded: 'Категория добавлена', catRenamed: 'Категория переименована', catDeleted: 'Категория удалена',
         errAdd: 'Ошибка добавления', errRename: 'Ошибка переименования',
         fillAllFields: 'Заполните все поля', nameEmpty: 'Имя не может быть пустым',
-        deleteAccConfirm: 'Удалить счёт', deleteAccBody: 'Транзакции сохранятся, но потеряют привязку к счёту.',
+        deleteAccConfirm: 'Удалить профиль', deleteAccBody: 'Транзакции сохранятся, но потеряют привязку к профилю.',
         deleteCatConfirm: 'Удалить категорию', deleteCatBody: 'У неё {n} операций.',
         csvEmpty: 'Файл пустой', csvNoRows: 'Не удалось распознать строки',
         csvImported: 'Импортировано', txMany: 'операций', csvRows: 'строк',
@@ -3985,7 +3985,7 @@ const T = {
         noData: 'No data', trend6m: 'Trend for 6 months',
         all: 'All', expensesFilter: 'Expenses', incomeFilter: 'Income',
         profile: 'Profile', currency: 'Currency', familyAccount: 'Family account',
-        personalAccount: 'Personal account', language: 'Language',
+        personalAccount: 'Personal profile', language: 'Language',
         categories: 'Categories', manageCategories: 'Manage categories',
         addEditDelete: 'Add, edit or delete',
         notifications: 'Notifications', dailyReminder: 'Daily reminder',
@@ -4004,8 +4004,8 @@ const T = {
         categoryName: 'Category name', emojiPlaceholder: 'Emoji (e.g. 🎮)',
         exportTitle: 'Export data', exportPeriod: 'Export period',
         downloadExcelBtn: 'Download Excel',
-        familyTitle: 'Family account', activeAccount: 'Active account',
-        personal: 'Personal', switchAccount: 'Switch account',
+        familyTitle: 'Family account', activeAccount: 'Active profile',
+        personal: 'Personal', switchAccount: 'Switch profile',
         members: 'Members', invitation: 'Invitation',
         inviteCode24h: 'Invite code (24h)',
         createFamily: 'Create family', joinFamily: 'Join',
@@ -4025,28 +4025,28 @@ const T = {
         onlyOwnerInvite: 'Only owner can generate invite',
         familyNamePrompt: 'Family name:', inviteCodePrompt: 'Invite code (6 characters):',
         cancel: 'Cancel', deleteAction: 'Delete',
-        sharedAccounts: 'SHARED ACCOUNTS', shareAccountDesc: 'Toggle to let members see this account',
+        sharedAccounts: 'SHARED PROFILES', shareAccountDesc: 'Toggle to let members see this profile',
         sharedBy: 'by', fullAccess: 'Full access', viewOnly: 'View only',
-        readOnlyAccount: 'This account is view-only',
+        readOnlyAccount: 'This profile is view-only',
         deleteLimitConfirm: 'Delete limit?', leaveFamilyConfirm: 'Leave family?',
         leaveFamilyBody: 'You will no longer see family transactions.',
         chooseAmount: 'Enter amount', chooseCat: 'Choose category',
-        newAccount: 'New Account', accountType: 'Account type', accountName: 'Name',
+        newAccount: 'New Profile', accountType: 'Profile type', accountName: 'Name',
         accPersonal: 'Personal', accPersonalDesc: 'Daily expenses',
         accBusiness: 'Business', accBusinessDesc: 'Ads, taxes, payroll',
         accFamily: 'Family', accFamilyDesc: 'Groceries, utilities, kids',
         accCrypto: 'Investments', accCryptoDesc: 'Crypto, stocks, funds',
         accExchange: 'Exchange', createAccount: 'Create Account',
         txLabel: 'Expense / Income', txDesc: 'Add a transaction',
-        accLabel: 'New Account', accDesc: 'Personal, Business, Family, Investments',
+        accLabel: 'New Profile', accDesc: 'Personal, Business, Family, Investments',
         catGroceries: 'Groceries', catDining: 'Dining', catTransport: 'Transport',
         catHousing: 'Housing', catSubscriptions: 'Subscriptions', catShopping: 'Shopping',
         catBeauty: 'Beauty', catSport: 'Sport', catTravel: 'Travel',
         catHome: 'Home & Garden', catOther: 'Other',
         catSalary: 'Salary', catGift: 'Gift',
-        accounts: 'Accounts', addAccount: 'Add account', noAccounts: 'No additional accounts',
-        accountDeleted: 'Account deleted', duplicateAccountName: 'Account with this name already exists',
-        allAccounts: 'All accounts', personalAccount: 'Personal (default)', chooseAccount: 'Choose account',
+        accounts: 'Profiles', addAccount: 'Add profile', noAccounts: 'No additional profiles', noProfiles: 'Create profiles to share them',
+        accountDeleted: 'Profile deleted', duplicateAccountName: 'Profile with this name already exists',
+        allAccounts: 'All profiles', personalAccount: 'Personal (default)', chooseAccount: 'Choose profile',
         sharedAccess: 'Shared Access', sharedAccessDesc: 'Family & shared tracking',
         catAndBudgets: 'Categories & Budgets',
         appearanceLang: 'Appearance & Language',
@@ -4076,7 +4076,7 @@ const T = {
         catAdded: 'Category added', catRenamed: 'Category renamed', catDeleted: 'Category deleted',
         errAdd: 'Add error', errRename: 'Rename error',
         fillAllFields: 'Please fill all fields', nameEmpty: 'Name cannot be empty',
-        deleteAccConfirm: 'Delete account', deleteAccBody: 'Transactions will be kept but unlinked.',
+        deleteAccConfirm: 'Delete profile', deleteAccBody: 'Transactions will be kept but unlinked.',
         deleteCatConfirm: 'Delete category', deleteCatBody: 'It has {n} transactions.',
         csvEmpty: 'File is empty', csvNoRows: 'Could not parse rows',
         csvImported: 'Imported', txMany: 'transactions', csvRows: 'rows',
@@ -4104,7 +4104,7 @@ const T = {
         noData: 'Brak danych', trend6m: 'Trend za 6 miesięcy',
         all: 'Wszystko', expensesFilter: 'Wydatki', incomeFilter: 'Przychody',
         profile: 'Profil', currency: 'Waluta', familyAccount: 'Konto rodzinne',
-        personalAccount: 'Konto osobiste', language: 'Język',
+        personalAccount: 'Profil osobisty', language: 'Język',
         categories: 'Kategorie', manageCategories: 'Zarządzanie kategoriami',
         addEditDelete: 'Dodaj, edytuj lub usuń',
         notifications: 'Powiadomienia', dailyReminder: 'Codzienne przypomnienie',
@@ -4123,8 +4123,8 @@ const T = {
         categoryName: 'Nazwa kategorii', emojiPlaceholder: 'Emoji (np. 🎮)',
         exportTitle: 'Eksport danych', exportPeriod: 'Okres eksportu',
         downloadExcelBtn: 'Pobierz Excel',
-        familyTitle: 'Konto rodzinne', activeAccount: 'Aktywne konto',
-        personal: 'Osobiste', switchAccount: 'Przełącz konto',
+        familyTitle: 'Konto rodzinne', activeAccount: 'Aktywny profil',
+        personal: 'Osobiste', switchAccount: 'Przełącz profil',
         members: 'Członkowie', invitation: 'Zaproszenie',
         inviteCode24h: 'Kod zaproszenia (24h)',
         createFamily: 'Utwórz rodzinę', joinFamily: 'Dołącz',
@@ -4144,28 +4144,28 @@ const T = {
         onlyOwnerInvite: 'Tylko właściciel może wygenerować zaproszenie',
         familyNamePrompt: 'Nazwa rodziny:', inviteCodePrompt: 'Kod zaproszenia (6 znaków):',
         cancel: 'Anuluj', deleteAction: 'Usuń',
-        sharedAccounts: 'WSPÓLNE KONTA', shareAccountDesc: 'Włącz, aby członkowie widzieli to konto',
+        sharedAccounts: 'WSPÓLNE PROFILE', shareAccountDesc: 'Włącz, aby członkowie widzieli ten profil',
         sharedBy: 'od', fullAccess: 'Pełny dostęp', viewOnly: 'Tylko podgląd',
-        readOnlyAccount: 'To konto jest tylko do odczytu',
+        readOnlyAccount: 'Ten profil jest tylko do odczytu',
         deleteLimitConfirm: 'Usunąć limit?', leaveFamilyConfirm: 'Opuścić rodzinę?',
         leaveFamilyBody: 'Nie będziesz już widzieć rodzinnych transakcji.',
         chooseAmount: 'Wprowadź kwotę', chooseCat: 'Wybierz kategorię',
-        newAccount: 'Nowe konto', accountType: 'Typ konta', accountName: 'Nazwa',
+        newAccount: 'Nowy profil', accountType: 'Typ profilu', accountName: 'Nazwa',
         accPersonal: 'Osobiste', accPersonalDesc: 'Codzienne wydatki',
         accBusiness: 'Biznesowe', accBusinessDesc: 'Reklamy, podatki, wypłaty',
         accFamily: 'Rodzinne', accFamilyDesc: 'Zakupy, media, dzieci',
         accCrypto: 'Inwestycje', accCryptoDesc: 'Krypto, akcje, fundusze',
         accExchange: 'Giełda', createAccount: 'Utwórz konto',
         txLabel: 'Wydatek / Przychód', txDesc: 'Dodaj transakcję',
-        accLabel: 'Nowe konto', accDesc: 'Osobiste, Biznesowe, Rodzinne, Inwestycje',
+        accLabel: 'Nowy profil', accDesc: 'Osobiste, Biznesowe, Rodzinne, Inwestycje',
         catGroceries: 'Zakupy spożywcze', catDining: 'Restauracje', catTransport: 'Transport',
         catHousing: 'Mieszkanie', catSubscriptions: 'Subskrypcje', catShopping: 'Zakupy',
         catBeauty: 'Uroda', catSport: 'Sport', catTravel: 'Podróże',
         catHome: 'Dom i ogród', catOther: 'Inne',
         catSalary: 'Wynagrodzenie', catGift: 'Prezent',
-        accounts: 'Konta', addAccount: 'Dodaj konto', noAccounts: 'Brak dodatkowych kont',
-        accountDeleted: 'Konto usunięte', duplicateAccountName: 'Konto o tej nazwie już istnieje',
-        allAccounts: 'Wszystkie konta', personalAccount: 'Osobiste (domyślne)', chooseAccount: 'Wybierz konto',
+        accounts: 'Profile', addAccount: 'Dodaj profil', noAccounts: 'Brak dodatkowych profili', noProfiles: 'Utwórz profile, aby je udostępniać',
+        accountDeleted: 'Profil usunięty', duplicateAccountName: 'Profil o tej nazwie już istnieje',
+        allAccounts: 'Wszystkie profile', personalAccount: 'Osobiste (domyślne)', chooseAccount: 'Wybierz profil',
         sharedAccess: 'Wspólny dostęp', sharedAccessDesc: 'Rodzinne i wspólne konta',
         catAndBudgets: 'Kategorie i budżety',
         appearanceLang: 'Wygląd i język',
@@ -4195,7 +4195,7 @@ const T = {
         catAdded: 'Kategoria dodana', catRenamed: 'Kategoria przemianowana', catDeleted: 'Kategoria usunięta',
         errAdd: 'Błąd dodawania', errRename: 'Błąd zmiany nazwy',
         fillAllFields: 'Wypełnij wszystkie pola', nameEmpty: 'Nazwa nie może być pusta',
-        deleteAccConfirm: 'Usuń konto', deleteAccBody: 'Transakcje zostaną zachowane, ale odłączone.',
+        deleteAccConfirm: 'Usuń profil', deleteAccBody: 'Transakcje zostaną zachowane, ale odłączone.',
         deleteCatConfirm: 'Usuń kategorię', deleteCatBody: 'Ma {n} transakcji.',
         csvEmpty: 'Plik jest pusty', csvNoRows: 'Nie udało się przetworzyć wierszy',
         csvImported: 'Zaimportowano', txMany: 'transakcji', csvRows: 'wierszy',
@@ -4223,7 +4223,7 @@ const T = {
         noData: 'Немає даних', trend6m: 'Тренд за 6 місяців',
         all: 'Всі', expensesFilter: 'Витрати', incomeFilter: 'Доходи',
         profile: 'Профіль', currency: 'Валюта', familyAccount: 'Сімейний облік',
-        personalAccount: 'Особистий рахунок', language: 'Мова',
+        personalAccount: 'Особистий профіль', language: 'Мова',
         categories: 'Категорії', manageCategories: 'Управління категоріями',
         addEditDelete: 'Додати, змінити або видалити',
         notifications: 'Сповіщення', dailyReminder: 'Щоденне нагадування',
@@ -4242,8 +4242,8 @@ const T = {
         categoryName: 'Назва категорії', emojiPlaceholder: 'Емодзі (наприклад 🎮)',
         exportTitle: 'Експорт даних', exportPeriod: 'Період експорту',
         downloadExcelBtn: 'Завантажити Excel',
-        familyTitle: 'Сімейний облік', activeAccount: 'Активний рахунок',
-        personal: 'Особистий', switchAccount: 'Переключити рахунок',
+        familyTitle: 'Сімейний облік', activeAccount: 'Активний профіль',
+        personal: 'Особистий', switchAccount: 'Переключити профіль',
         members: 'Учасники', invitation: 'Запрошення',
         inviteCode24h: 'Код запрошення (24г)',
         createFamily: 'Створити сім\'ю', joinFamily: 'Приєднатися',
@@ -4263,28 +4263,28 @@ const T = {
         onlyOwnerInvite: 'Тільки власник може створити запрошення',
         familyNamePrompt: 'Назва сім\'ї:', inviteCodePrompt: 'Код запрошення (6 символів):',
         cancel: 'Скасувати', deleteAction: 'Видалити',
-        sharedAccounts: 'СПІЛЬНІ РАХУНКИ', shareAccountDesc: 'Увімкніть, щоб учасники бачили цей рахунок',
+        sharedAccounts: 'СПІЛЬНІ ПРОФІЛІ', shareAccountDesc: 'Увімкніть, щоб учасники бачили цей профіль',
         sharedBy: 'від', fullAccess: 'Повний доступ', viewOnly: 'Лише перегляд',
-        readOnlyAccount: 'Цей рахунок лише для перегляду',
+        readOnlyAccount: 'Цей профіль лише для перегляду',
         deleteLimitConfirm: 'Видалити ліміт?', leaveFamilyConfirm: 'Покинути сім\'ю?',
         leaveFamilyBody: 'Ви більше не бачитимете сімейні транзакції.',
         chooseAmount: 'Введіть суму', chooseCat: 'Оберіть категорію',
-        newAccount: 'Новий рахунок', accountType: 'Тип рахунку', accountName: 'Назва',
+        newAccount: 'Новий профіль', accountType: 'Тип профілю', accountName: 'Назва',
         accPersonal: 'Особистий', accPersonalDesc: 'Звичайні витрати',
         accBusiness: 'Бізнес', accBusinessDesc: 'Реклама, податки, ЗП',
         accFamily: 'Сімейний', accFamilyDesc: 'Продукти, ЖКГ, діти',
         accCrypto: 'Інвестиції', accCryptoDesc: 'Крипто, акції, фонди',
         accExchange: 'Біржа', createAccount: 'Створити рахунок',
         txLabel: 'Витрата / Дохід', txDesc: 'Додати транзакцію',
-        accLabel: 'Новий рахунок', accDesc: 'Особистий, Бізнес, Сімейний, Інвестиції',
+        accLabel: 'Новий профіль', accDesc: 'Особистий, Бізнес, Сімейний, Інвестиції',
         catGroceries: 'Продукти', catDining: 'Заклади', catTransport: 'Транспорт',
         catHousing: 'Квартира', catSubscriptions: 'Регулярні', catShopping: 'Шопінг',
         catBeauty: 'Краса', catSport: 'Спорт', catTravel: 'Подорожі',
         catHome: 'Дім і сад', catOther: 'Інше',
         catSalary: 'Зарплата', catGift: 'Подарунок',
-        accounts: 'Рахунки', addAccount: 'Додати рахунок', noAccounts: 'Немає додаткових рахунків',
-        accountDeleted: 'Рахунок видалено', duplicateAccountName: 'Рахунок з такою назвою вже існує',
-        allAccounts: 'Всі рахунки', personalAccount: 'Особистий (за замовч.)', chooseAccount: 'Оберіть рахунок',
+        accounts: 'Профілі', addAccount: 'Додати профіль', noAccounts: 'Немає додаткових профілів', noProfiles: 'Створіть профілі щоб ділитися ними',
+        accountDeleted: 'Профіль видалено', duplicateAccountName: 'Профіль з такою назвою вже існує',
+        allAccounts: 'Всі профілі', personalAccount: 'Особистий (за замовч.)', chooseAccount: 'Оберіть профіль',
         sharedAccess: 'Спільний доступ', sharedAccessDesc: 'Сімейний та спільний облік',
         catAndBudgets: 'Категорії та бюджети',
         appearanceLang: 'Вигляд і мова',
@@ -4314,7 +4314,7 @@ const T = {
         catAdded: 'Категорію додано', catRenamed: 'Категорію перейменовано', catDeleted: 'Категорію видалено',
         errAdd: 'Помилка додавання', errRename: 'Помилка перейменування',
         fillAllFields: 'Заповніть усі поля', nameEmpty: 'Назва не може бути порожньою',
-        deleteAccConfirm: 'Видалити рахунок', deleteAccBody: 'Транзакції збережуться, але втратять прив\'язку до рахунку.',
+        deleteAccConfirm: 'Видалити профіль', deleteAccBody: 'Транзакції збережуться, але втратять прив\'язку до профілю.',
         deleteCatConfirm: 'Видалити категорію', deleteCatBody: 'Має {n} транзакцій.',
         csvEmpty: 'Файл порожній', csvNoRows: 'Не вдалося розпізнати рядки',
         csvImported: 'Імпортовано', txMany: 'операцій', csvRows: 'рядків',
@@ -6866,12 +6866,16 @@ async function loadSharedAccountsToggles() {
     const listEl = document.getElementById('familySharedAccountsList');
     if (!listEl) return;
 
-    // Get user's own accounts
-    const accData = state.accounts || [];
-    const ownAccounts = accData.filter(a => !a._shared);
+    // Ensure accounts are loaded
+    if (!state.accounts || state.accounts.length === 0) {
+        await loadAccounts();
+    }
+
+    // Own non-personal accounts (Personal is implicit slot, no point sharing)
+    const ownAccounts = (state.accounts || []).filter(a => !a._shared && a.type !== 'personal');
 
     if (ownAccounts.length === 0) {
-        listEl.innerHTML = '';
+        listEl.innerHTML = `<div style="padding:12px 16px;color:var(--text-muted);font-size:13px;">${t('noProfiles') || 'No additional profiles to share'}</div>`;
         return;
     }
 
