@@ -55,7 +55,15 @@ export default {
 
     // Mini App REST API
     if (url.pathname.startsWith('/api/')) {
-      return handleMiniAppAPI(request, env, url.pathname);
+      try {
+        return await handleMiniAppAPI(request, env, url.pathname);
+      } catch (e) {
+        console.error('MiniApp API error:', e.message, e.stack);
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
     }
 
     // Setup webhook to point to this worker

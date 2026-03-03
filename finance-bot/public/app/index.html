@@ -6921,15 +6921,23 @@ async function toggleShareAccount(accountId, toggleEl) {
     toggleEl.classList.toggle('active');
     haptic('light');
 
-    const data = await apiFetch('/api/family/share-account', {
-        method: 'POST',
-        body: JSON.stringify({ account_id: accountId, shared: newShared }),
-    });
+    try {
+        const data = await apiFetch('/api/family/share-account', {
+            method: 'POST',
+            body: JSON.stringify({ account_id: accountId, shared: newShared }),
+        });
 
-    if (!data || !data.success) {
-        // Revert on failure
+        if (!data || !data.success) {
+            // Revert on failure
+            toggleEl.classList.toggle('active');
+            const errMsg = data?.error || 'Unknown error';
+            console.error('Share toggle failed:', errMsg);
+            showToast(errMsg, 'error');
+        }
+    } catch (e) {
         toggleEl.classList.toggle('active');
-        showToast('Error', 'error');
+        console.error('Share toggle error:', e);
+        showToast(e.message || 'Error', 'error');
     }
 }
 
