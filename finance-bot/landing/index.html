@@ -314,11 +314,14 @@
       border-radius: var(--radius-card);
       padding: 28px 24px;
       transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    }
+
+    .js-ready .feature-card {
       opacity: 0;
       transform: translateY(20px);
     }
 
-    .feature-card.visible {
+    .js-ready .feature-card.visible {
       opacity: 1;
       transform: translateY(0);
       transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s;
@@ -652,6 +655,9 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // Enable JS-dependent animations
+    document.body.classList.add('js-ready');
+
     // ===================== i18n =====================
     const translations = {
       en: {
@@ -714,7 +720,7 @@
         f1Title: "Open Banking",
         f1Desc: "Podłącz bank — transakcje synchronizują się automatycznie. Bez ręcznego wpisywania.",
         f2Title: "Głosowe wprowadzanie",
-        f2Desc: "Powiedz „kawa 4 złote" i gotowe. Najszybszy sposób śledzenia wydatków.",
+        f2Desc: 'Powiedz „kawa 4 złote" i gotowe. Najszybszy sposób śledzenia wydatków.',
         f3Title: "Konta krypto",
         f3Desc: "Binance, Bybit, OKX i inne giełdy — całe portfolio krypto w jednym miejscu.",
         f4Title: "Minimalistyczny UI",
