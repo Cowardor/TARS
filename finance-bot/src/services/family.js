@@ -193,7 +193,7 @@ export class FamilyService {
   async getSharedAccounts(familyId) {
     const result = await this.db.prepare(`
       SELECT sa.*, a.name as account_name, a.type as account_type,
-             u.first_name as shared_by_name
+             u.display_name as shared_by_name
       FROM shared_accounts sa
       JOIN accounts a ON sa.account_id = a.id
       JOIN users u ON sa.shared_by_user_id = u.id
@@ -207,7 +207,7 @@ export class FamilyService {
   async getSharedAccountsForUser(familyId, userId) {
     const result = await this.db.prepare(`
       SELECT sa.*, a.name as account_name, a.type as account_type,
-             u.first_name as shared_by_name
+             u.display_name as shared_by_name
       FROM shared_accounts sa
       JOIN accounts a ON sa.account_id = a.id
       JOIN users u ON sa.shared_by_user_id = u.id
