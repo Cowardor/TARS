@@ -2789,7 +2789,7 @@ select.input-field option {
 
                         <!-- Default personal card (always first) -->
                         <div class="balance-card" id="defaultBalanceCard">
-                            <div class="account-name-chip" id="activeAccountChip">💼 Личные</div>
+                            <div class="account-name-chip" id="activeAccountChip" data-i18n="personalAccounts">💼 Personal</div>
                             <div class="balance-label" data-i18n="balance">Баланс за месяц</div>
                             <div class="balance-amount positive" id="balanceAmount">0 USD</div>
                             <div class="balance-row">
@@ -3447,7 +3447,7 @@ select.input-field option {
                 <button class="picker-trigger" id="importAccountTrigger" onclick="openImportAccountPicker()" style="margin-bottom:12px;">
                 <div class="picker-trigger-left">
                     <div class="picker-trigger-icon" style="background:var(--bg-elevated);color:var(--text-secondary);"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg></div>
-                    <span class="picker-trigger-text">Личный счёт</span>
+                    <span class="picker-trigger-text" data-i18n="personalAccount">Personal profile</span>
                 </div>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="picker-trigger-chevron" style="width:16px;height:16px;"><path d="M6 8l4 4 4-4"/></svg>
             </button>
@@ -3549,7 +3549,7 @@ select.input-field option {
                                 <path d="M3 18c0-3.6 3.1-6 7-6s7 2.4 7 6"/>
                             </svg>
                         </div>
-                        <div class="account-template-label" id="accTplPersonal">Личный</div>
+                        <div class="account-template-label" id="accTplPersonal" data-i18n="personal">Personal</div>
                         <div class="account-template-desc" id="accTplPersonalDesc">Обычные расходы</div>
                     </div>
                     <div class="account-template-card" data-template="business" onclick="selectAccountTemplate('business')">
@@ -3648,7 +3648,7 @@ select.input-field option {
             <div id="familyContent">
                 <div class="balance-card" style="margin-bottom:16px;">
                     <div class="balance-label" data-i18n="activeAccount">Активный аккаунт</div>
-                    <div class="balance-amount positive" id="familyActiveName" data-i18n="personal">Личный</div>
+                    <div class="balance-amount positive" id="familyActiveName" data-i18n="personal">Personal</div>
                 </div>
 
                 <div class="settings-group">
@@ -3933,6 +3933,7 @@ const T = {
         themeDesc: 'Переключить цветовую схему',
         importCsv: 'Импорт CSV', importDesc: 'Загрузить транзакции из файла',
         signOut: 'Выйти',
+        personal: 'Личный',
         personalAccounts: 'Личные',
         cryptoPortfolio: 'Инвест. портфель',
         tapToRefresh: 'Нажмите Обновить для загрузки',
@@ -4054,6 +4055,7 @@ const T = {
         themeDesc: 'Toggle color scheme',
         importCsv: 'Import CSV', importDesc: 'Import transactions from file',
         signOut: 'Sign Out',
+        personal: 'Personal',
         personalAccounts: 'Personal',
         cryptoPortfolio: 'Investment portfolio',
         tapToRefresh: 'Tap Refresh to load',
@@ -4173,6 +4175,7 @@ const T = {
         themeDesc: 'Przełącz schemat kolorów',
         importCsv: 'Import CSV', importDesc: 'Importuj transakcje z pliku',
         signOut: 'Wyloguj się',
+        personal: 'Osobisty',
         personalAccounts: 'Osobiste',
         cryptoPortfolio: 'Portfel inwestycyjny',
         tapToRefresh: 'Kliknij Odśwież, aby załadować',
@@ -4292,6 +4295,7 @@ const T = {
         themeDesc: 'Перемкнути кольорову схему',
         importCsv: 'Імпорт CSV', importDesc: 'Завантажити транзакції з файлу',
         signOut: 'Вийти',
+        personal: 'Особистий',
         personalAccounts: 'Особисті',
         cryptoPortfolio: 'Інвест. портфель',
         tapToRefresh: 'Натисніть Оновити для завантаження',
@@ -4871,7 +4875,9 @@ function renderAccountsCarousel() {
     // index 1..N → extraAccountCards (state.accounts.slice(1))
     const firstAcc = state.accounts[0];
     if (firstAcc) {
-        if (chip) chip.innerHTML = `${getAccountTypeIconHTML(firstAcc.type)} ${firstAcc.name}`;
+        // Personal slot: use translated name; other accounts: use DB name
+        const firstName = firstAcc.type === 'personal' ? t('personalAccounts') : firstAcc.name;
+        if (chip) chip.innerHTML = `${getAccountTypeIconHTML(firstAcc.type)} ${firstName}`;
         if (state.accountIndex === 0) {
             defaultCard.style.setProperty('--account-color', firstAcc.color || 'var(--accent-blue)');
         }
@@ -5305,8 +5311,12 @@ function updateFabVisibility() {
     const fab = document.getElementById('mainFab');
     if (!fab) return;
     const anyModal = !!document.querySelector('.modal-overlay.show');
-    const activeAcc = state.accounts?.find(a => a.id === state.activeAccountId);
-    const isReadOnlyShared = activeAcc?._shared && activeAcc._permission === 'readonly';
+    // Only check read-only for shared accounts with explicit _shared flag
+    let isReadOnlyShared = false;
+    if (state.activeAccountId && state.accounts?.length) {
+        const activeAcc = state.accounts.find(a => a.id === state.activeAccountId);
+        isReadOnlyShared = activeAcc?._shared === true && activeAcc._permission === 'readonly';
+    }
     fab.classList.toggle('fab-hidden', anyModal || isReadOnlyShared);
 }
 
@@ -6866,10 +6876,8 @@ async function loadSharedAccountsToggles() {
     const listEl = document.getElementById('familySharedAccountsList');
     if (!listEl) return;
 
-    // Ensure accounts are loaded
-    if (!state.accounts || state.accounts.length === 0) {
-        await loadAccounts();
-    }
+    // Always re-fetch accounts to ensure fresh data
+    await loadAccounts();
 
     // Own non-personal accounts (Personal is implicit slot, no point sharing)
     const ownAccounts = (state.accounts || []).filter(a => !a._shared && a.type !== 'personal');
@@ -6880,8 +6888,13 @@ async function loadSharedAccountsToggles() {
     }
 
     // Get current shared state from server
-    const sharedData = await apiFetch('/api/family/shared-accounts');
-    const myShared = sharedData?.my_shared || [];
+    let myShared = [];
+    try {
+        const sharedData = await apiFetch('/api/family/shared-accounts');
+        myShared = sharedData?.my_shared || [];
+    } catch (e) {
+        console.error('Failed to load shared accounts:', e);
+    }
 
     listEl.innerHTML = ownAccounts.map(acc => {
         const isShared = myShared.includes(acc.id);
