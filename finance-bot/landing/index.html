@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alar Finance — Smart Personal Finance Tracker</title>
+  <meta name="description" content="Track expenses, income, budgets and crypto — all in one place. Open banking, voice input, and beautiful minimal UI.">
+  <meta property="og:title" content="Alar Finance — Smart Personal Finance Tracker">
+  <meta property="og:description" content="Track expenses, income, budgets and crypto — all in one place.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://alarfinance.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='12' fill='url(%23g)'/%3E%3Cpath d='M24 8 L38 38 L10 38 Z' stroke='white' stroke-width='2' stroke-linejoin='round' fill='none'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='48' y2='48'%3E%3Cstop stop-color='%233b82f6'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #09090b;
+      --bg-card: #111114;
+      --bg-elevated: #18181b;
+      --border: #27272a;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --primary: #3b82f6;
+      --accent: #60a5fa;
+      --cyan: #22d3ee;
+      --gradient: linear-gradient(135deg, #3b82f6, #22d3ee);
+      --glow: 0 0 60px rgba(59, 130, 246, 0.15);
+      --radius-btn: 8px;
+      --radius-card: 16px;
+      --radius-modal: 20px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --bg-card: #f4f4f5;
+      --bg-elevated: #e4e4e7;
+      --border: #d4d4d8;
+      --text: #09090b;
+      --text-muted: #71717a;
+      --glow: 0 0 60px rgba(59, 130, 246, 0.1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Switzer', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-weight: 400;
+      font-size: 16px;
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* --- HEADER --- */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-text {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 4px;
+      color: var(--text);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    .theme-toggle:hover { border-color: var(--primary); }
+
+    .lang-switcher {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 2px;
+    }
+
+    .lang-btn {
+      padding: 6px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Switzer', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: var(--gradient);
+      color: #fff;
+    }
+
+    /* --- HERO --- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 32px;
+    }
+
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: clamp(36px, 7vw, 56px);
+      line-height: 1.1;
+      margin-bottom: 20px;
+      max-width: 680px;
+    }
+
+    .hero h1 .gradient-text {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 18px);
+      color: var(--text-muted);
+      max-width: 480px;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-btn);
+      padding: 14px 32px;
+      font-family: 'Switzer', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 14px 32px;
+      font-family: 'Switzer', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* --- FEATURES --- */
+    .features {
+      padding: 80px 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: clamp(28px, 5vw, 36px);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 48px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .features-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 28px 24px;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.08);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* --- CTA --- */
+    .cta-section {
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .cta-box {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-modal);
+      padding: 48px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--gradient);
+    }
+
+    .cta-box h2 {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .cta-box .cta-sub {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 28px;
+    }
+
+    .notify-form {
+      display: flex;
+      gap: 8px;
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+
+    .notify-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text);
+      font-family: 'Switzer', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .notify-input::placeholder { color: var(--text-muted); }
+    .notify-input:focus { border-color: var(--primary); }
+
+    .notify-btn {
+      padding: 12px 24px;
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: 'Switzer', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.2s;
+    }
+    .notify-btn:hover { transform: translateY(-1px); }
+
+    .store-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0.4;
+    }
+
+    .store-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .store-badge svg { width: 18px; height: 18px; }
+
+    /* --- FOOTER --- */
+    .footer {
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-logo span {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: var(--text);
+    }
+
+    .footer-text {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .footer-powered {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* --- TOAST --- */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      z-index: 200;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 480px) {
+      .header { padding: 12px 16px; }
+      .logo-text { font-size: 15px; letter-spacing: 3px; }
+      .lang-btn { padding: 5px 7px; font-size: 11px; }
+      .hero { padding: 100px 20px 60px; }
+      .hero-buttons { flex-direction: column; width: 100%; max-width: 320px; }
+      .hero-buttons .btn-primary,
+      .hero-buttons .btn-secondary { width: 100%; justify-content: center; }
+      .features { padding: 60px 20px; }
+      .cta-box { padding: 36px 20px; }
+      .notify-form { flex-direction: column; }
+      .store-badges { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <a href="#" class="logo">
+      <svg width="24" height="20" viewBox="0 0 160 160" fill="none">
+        <path d="M80 25 L130 130 L30 130 Z" stroke="url(#lp)" stroke-width="5" stroke-linejoin="round" fill="none"/>
+        <line x1="95" y1="75" x2="145" y2="55" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
+        <line x1="97" y1="85" x2="145" y2="85" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>
+        <line x1="95" y1="95" x2="145" y2="115" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+        <defs><linearGradient id="lp" x1="30" y1="130" x2="130" y2="25"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      </svg>
+      <span class="logo-text">ALAR</span>
+    </a>
+    <div class="header-controls">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+        <button class="lang-btn" data-lang="pl">PL</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span class="theme-icon">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span data-i18n="heroBadge">Coming Soon</span>
+    </div>
+    <h1>
+      <span data-i18n="heroTitle1">Your finances,</span><br>
+      <span class="gradient-text" data-i18n="heroTitle2">under control</span>
+    </h1>
+    <p class="hero-sub" data-i18n="heroSub">Track expenses, income, crypto and bank accounts — all in one minimal app.</p>
+    <div class="hero-cta">
+      <div class="hero-buttons">
+        <a href="#notify" class="btn-primary" data-i18n="heroBtn">Get notified at launch</a>
+        <a href="#features" class="btn-secondary" data-i18n="heroBtn2">See features</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <h2 class="section-title" data-i18n="featuresTitle">Everything you need</h2>
+    <p class="section-sub" data-i18n="featuresSub">No clutter. No learning curve. Just results.</p>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🏦</div>
+        <h3 data-i18n="f1Title">Open Banking</h3>
+        <p data-i18n="f1Desc">Connect your bank — transactions sync automatically. No manual input needed.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎙️</div>
+        <h3 data-i18n="f2Title">Voice Input</h3>
+        <p data-i18n="f2Desc">Say "coffee 4 zloty" and it's logged. The fastest way to track spending.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">₿</div>
+        <h3 data-i18n="f3Title">Crypto Accounts</h3>
+        <p data-i18n="f3Desc">Binance, Bybit, OKX and more — see all your crypto in one dashboard.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <h3 data-i18n="f4Title">Minimal UI</h3>
+        <p data-i18n="f4Desc">Add an expense in 3 seconds. Beautiful dark interface, zero distractions.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="notify">
+    <div class="cta-box">
+      <h2 data-i18n="ctaTitle">Be the first to know</h2>
+      <p class="cta-sub" data-i18n="ctaSub">We'll notify you when Alar Finance launches on App Store & Google Play.</p>
+      <form class="notify-form" id="notifyForm">
+        <input type="email" class="notify-input" data-i18n-placeholder="ctaPlaceholder" placeholder="your@email.com" required>
+        <button type="submit" class="notify-btn" data-i18n="ctaBtn">Notify me</button>
+      </form>
+      <div class="store-badges">
+        <div class="store-badge">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <span>App Store</span>
+        </div>
+        <div class="store-badge">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.77L14.1 12.7 3.18.23c-.2-.2-.03-.57.26-.57h1.06c.1 0 .2.04.27.11l11.29 11.3c.39.4.39 1.03 0 1.42L4.77 23.8c-.07.07-.17.11-.27.11H3.44c-.29 0-.46-.37-.26-.57v.43z"/></svg>
+          <span>Google Play</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <svg width="18" height="16" viewBox="0 0 160 160" fill="none">
+          <path d="M80 25 L130 130 L30 130 Z" stroke="url(#fp)" stroke-width="5" stroke-linejoin="round" fill="none"/>
+          <line x1="95" y1="75" x2="145" y2="55" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
+          <line x1="97" y1="85" x2="145" y2="85" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>
+          <line x1="95" y1="95" x2="145" y2="115" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          <defs><linearGradient id="fp" x1="30" y1="130" x2="130" y2="25"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+        </svg>
+        <span>ALAR</span>
+      </div>
+      <p class="footer-text" data-i18n="footerText">Smart personal finance tracker</p>
+      <p class="footer-powered">Powered by Alar ▲</p>
+    </div>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===================== i18n =====================
+    const translations = {
+      en: {
+        heroBadge: "Coming Soon",
+        heroTitle1: "Your finances,",
+        heroTitle2: "under control",
+        heroSub: "Track expenses, income, crypto and bank accounts — all in one minimal app.",
+        heroBtn: "Get notified at launch",
+        heroBtn2: "See features",
+        featuresTitle: "Everything you need",
+        featuresSub: "No clutter. No learning curve. Just results.",
+        f1Title: "Open Banking",
+        f1Desc: "Connect your bank — transactions sync automatically. No manual input needed.",
+        f2Title: "Voice Input",
+        f2Desc: "Say \"coffee 4 zloty\" and it's logged. The fastest way to track spending.",
+        f3Title: "Crypto Accounts",
+        f3Desc: "Binance, Bybit, OKX and more — see all your crypto in one dashboard.",
+        f4Title: "Minimal UI",
+        f4Desc: "Add an expense in 3 seconds. Beautiful dark interface, zero distractions.",
+        ctaTitle: "Be the first to know",
+        ctaSub: "We'll notify you when Alar Finance launches on App Store & Google Play.",
+        ctaPlaceholder: "your@email.com",
+        ctaBtn: "Notify me",
+        footerText: "Smart personal finance tracker",
+        toastSuccess: "You're on the list! We'll let you know.",
+      },
+      ru: {
+        heroBadge: "Скоро запуск",
+        heroTitle1: "Ваши финансы",
+        heroTitle2: "под контролем",
+        heroSub: "Расходы, доходы, крипто и банковские счета — всё в одном минималистичном приложении.",
+        heroBtn: "Узнать о запуске",
+        heroBtn2: "Возможности",
+        featuresTitle: "Всё что нужно",
+        featuresSub: "Ничего лишнего. Без обучения. Только результат.",
+        f1Title: "Open Banking",
+        f1Desc: "Подключите банк — транзакции синхронизируются автоматически. Без ручного ввода.",
+        f2Title: "Голосовой ввод",
+        f2Desc: "Скажите «кофе 4 злотых» — и расход записан. Самый быстрый способ учёта.",
+        f3Title: "Крипто-счета",
+        f3Desc: "Binance, Bybit, OKX и другие биржи — весь крипто-портфель в одном месте.",
+        f4Title: "Минимальный UI",
+        f4Desc: "Добавить расход за 3 секунды. Красивый тёмный интерфейс без отвлечений.",
+        ctaTitle: "Узнайте первыми",
+        ctaSub: "Мы сообщим, когда Alar Finance появится в App Store и Google Play.",
+        ctaPlaceholder: "ваш@email.com",
+        ctaBtn: "Сообщить мне",
+        footerText: "Умный трекер личных финансов",
+        toastSuccess: "Вы в списке! Мы сообщим о запуске.",
+      },
+      pl: {
+        heroBadge: "Wkrótce",
+        heroTitle1: "Twoje finanse",
+        heroTitle2: "pod kontrolą",
+        heroSub: "Wydatki, przychody, krypto i konta bankowe — wszystko w jednej minimalistycznej aplikacji.",
+        heroBtn: "Powiadom o starcie",
+        heroBtn2: "Funkcje",
+        featuresTitle: "Wszystko czego potrzebujesz",
+        featuresSub: "Bez bałaganu. Bez nauki. Tylko wyniki.",
+        f1Title: "Open Banking",
+        f1Desc: "Podłącz bank — transakcje synchronizują się automatycznie. Bez ręcznego wpisywania.",
+        f2Title: "Głosowe wprowadzanie",
+        f2Desc: "Powiedz „kawa 4 złote" i gotowe. Najszybszy sposób śledzenia wydatków.",
+        f3Title: "Konta krypto",
+        f3Desc: "Binance, Bybit, OKX i inne giełdy — całe portfolio krypto w jednym miejscu.",
+        f4Title: "Minimalistyczny UI",
+        f4Desc: "Dodaj wydatek w 3 sekundy. Piękny ciemny interfejs bez rozpraszaczy.",
+        ctaTitle: "Bądź pierwszy",
+        ctaSub: "Powiadomimy Cię, gdy Alar Finance pojawi się w App Store i Google Play.",
+        ctaPlaceholder: "twoj@email.com",
+        ctaBtn: "Powiadom mnie",
+        footerText: "Inteligentny tracker finansów osobistych",
+        toastSuccess: "Jesteś na liście! Damy Ci znać.",
+      },
+      ua: {
+        heroBadge: "Незабаром",
+        heroTitle1: "Ваші фінанси",
+        heroTitle2: "під контролем",
+        heroSub: "Витрати, доходи, крипто та банківські рахунки — все в одному мінімалістичному додатку.",
+        heroBtn: "Дізнатися про запуск",
+        heroBtn2: "Можливості",
+        featuresTitle: "Все що потрібно",
+        featuresSub: "Нічого зайвого. Без навчання. Тільки результат.",
+        f1Title: "Open Banking",
+        f1Desc: "Підключіть банк — транзакції синхронізуються автоматично. Без ручного введення.",
+        f2Title: "Голосовий ввід",
+        f2Desc: "Скажіть «кава 4 злотих» — і витрату записано. Найшвидший спосіб обліку.",
+        f3Title: "Крипто-рахунки",
+        f3Desc: "Binance, Bybit, OKX та інші біржі — все крипто-портфоліо в одному місці.",
+        f4Title: "Мінімальний UI",
+        f4Desc: "Додати витрату за 3 секунди. Гарний темний інтерфейс без відволікань.",
+        ctaTitle: "Дізнайтесь першими",
+        ctaSub: "Ми повідомимо, коли Alar Finance з'явиться в App Store та Google Play.",
+        ctaPlaceholder: "ваш@email.com",
+        ctaBtn: "Повідомити мене",
+        footerText: "Розумний трекер особистих фінансів",
+        toastSuccess: "Ви у списку! Ми повідомимо про запуск.",
+      }
+    };
+
+    let currentLang = localStorage.getItem('alar-lang') || (() => {
+      const nav = navigator.language.toLowerCase();
+      if (nav.startsWith('ru')) return 'ru';
+      if (nav.startsWith('pl')) return 'pl';
+      if (nav.startsWith('uk')) return 'ua';
+      return 'en';
+    })();
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('alar-lang', lang);
+      document.documentElement.lang = lang === 'ua' ? 'uk' : lang;
+
+      const t = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.placeholder = t[key];
+      });
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+
+    // ===================== THEME =====================
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('alar-theme', theme);
+      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    const savedTheme = localStorage.getItem('alar-theme') ||
+      (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    // ===================== ANIMATIONS =====================
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card').forEach(card => observer.observe(card));
+
+    // ===================== NOTIFY FORM =====================
+    document.getElementById('notifyForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = e.target.querySelector('.notify-input').value;
+      const list = JSON.parse(localStorage.getItem('alar-notify') || '[]');
+      if (!list.includes(email)) {
+        list.push(email);
+        localStorage.setItem('alar-notify', JSON.stringify(list));
+      }
+
+      const toast = document.getElementById('toast');
+      toast.textContent = translations[currentLang].toastSuccess;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+
+      e.target.reset();
+    });
+
+    // Init language
+    setLang(currentLang);
+  </script>
+
+</body>
+</html>

@@ -141,32 +141,45 @@ box-shadow: 0 0 60px rgba(59, 130, 246, 0.3);
 
 ## Типографика
 
-### Шрифты
+### Шрифты (V13 — Satoshi)
 
-| Назначение | Шрифт | Weight |
-|-----------|-------|--------|
-| **Headings** | Inter | 700-800 |
-| **Body** | Inter | 400-500 |
-| **Code / Mono** | JetBrains Mono | 400-500 |
-| **Wordmark** | Inter | 800, letter-spacing: 6px |
+| Назначение | Шрифт | Weight | Источник |
+|-----------|-------|--------|----------|
+| **Headings** | Satoshi | 500-700 | fontshare.com |
+| **Body / UI** | Switzer | 300-700 | fontshare.com |
+| **Numbers / Mono** | DM Mono | 400-500 | Google Fonts |
+| **Wordmark** | Satoshi | 700, letter-spacing: 6px | fontshare.com |
 
-### Google Fonts import
+### Font import
 
-```css
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+```html
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet">
 ```
+
+### Применение в Finance App
+
+| Элемент | Шрифт | Weight |
+|---------|-------|--------|
+| `.greeting-name` | Satoshi | 700 |
+| `.modal-title` | Satoshi | 700 |
+| `.section-title` | Satoshi | 500 |
+| `.stats-title` | Satoshi | 700 |
+| `body` (всё остальное) | Switzer | 400-600 |
+| `.balance-amount` | DM Mono | 500 |
+| Все суммы/числа | DM Mono | 500 |
 
 ### Размеры
 
 | Элемент | Size | Weight |
 |---------|------|--------|
-| H1 | 48px | 800 |
-| H2 | 36px | 700 |
-| H3 | 24px | 600 |
-| Body | 16px | 400 |
-| Small | 14px | 400 |
-| Caption | 12px | 500 |
-| Code | 14px | 400 (mono) |
+| H1 | 48px | 700 (Satoshi) |
+| H2 | 36px | 700 (Satoshi) |
+| H3 | 24px | 500 (Satoshi) |
+| Body | 16px | 400 (Switzer) |
+| Small | 14px | 400 (Switzer) |
+| Caption | 12px | 500 (Switzer) |
+| Numbers | 14-36px | 500 (DM Mono) |
 
 ---
 
