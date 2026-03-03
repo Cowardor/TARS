@@ -124,6 +124,11 @@ export class FamilyService {
       return { success: false, error: 'Владелец не может покинуть семью. Сначала удали семью.' };
     }
 
+    // Remove user's shared accounts from this family
+    await this.db.prepare(
+      'DELETE FROM shared_accounts WHERE family_id = ? AND shared_by_user_id = ?'
+    ).bind(familyId, userId).run();
+
     await this.db.prepare(`
       DELETE FROM family_members WHERE family_id = ? AND user_id = ?
     `).bind(familyId, userId).run();
@@ -141,7 +146,10 @@ export class FamilyService {
       return { success: false, error: 'Только владелец может удалить семью' };
     }
 
-    // Delete all members first
+    // Delete shared accounts
+    await this.db.prepare('DELETE FROM shared_accounts WHERE family_id = ?').bind(familyId).run();
+
+    // Delete all members
     await this.db.prepare('DELETE FROM family_members WHERE family_id = ?').bind(familyId).run();
 
     // Delete family
@@ -164,5 +172,63 @@ export class FamilyService {
       SELECT COUNT(*) as count FROM family_members WHERE family_id = ?
     `).bind(familyId).first();
     return result?.count || 0;
+  }
+
+  // Share account with family
+  async shareAccount(accountId, familyId, userId, permission = 'readwrite') {
+    await this.db.prepare(`
+      INSERT INTO shared_accounts (account_id, family_id, shared_by_user_id, permission)
+      VALUES (?, ?, ?, ?)
+    `).bind(accountId, familyId, userId, permission).run();
+  }
+
+  // Unshare account from family
+  async unshareAccount(accountId, familyId, userId) {
+    await this.db.prepare(
+      'DELETE FROM shared_accounts WHERE account_id = ? AND family_id = ? AND shared_by_user_id = ?'
+    ).bind(accountId, familyId, userId).run();
+  }
+
+  // Get all shared accounts for a family (with account details)
+  async getSharedAccounts(familyId) {
+    const result = await this.db.prepare(`
+      SELECT sa.*, a.name as account_name, a.type as account_type, a.balance,
+             a.currency, u.first_name as shared_by_name
+      FROM shared_accounts sa
+      JOIN accounts a ON sa.account_id = a.id
+      JOIN users u ON sa.shared_by_user_id = u.id
+      WHERE sa.family_id = ?
+      ORDER BY sa.created_at ASC
+    `).bind(familyId).all();
+    return result.results;
+  }
+
+  // Get shared accounts from OTHER users (not mine) in a family
+  async getSharedAccountsForUser(familyId, userId) {
+    const result = await this.db.prepare(`
+      SELECT sa.*, a.name as account_name, a.type as account_type, a.balance,
+             a.currency, u.first_name as shared_by_name
+      FROM shared_accounts sa
+      JOIN accounts a ON sa.account_id = a.id
+      JOIN users u ON sa.shared_by_user_id = u.id
+      WHERE sa.family_id = ? AND sa.shared_by_user_id != ?
+      ORDER BY sa.created_at ASC
+    `).bind(familyId, userId).all();
+    return result.results;
+  }
+
+  // Check if account is shared with family
+  async isAccountShared(accountId, familyId) {
+    return await this.db.prepare(
+      'SELECT * FROM shared_accounts WHERE account_id = ? AND family_id = ?'
+    ).bind(accountId, familyId).first();
+  }
+
+  // Get IDs of accounts that current user shared with family
+  async getMySharedAccountIds(familyId, userId) {
+    const result = await this.db.prepare(
+      'SELECT account_id FROM shared_accounts WHERE family_id = ? AND shared_by_user_id = ?'
+    ).bind(familyId, userId).all();
+    return result.results.map(r => r.account_id);
   }
 }

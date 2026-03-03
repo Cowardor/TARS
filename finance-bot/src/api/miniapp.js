@@ -166,7 +166,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
         return handleGetTransaction(request, userId, transactionService);
       }
       if (request.method === 'POST') {
-        return handleCreateTransaction(request, userId, familyId, activeAccountId, transactionService, categoryService, currency);
+        return handleCreateTransaction(request, userId, familyId, activeAccountId, transactionService, categoryService, currency, familyService);
       }
       if (request.method === 'PUT') {
         return handleUpdateTransaction(request, userId, transactionService);
@@ -221,7 +221,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
     // ── Accounts ────────────────────────────────────────
     case '/api/accounts':
       if (request.method === 'GET') {
-        return handleGetAccounts(userId, accountService);
+        return handleGetAccounts(userId, accountService, familyId, familyService);
       }
       if (request.method === 'POST') {
         return handleCreateAccount(request, userId, accountService);
@@ -236,7 +236,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/accounts/switch':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleAccountSwitch(request, userId, user.telegram_id, accountService);
+      return handleAccountSwitch(request, userId, user.telegram_id, accountService, familyId, familyService);
 
     case '/api/accounts/sync-crypto':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -268,6 +268,16 @@ export async function handleMiniAppAPI(request, env, pathname) {
     case '/api/family/leave':
       if (request.method !== 'POST') return error('Method not allowed', 405);
       return handleFamilyLeave(request, userId, user.telegram_id, familyService, userService);
+
+    case '/api/family/shared-accounts':
+      if (request.method === 'GET') {
+        return handleGetSharedAccounts(userId, familyId, familyService, accountService);
+      }
+      return error('Method not allowed', 405);
+
+    case '/api/family/share-account':
+      if (request.method !== 'POST') return error('Method not allowed', 405);
+      return handleShareAccount(request, userId, familyId, familyService, accountService);
 
     // Budgets
     case '/api/budgets': {
@@ -437,7 +447,7 @@ async function handleCategories(userId, familyId, accountId, cs) {
 // POST /api/transaction
 // ============================================
 
-async function handleCreateTransaction(request, userId, familyId, accountId, ts, cs, currency) {
+async function handleCreateTransaction(request, userId, familyId, accountId, ts, cs, currency, fs = null) {
   let body;
   try {
     body = await request.json();
@@ -446,6 +456,14 @@ async function handleCreateTransaction(request, userId, familyId, accountId, ts,
   }
 
   const { type, amount, category_id, description } = body;
+
+  // Read-only guard: check if active account is a shared account with readonly permission
+  if (accountId && familyId && fs) {
+    const shared = await fs.isAccountShared(accountId, familyId);
+    if (shared && shared.permission === 'readonly') {
+      return error('This account is read-only', 403);
+    }
+  }
 
   if (!type || !['expense', 'income'].includes(type)) {
     return error('Invalid type: must be "expense" or "income"');
@@ -857,6 +875,63 @@ async function handleFamilyLeave(request, userId, telegramId, fs, us) {
 }
 
 // ============================================
+// GET /api/family/shared-accounts
+// ============================================
+
+async function handleGetSharedAccounts(userId, familyId, fs, as) {
+  if (!familyId) return error('No active family');
+
+  const allShared = await fs.getSharedAccounts(familyId);
+  const mySharedIds = await fs.getMySharedAccountIds(familyId, userId);
+
+  return json({
+    shared_accounts: allShared.map(sa => ({
+      account_id: sa.account_id,
+      account_name: sa.account_name,
+      account_type: sa.account_type,
+      shared_by: sa.shared_by_name,
+      shared_by_user_id: sa.shared_by_user_id,
+      permission: sa.permission,
+    })),
+    my_shared: mySharedIds,
+  });
+}
+
+// ============================================
+// POST /api/family/share-account
+// ============================================
+
+async function handleShareAccount(request, userId, familyId, fs, as) {
+  if (!familyId) return error('No active family');
+
+  let body;
+  try { body = await request.json(); } catch { return error('Invalid JSON'); }
+
+  const { account_id, shared } = body;
+  if (!account_id) return error('account_id is required');
+
+  // Verify ownership
+  const account = await as.getById(account_id, userId);
+  if (!account) return error('Account not found or not yours', 404);
+
+  if (shared) {
+    // Auto-determine permission: crypto/investments = readonly, rest = readwrite
+    const readOnlyTypes = ['crypto'];
+    const permission = readOnlyTypes.includes(account.type) ? 'readonly' : 'readwrite';
+    try {
+      await fs.shareAccount(account_id, familyId, userId, permission);
+    } catch (e) {
+      // Ignore duplicate
+      if (!e.message?.includes('UNIQUE')) throw e;
+    }
+    return json({ success: true, permission });
+  } else {
+    await fs.unshareAccount(account_id, familyId, userId);
+    return json({ success: true });
+  }
+}
+
+// ============================================
 // GET /api/budgets
 // ============================================
 
@@ -1027,7 +1102,7 @@ async function handleUpdateTransaction(request, userId, ts) {
 // GET /api/accounts — List user accounts
 // ============================================
 
-async function handleGetAccounts(userId, as) {
+async function handleGetAccounts(userId, as, familyId = null, fs = null) {
   let accounts = await as.getAccounts(userId);
   // Auto-create Personal account for new users
   if (accounts.length === 0) {
@@ -1041,19 +1116,41 @@ async function handleGetAccounts(userId, as) {
   if (personalAcc) {
     await as.consolidatePersonalTransactions(userId, personalAcc.id);
   }
-  return json({
-    accounts: accounts.map(a => ({
-      id: a.id,
-      name: a.name,
-      emoji: a.emoji,
-      type: a.type,
-      color: a.color,
-      sort_order: a.sort_order,
-      crypto_exchange: a.crypto_exchange || null,
-      crypto_synced_at: a.crypto_synced_at || null,
-      crypto_balances: a.type === 'crypto' ? as.getCachedCrypto(a) : null,
-    })),
-  });
+
+  const mapped = accounts.map(a => ({
+    id: a.id,
+    name: a.name,
+    emoji: a.emoji,
+    type: a.type,
+    color: a.color,
+    sort_order: a.sort_order,
+    crypto_exchange: a.crypto_exchange || null,
+    crypto_synced_at: a.crypto_synced_at || null,
+    crypto_balances: a.type === 'crypto' ? as.getCachedCrypto(a) : null,
+  }));
+
+  // Append shared accounts from other family members
+  let sharedAccounts = [];
+  if (familyId && fs) {
+    const shared = await fs.getSharedAccountsForUser(familyId, userId);
+    sharedAccounts = shared.map(sa => ({
+      id: sa.account_id,
+      name: sa.account_name,
+      emoji: '🔗',
+      type: sa.account_type,
+      color: null,
+      sort_order: 9999,
+      crypto_exchange: null,
+      crypto_synced_at: null,
+      crypto_balances: null,
+      _shared: true,
+      _shared_by: sa.shared_by_name,
+      _shared_by_user_id: sa.shared_by_user_id,
+      _permission: sa.permission,
+    }));
+  }
+
+  return json({ accounts: [...mapped, ...sharedAccounts] });
 }
 
 // ============================================
@@ -1152,15 +1249,22 @@ async function handleDeleteAccount(request, userId, as) {
 // POST /api/accounts/switch — Switch active account
 // ============================================
 
-async function handleAccountSwitch(request, userId, telegramId, as) {
+async function handleAccountSwitch(request, userId, telegramId, as, familyId = null, fs = null) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
   const { account_id } = body; // null = go back to implicit personal mode
 
   if (account_id !== null && account_id !== undefined) {
-    const account = await as.getById(account_id, userId);
-    if (!account) return error('Account not found', 404);
+    // Check own accounts first
+    let account = await as.getById(account_id, userId);
+    // If not own — check if it's a shared account in current family
+    if (!account && familyId && fs) {
+      const shared = await fs.isAccountShared(account_id, familyId);
+      if (!shared) return error('Account not found', 404);
+    } else if (!account) {
+      return error('Account not found', 404);
+    }
   }
 
   await as.switchAccount(telegramId, account_id || null);

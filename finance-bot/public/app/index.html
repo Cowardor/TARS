@@ -3576,10 +3576,8 @@ select.input-field option {
                     <div class="account-template-card" data-template="crypto" onclick="selectAccountTemplate('crypto')">
                         <div class="account-template-icon acc-icon-amber">
                             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="4" y1="17" x2="4" y2="11"/>
-                                <line x1="10" y1="17" x2="10" y2="7"/>
-                                <line x1="16" y1="17" x2="16" y2="3"/>
-                                <line x1="2" y1="17" x2="18" y2="17"/>
+                                <polyline points="3 15 7 11 11 13 17 5"/>
+                                <polyline points="13 5 17 5 17 9"/>
                             </svg>
                         </div>
                         <div class="account-template-label" id="accTplCrypto">Инвестиции</div>
@@ -3662,6 +3660,14 @@ select.input-field option {
                     <div class="settings-group">
                         <div class="settings-group-title" data-i18n="members">Участники</div>
                         <div class="settings-list" id="familyMembersList"></div>
+                    </div>
+                </div>
+
+                <div id="familySharedAccountsSection" style="display:none;">
+                    <div class="settings-group">
+                        <div class="settings-group-title" data-i18n="sharedAccounts">ОБЩИЕ СЧЕТА</div>
+                        <div style="color:var(--text-secondary);font-size:12px;margin-bottom:8px;" data-i18n="shareAccountDesc">Включите тогл, чтобы участники видели этот счёт</div>
+                        <div class="settings-list" id="familySharedAccountsList"></div>
                     </div>
                 </div>
 
@@ -3894,6 +3900,9 @@ const T = {
         onlyOwnerInvite: 'Только владелец может создать приглашение',
         familyNamePrompt: 'Название семьи:', inviteCodePrompt: 'Код приглашения (6 символов):',
         cancel: 'Отмена', deleteAction: 'Удалить',
+        sharedAccounts: 'ОБЩИЕ СЧЕТА', shareAccountDesc: 'Включите тогл, чтобы участники видели этот счёт',
+        sharedBy: 'от', fullAccess: 'Полный доступ', viewOnly: 'Только просмотр',
+        readOnlyAccount: 'Этот счёт доступен только для просмотра',
         deleteLimitConfirm: 'Удалить лимит?', leaveFamilyConfirm: 'Покинуть семью?',
         leaveFamilyBody: 'Вы больше не будете видеть семейные транзакции.',
         chooseAmount: 'Введите сумму', chooseCat: 'Выберите категорию',
@@ -4016,6 +4025,9 @@ const T = {
         onlyOwnerInvite: 'Only owner can generate invite',
         familyNamePrompt: 'Family name:', inviteCodePrompt: 'Invite code (6 characters):',
         cancel: 'Cancel', deleteAction: 'Delete',
+        sharedAccounts: 'SHARED ACCOUNTS', shareAccountDesc: 'Toggle to let members see this account',
+        sharedBy: 'by', fullAccess: 'Full access', viewOnly: 'View only',
+        readOnlyAccount: 'This account is view-only',
         deleteLimitConfirm: 'Delete limit?', leaveFamilyConfirm: 'Leave family?',
         leaveFamilyBody: 'You will no longer see family transactions.',
         chooseAmount: 'Enter amount', chooseCat: 'Choose category',
@@ -4132,6 +4144,9 @@ const T = {
         onlyOwnerInvite: 'Tylko właściciel może wygenerować zaproszenie',
         familyNamePrompt: 'Nazwa rodziny:', inviteCodePrompt: 'Kod zaproszenia (6 znaków):',
         cancel: 'Anuluj', deleteAction: 'Usuń',
+        sharedAccounts: 'WSPÓLNE KONTA', shareAccountDesc: 'Włącz, aby członkowie widzieli to konto',
+        sharedBy: 'od', fullAccess: 'Pełny dostęp', viewOnly: 'Tylko podgląd',
+        readOnlyAccount: 'To konto jest tylko do odczytu',
         deleteLimitConfirm: 'Usunąć limit?', leaveFamilyConfirm: 'Opuścić rodzinę?',
         leaveFamilyBody: 'Nie będziesz już widzieć rodzinnych transakcji.',
         chooseAmount: 'Wprowadź kwotę', chooseCat: 'Wybierz kategorię',
@@ -4248,6 +4263,9 @@ const T = {
         onlyOwnerInvite: 'Тільки власник може створити запрошення',
         familyNamePrompt: 'Назва сім\'ї:', inviteCodePrompt: 'Код запрошення (6 символів):',
         cancel: 'Скасувати', deleteAction: 'Видалити',
+        sharedAccounts: 'СПІЛЬНІ РАХУНКИ', shareAccountDesc: 'Увімкніть, щоб учасники бачили цей рахунок',
+        sharedBy: 'від', fullAccess: 'Повний доступ', viewOnly: 'Лише перегляд',
+        readOnlyAccount: 'Цей рахунок лише для перегляду',
         deleteLimitConfirm: 'Видалити ліміт?', leaveFamilyConfirm: 'Покинути сім\'ю?',
         leaveFamilyBody: 'Ви більше не бачитимете сімейні транзакції.',
         chooseAmount: 'Введіть суму', chooseCat: 'Оберіть категорію',
@@ -4791,12 +4809,15 @@ function getAccountTypeIconHTML(type) {
         personal: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.5"/><path d="M3 18c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>',
         business: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2.5"/><path d="M6.5 7V5.5A1.5 1.5 0 0 1 8 4h4A1.5 1.5 0 0 1 13.5 5.5V7"/><line x1="2" y1="12" x2="18" y2="12"/></svg>',
         family_shared: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5L10 2.5l7.5 6V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z"/><path d="M7.5 19V13.5h5V19"/></svg>',
-        crypto: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="17" x2="4" y2="11"/><line x1="10" y1="17" x2="10" y2="7"/><line x1="16" y1="17" x2="16" y2="3"/><line x1="2" y1="17" x2="18" y2="17"/></svg>',
+        crypto: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 15 7 11 11 13 17 5"/><polyline points="13 5 17 5 17 9"/></svg>',
     };
     return icons[type] || icons.personal;
 }
 
 function _renderAccountCard(acc) {
+    const sharedBadge = acc._shared
+        ? `<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-sm);background:var(--accent-cyan);color:#000;font-size:10px;font-weight:600;margin-left:8px;">🔗 ${t('sharedBy')} ${acc._shared_by}</div>`
+        : '';
     if (acc.type === 'crypto') {
         const balances = acc.crypto_balances || [];
         const totalUsd = balances.reduce((s, b) => s + (b.usd_value || 0), 0);
@@ -4805,7 +4826,7 @@ function _renderAccountCard(acc) {
             : '';
         return `
         <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-            <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+            <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}${sharedBadge}</div>
             <div class="balance-label">${t('cryptoPortfolio')}</div>
             <div class="balance-amount positive" style="color:var(--warning);">$${totalUsd.toFixed(2)}</div>
             <div class="crypto-balance-list" id="cryptoBalList${acc.id}">
@@ -4823,7 +4844,7 @@ function _renderAccountCard(acc) {
     }
     return `
     <div class="balance-card" style="--account-color:${acc.color};" data-account-id="${acc.id}">
-        <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}</div>
+        <div class="account-name-chip">${getAccountTypeIconHTML(acc.type)} ${acc.name}${sharedBadge}</div>
         <div class="balance-label">${t('monthlyBalance')}</div>
         <div class="balance-amount positive" id="balAmt${acc.id}">— ${state.userCurrency}</div>
         <div class="balance-row">
@@ -4899,6 +4920,7 @@ async function switchToAccountIndex(idx) {
 
     // Update chip immediately
     renderAccountsCarousel();
+    updateFabVisibility();
 
     // POST to switch account on server
     await apiFetch('/api/accounts/switch', {
@@ -5161,7 +5183,8 @@ function renderSettingsAccountsList() {
         family_shared: { bg: 'rgba(16,185,129,0.13)', fg: '#10b981' },
         crypto:        { bg: 'rgba(245,158,11,0.13)',  fg: '#f59e0b' },
     };
-    el.innerHTML = state.accounts.map((acc, i) => {
+    const ownAccounts = state.accounts.filter(a => !a._shared);
+    el.innerHTML = ownAccounts.map((acc, i) => {
         const typeKey = { personal: 'accPersonal', business: 'accBusiness', family_shared: 'accFamily', crypto: 'accCrypto' }[acc.type];
         const typeLabel = typeKey ? t(typeKey) : acc.type;
         const tc = TYPE_COLORS[acc.type] || { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' };
@@ -5282,7 +5305,9 @@ function updateFabVisibility() {
     const fab = document.getElementById('mainFab');
     if (!fab) return;
     const anyModal = !!document.querySelector('.modal-overlay.show');
-    fab.classList.toggle('fab-hidden', anyModal);
+    const activeAcc = state.accounts?.find(a => a.id === state.activeAccountId);
+    const isReadOnlyShared = activeAcc?._shared && activeAcc._permission === 'readonly';
+    fab.classList.toggle('fab-hidden', anyModal || isReadOnlyShared);
 }
 
 function switchTab(tab, fromSwipe = false) {
@@ -5447,6 +5472,11 @@ function openAddModal() {
     const activeAcc = state.accounts?.find(a => a.id === state.activeAccountId);
     if (activeAcc?.type === 'crypto') {
         showToast(t('cryptoNoTx') || 'Инвестиционный счёт только для просмотра');
+        return;
+    }
+    // Block transactions on shared read-only accounts
+    if (activeAcc?._shared && activeAcc._permission === 'readonly') {
+        showToast(t('readOnlyAccount'));
         return;
     }
 
@@ -6789,10 +6819,12 @@ async function loadFamilyData() {
     activeNameEl.textContent = activeFamily ? activeFamily.name : t('personal');
     document.getElementById('settingsFamily').textContent = activeFamily ? activeFamily.name : t('personalAccount');
 
-    // Show members & actions if family is active
+    // Show members, shared accounts & actions if family is active
+    const sharedSection = document.getElementById('familySharedAccountsSection');
     if (data.active_family_id && activeFamily) {
         actionsEl.style.display = 'block';
         membersSection.style.display = 'block';
+        sharedSection.style.display = 'block';
 
         const membersData = await apiFetch('/api/family/members');
         if (membersData && membersData.members) {
@@ -6806,9 +6838,13 @@ async function loadFamilyData() {
                 </div>`
             ).join('');
         }
+
+        // Load shared accounts toggles
+        await loadSharedAccountsToggles();
     } else {
         actionsEl.style.display = 'none';
         membersSection.style.display = 'none';
+        sharedSection.style.display = 'none';
     }
     inviteSection.style.display = 'none';
 }
@@ -6823,6 +6859,60 @@ async function switchFamily(familyId) {
         haptic('success');
         await loadFamilyData();
         await refreshData();
+    }
+}
+
+async function loadSharedAccountsToggles() {
+    const listEl = document.getElementById('familySharedAccountsList');
+    if (!listEl) return;
+
+    // Get user's own accounts
+    const accData = state.accounts || [];
+    const ownAccounts = accData.filter(a => !a._shared);
+
+    if (ownAccounts.length === 0) {
+        listEl.innerHTML = '';
+        return;
+    }
+
+    // Get current shared state from server
+    const sharedData = await apiFetch('/api/family/shared-accounts');
+    const myShared = sharedData?.my_shared || [];
+
+    listEl.innerHTML = ownAccounts.map(acc => {
+        const isShared = myShared.includes(acc.id);
+        const isReadOnly = acc.type === 'crypto';
+        const permLabel = isReadOnly ? t('viewOnly') : t('fullAccess');
+        return `<div class="settings-item">
+            <div class="settings-icon">${acc.emoji || '💼'}</div>
+            <div class="settings-text">
+                <div class="settings-label">${acc.name}</div>
+                <div class="settings-desc">${permLabel}</div>
+            </div>
+            <div class="toggle ${isShared ? 'active' : ''}" onclick="toggleShareAccount(${acc.id}, this)" style="cursor:pointer;">
+                <div class="toggle-knob"></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function toggleShareAccount(accountId, toggleEl) {
+    const isNowActive = toggleEl.classList.contains('active');
+    const newShared = !isNowActive;
+
+    // Optimistic UI
+    toggleEl.classList.toggle('active');
+    haptic('light');
+
+    const data = await apiFetch('/api/family/share-account', {
+        method: 'POST',
+        body: JSON.stringify({ account_id: accountId, shared: newShared }),
+    });
+
+    if (!data || !data.success) {
+        // Revert on failure
+        toggleEl.classList.toggle('active');
+        showToast('Error', 'error');
     }
 }
 
