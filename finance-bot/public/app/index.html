@@ -3658,6 +3658,21 @@ select.input-field option {
                     <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetAccDesc">Личный, Бизнес, Семья, Инвестиции</div>
                 </div>
             </div>
+            <div class="action-sheet-item" onclick="closeActionSheet();showComingSoonSheet('bank');" style="position:relative;">
+                <div class="action-sheet-item-icon" style="background:linear-gradient(135deg,#0891b2,#06b6d4);">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="8" width="16" height="9" rx="2"/>
+                        <path d="M2 11h16"/>
+                        <path d="M10 2L2 7h16L10 2z"/>
+                    </svg>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-weight:600;display:flex;align-items:center;gap:8px;" id="actionSheetBankLabel">Подключить банк
+                        <span id="actionSheetBankBadge" style="font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;background:var(--accent-blue);color:white;padding:2px 6px;border-radius:5px;line-height:1.4;">Скоро</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetBankDesc">Open Banking · Авто-синхронизация</div>
+                </div>
+            </div>
             <!-- Notch hole — clipped by overflow:hidden, creates concave arc -->
             <div class="action-sheet-notch-hole"></div>
         </div>
@@ -4146,6 +4161,7 @@ const T = {
         bankComingSoonText: 'Подключение банка появится в следующем обновлении. Вы сможете автоматически синхронизировать транзакции через Open Banking.',
         voiceComingSoonText: 'Голосовой ввод появится в следующем обновлении. Вы сможете добавлять расходы голосом.',
         notifyMe: 'Уведомить меня',
+        bankConnectLabel: 'Подключить банк', bankConnectDesc: 'Open Banking · Авто-синхронизация',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -4272,6 +4288,7 @@ const T = {
         bankComingSoonText: 'Bank connection is coming in the next update. You\'ll be able to automatically sync transactions via Open Banking.',
         voiceComingSoonText: 'Voice input is coming in the next update. You\'ll be able to add expenses by voice.',
         notifyMe: 'Notify me',
+        bankConnectLabel: 'Connect Bank', bankConnectDesc: 'Open Banking · Auto-sync',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -4397,6 +4414,7 @@ const T = {
         bankComingSoonText: 'Połączenie z bankiem pojawi się w następnej aktualizacji. Będziesz mógł automatycznie synchronizować transakcje przez Open Banking.',
         voiceComingSoonText: 'Wprowadzanie głosowe pojawi się w następnej aktualizacji. Będziesz mógł dodawać wydatki głosem.',
         notifyMe: 'Powiadom mnie',
+        bankConnectLabel: 'Połącz bank', bankConnectDesc: 'Open Banking · Auto-sync',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -4522,6 +4540,7 @@ const T = {
         bankComingSoonText: 'Підключення банку з\'явиться в наступному оновленні. Ви зможете автоматично синхронізувати транзакції через Open Banking.',
         voiceComingSoonText: 'Голосове введення з\'явиться в наступному оновленні. Ви зможете додавати витрати голосом.',
         notifyMe: 'Сповістити мене',
+        bankConnectLabel: 'Підключити банк', bankConnectDesc: 'Open Banking · Авто-синхронізація',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -4595,6 +4614,9 @@ function applyLanguage() {
     setText('accTplBank',            t('accBank'));
     setText('accTplBankDesc',        t('accBankDesc'));
     setText('accTplBankBadge',       t('comingSoon'));
+    setText('actionSheetBankLabel',  t('bankConnectLabel'));
+    setText('actionSheetBankBadge',  t('comingSoon'));
+    setText('actionSheetBankDesc',   t('bankConnectDesc'));
     setText('newAccountExchangeLabel', t('accExchange'));
     setText('newAccountSubmitLabel', t('createAccount'));
 
