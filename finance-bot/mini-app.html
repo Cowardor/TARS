@@ -1906,6 +1906,37 @@ select.input-field option {
     color: var(--text-muted);
 }
 
+/* ── Toggle switch ── */
+.toggle {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    border: 1px solid var(--border);
+}
+.toggle.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+.toggle-knob {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle.active .toggle-knob {
+    transform: translateX(20px);
+}
+
 .settings-chevron {
     color: var(--text-muted);
     font-size: 14px;

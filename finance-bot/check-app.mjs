@@ -103,6 +103,8 @@ function mockRoutes(page) {
         body: JSON.stringify(MOCK_FAMILY_MEMBERS) }));
     page.route('**/api/family/switch', r => r.fulfill({ status: 200, contentType: 'application/json',
         body: JSON.stringify({ success: true }) }));
+    page.route('**/api/family/share-account', r => r.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ success: true, permission: 'readwrite' }) }));
     page.route('**/api/family/invite', r => r.fulfill({ status: 200, contentType: 'application/json',
         body: JSON.stringify({ code: 'ABC123' }) }));
     page.route('**/api/family', r => r.fulfill({ status: 200, contentType: 'application/json',
@@ -255,6 +257,43 @@ await page.evaluate(() => {
 });
 await page.waitForTimeout(300);
 await shot('11-family-shared-scrolled');
+
+// Test toggle click
+console.log('\n--- Testing toggle click ---');
+const toggleBefore = await page.evaluate(() => {
+    const toggles = document.querySelectorAll('#familySharedAccountsList .toggle');
+    return Array.from(toggles).map((t, i) => ({ index: i, active: t.classList.contains('active') }));
+});
+console.log('  Before click:', JSON.stringify(toggleBefore));
+
+// Click first toggle — scroll into view first
+try {
+    await page.evaluate(() => {
+        const toggle = document.querySelector('#familySharedAccountsList .toggle');
+        if (toggle) toggle.scrollIntoView({ block: 'center' });
+    });
+    await page.waitForTimeout(300);
+    const firstToggle = page.locator('#familySharedAccountsList .toggle').first();
+    await firstToggle.click();
+    await page.waitForTimeout(1500);
+
+    const toggleAfter = await page.evaluate(() => {
+        const toggles = document.querySelectorAll('#familySharedAccountsList .toggle');
+        return Array.from(toggles).map((t, i) => ({ index: i, active: t.classList.contains('active') }));
+    });
+    console.log('  After click:', JSON.stringify(toggleAfter));
+
+    // Check if any error toast appeared
+    const toastText = await page.evaluate(() => {
+        const toast = document.querySelector('.toast');
+        return toast ? toast.textContent : null;
+    });
+    if (toastText) console.log('  Toast:', toastText);
+
+    await shot('12-toggle-clicked');
+} catch (e) {
+    console.log('  Toggle click ERROR:', e.message.split('\n')[0]);
+}
 
 // Close family modal
 await page.evaluate(() => {
