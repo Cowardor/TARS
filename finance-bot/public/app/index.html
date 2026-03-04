@@ -1494,6 +1494,45 @@ select.input-field option {
     color: var(--text-muted);
     margin-top: 4px;
 }
+.voice-btn {
+    position: absolute;
+    right: 0;
+    bottom: 4px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+.voice-btn:active { transform: scale(0.93); }
+.voice-btn svg { width: 18px; height: 18px; }
+.amount-input-wrap { position: relative; }
+/* Coming soon card */
+.coming-soon-card {
+    opacity: 0.75;
+    position: relative;
+}
+.coming-soon-card:hover { opacity: 0.9; }
+.coming-soon-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--accent-blue);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1.4;
+}
 
 /* Category Grid */
 .category-label {
@@ -3330,6 +3369,14 @@ select.input-field option {
             <div class="amount-input-wrap">
                 <input type="number" class="amount-display" id="amountInput" placeholder="0" inputmode="decimal" step="0.01">
                 <div class="amount-currency" id="amountCurrency">USD</div>
+                <button class="voice-btn" onclick="showComingSoonSheet('voice')" title="Voice input">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="7" y="2" width="6" height="9" rx="3"/>
+                        <path d="M4 10a6 6 0 0 0 12 0"/>
+                        <line x1="10" y1="16" x2="10" y2="18"/>
+                        <line x1="7" y1="18" x2="13" y2="18"/>
+                    </svg>
+                </button>
             </div>
 
             <div id="categorySection">
@@ -3672,6 +3719,18 @@ select.input-field option {
                         <div class="account-template-label" id="accTplCrypto">Инвестиции</div>
                         <div class="account-template-desc" id="accTplCryptoDesc">Крипто, акции, фонды</div>
                     </div>
+                    <div class="account-template-card coming-soon-card" data-template="bank" onclick="showComingSoonSheet('bank')">
+                        <div class="coming-soon-badge" id="accTplBankBadge">Скоро</div>
+                        <div class="account-template-icon acc-icon-cyan">
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="8" width="16" height="9" rx="2"/>
+                                <path d="M2 11h16"/>
+                                <path d="M10 2L2 7h16L10 2z"/>
+                            </svg>
+                        </div>
+                        <div class="account-template-label" id="accTplBank">Банк</div>
+                        <div class="account-template-desc" id="accTplBankDesc">Авто-синхронизация</div>
+                    </div>
                 </div>
             </div>
 
@@ -3722,6 +3781,25 @@ select.input-field option {
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:-3px;margin-right:6px;"><path d="M10 2v16M2 10h16"/></svg>
                 <span id="newAccountSubmitLabel">Создать счёт</span>
             </button>
+        </div>
+    </div>
+
+    <!-- COMING SOON SHEET -->
+    <div class="modal-overlay" id="comingSoonSheet" onclick="closeComingSoonSheet()">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:60vh;">
+            <div class="modal-handle"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 8px 32px;">
+                <div id="comingSoonIcon" style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;margin-top:8px;">
+                    <svg id="comingSoonSvg" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;"></svg>
+                </div>
+                <div id="comingSoonHeadline" style="font-size:20px;font-weight:700;font-family:'Satoshi',sans-serif;color:var(--text-primary);margin-bottom:10px;"></div>
+                <div id="comingSoonBody" style="font-size:14px;color:var(--text-secondary);line-height:1.6;max-width:320px;margin-bottom:28px;"></div>
+                <div style="width:100%;background:var(--bg-secondary);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;color:var(--accent-blue)"><path d="M10 2.5l2.2 4.4 4.9.7-3.5 3.4.8 4.9L10 13.4l-4.4 2.5.8-4.9L3 7.6l4.9-.7L10 2.5z"/></svg>
+                    <span id="comingSoonBadge" style="font-size:13px;font-weight:600;color:var(--accent-blue)"></span>
+                </div>
+                <button onclick="closeComingSoonSheet()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--bg-elevated);color:var(--text-primary);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;" id="comingSoonClose">OK</button>
+            </div>
         </div>
     </div>
 
@@ -4062,6 +4140,12 @@ const T = {
         catVisibility: 'Видимость категории', catPersonalScope: '👤 Личная', catFamilyScope: '👨\u200d👩\u200d👧 Семейная',
         undone: 'Отменено:', nothingToUndo: 'Нечего отменять', currencyChanged: 'Валюта изменена на',
         notUsed: 'Не использовалась',
+        // Open Banking & Voice
+        accBank: 'Банк', accBankDesc: 'Авто-синхронизация счёта',
+        comingSoon: 'Скоро', comingSoonTitle: 'Скоро будет', voiceInput: 'Голосовой ввод',
+        bankComingSoonText: 'Подключение банка появится в следующем обновлении. Вы сможете автоматически синхронизировать транзакции через Open Banking.',
+        voiceComingSoonText: 'Голосовой ввод появится в следующем обновлении. Вы сможете добавлять расходы голосом.',
+        notifyMe: 'Уведомить меня',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -4183,6 +4267,11 @@ const T = {
         catVisibility: 'Category visibility', catPersonalScope: '👤 Personal', catFamilyScope: '👨\u200d👩\u200d👧 Family',
         undone: 'Undone:', nothingToUndo: 'Nothing to undo', currencyChanged: 'Currency changed to',
         notUsed: 'Not used',
+        accBank: 'Bank', accBankDesc: 'Auto-sync transactions',
+        comingSoon: 'Soon', comingSoonTitle: 'Coming Soon', voiceInput: 'Voice Input',
+        bankComingSoonText: 'Bank connection is coming in the next update. You\'ll be able to automatically sync transactions via Open Banking.',
+        voiceComingSoonText: 'Voice input is coming in the next update. You\'ll be able to add expenses by voice.',
+        notifyMe: 'Notify me',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -4303,6 +4392,11 @@ const T = {
         catVisibility: 'Widoczność kategorii', catPersonalScope: '👤 Osobista', catFamilyScope: '👨\u200d👩\u200d👧 Rodzinna',
         undone: 'Cofnięto:', nothingToUndo: 'Nic do cofnięcia', currencyChanged: 'Waluta zmieniona na',
         notUsed: 'Nie używana',
+        accBank: 'Bank', accBankDesc: 'Auto-synchronizacja konta',
+        comingSoon: 'Wkrótce', comingSoonTitle: 'Wkrótce dostępne', voiceInput: 'Wprowadzanie głosowe',
+        bankComingSoonText: 'Połączenie z bankiem pojawi się w następnej aktualizacji. Będziesz mógł automatycznie synchronizować transakcje przez Open Banking.',
+        voiceComingSoonText: 'Wprowadzanie głosowe pojawi się w następnej aktualizacji. Będziesz mógł dodawać wydatki głosem.',
+        notifyMe: 'Powiadom mnie',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -4423,6 +4517,11 @@ const T = {
         catVisibility: 'Видимість категорії', catPersonalScope: '👤 Особиста', catFamilyScope: '👨\u200d👩\u200d👧 Сімейна',
         undone: 'Скасовано:', nothingToUndo: 'Нічого скасовувати', currencyChanged: 'Валюту змінено на',
         notUsed: 'Не використовувалась',
+        accBank: 'Банк', accBankDesc: 'Авто-синхронізація рахунку',
+        comingSoon: 'Незабаром', comingSoonTitle: 'Незабаром', voiceInput: 'Голосове введення',
+        bankComingSoonText: 'Підключення банку з\'явиться в наступному оновленні. Ви зможете автоматично синхронізувати транзакції через Open Banking.',
+        voiceComingSoonText: 'Голосове введення з\'явиться в наступному оновленні. Ви зможете додавати витрати голосом.',
+        notifyMe: 'Сповістити мене',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -4493,6 +4592,9 @@ function applyLanguage() {
     setText('accTplFamilyDesc',      t('accFamilyDesc'));
     setText('accTplCrypto',          t('accCrypto'));
     setText('accTplCryptoDesc',      t('accCryptoDesc'));
+    setText('accTplBank',            t('accBank'));
+    setText('accTplBankDesc',        t('accBankDesc'));
+    setText('accTplBankBadge',       t('comingSoon'));
     setText('newAccountExchangeLabel', t('accExchange'));
     setText('newAccountSubmitLabel', t('createAccount'));
 
@@ -4647,6 +4749,37 @@ async function doRegister() {
     setSessionToken(data.token);
     hideAuthScreen();
     await initApp();
+}
+
+// Coming Soon sheet
+function showComingSoonSheet(type) {
+    const el = document.getElementById('comingSoonSheet');
+    const icon = document.getElementById('comingSoonIcon');
+    const svg = document.getElementById('comingSoonSvg');
+    const headline = document.getElementById('comingSoonHeadline');
+    const body = document.getElementById('comingSoonBody');
+    const badge = document.getElementById('comingSoonBadge');
+
+    if (type === 'bank') {
+        icon.style.background = 'linear-gradient(135deg, var(--accent-cyan), #0e7490)';
+        svg.innerHTML = '<rect x="2" y="8" width="16" height="9" rx="2"/><path d="M2 11h16"/><path d="M10 2L2 7h16L10 2z"/>';
+        headline.textContent = t('comingSoonTitle');
+        body.textContent = t('bankComingSoonText');
+        badge.textContent = 'Open Banking · ' + t('comingSoon');
+    } else if (type === 'voice') {
+        icon.style.background = 'linear-gradient(135deg, var(--accent-blue), var(--accent-soft))';
+        svg.innerHTML = '<rect x="7" y="2" width="6" height="9" rx="3"/><path d="M4 10a6 6 0 0 0 12 0"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="7" y1="18" x2="13" y2="18"/>';
+        headline.textContent = t('voiceInput');
+        body.textContent = t('voiceComingSoonText');
+        badge.textContent = t('voiceInput') + ' · ' + t('comingSoon');
+    }
+
+    el.classList.add('show');
+    haptic('light');
+}
+
+function closeComingSoonSheet() {
+    document.getElementById('comingSoonSheet').classList.remove('show');
 }
 
 // OAuth — redirect to provider
