@@ -1494,25 +1494,175 @@ select.input-field option {
     color: var(--text-muted);
     margin-top: 4px;
 }
-.voice-btn {
-    position: absolute;
-    right: 0;
-    bottom: 4px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border);
-    background: var(--bg-secondary);
-    color: var(--text-muted);
+/* Voice input button below amount */
+.voice-input-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    margin-top: 2px;
+    border-radius: var(--radius-md);
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, transform 0.1s;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
-.voice-btn:active { transform: scale(0.93); }
-.voice-btn svg { width: 18px; height: 18px; }
-.amount-input-wrap { position: relative; }
+.voice-input-btn:hover, .voice-input-btn:active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(79,70,229,0.06);
+}
+.voice-input-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Voice Recording Modal */
+.voice-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg-primary);
+    z-index: 2000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 24px 40px;
+}
+.voice-modal.show { display: flex; }
+.voice-modal-top { text-align: center; }
+.voice-modal-title { font-size: 22px; font-weight: 700; font-family: 'Satoshi',sans-serif; color: var(--text-primary); margin-bottom: 8px; }
+.voice-modal-subtitle { font-size: 14px; color: var(--text-secondary); }
+.voice-modal-center { display: flex; flex-direction: column; align-items: center; gap: 32px; }
+.voice-mic-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.voice-mic-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(79,70,229,0.12);
+    animation: voicePulse 1.8s ease-in-out infinite;
+}
+.voice-mic-ring:nth-child(2) { animation-delay: 0.6s; }
+.voice-mic-ring:nth-child(3) { animation-delay: 1.2s; }
+@keyframes voicePulse {
+    0% { transform: scale(0.85); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 0.2; }
+    100% { transform: scale(0.85); opacity: 0; }
+}
+.voice-mic-btn {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-soft));
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(79,70,229,0.45);
+    transition: transform 0.1s;
+    z-index: 1;
+}
+.voice-mic-btn:active { transform: scale(0.94); }
+.voice-mic-btn svg { width: 32px; height: 32px; }
+.voice-waveform {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 40px;
+}
+.voice-wave-bar {
+    width: 4px;
+    border-radius: 2px;
+    background: var(--accent-blue);
+    opacity: 0.7;
+    animation: voiceWave 1.2s ease-in-out infinite;
+}
+.voice-wave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+.voice-wave-bar:nth-child(2) { height: 24px; animation-delay: 0.1s; }
+.voice-wave-bar:nth-child(3) { height: 36px; animation-delay: 0.2s; }
+.voice-wave-bar:nth-child(4) { height: 20px; animation-delay: 0.3s; }
+.voice-wave-bar:nth-child(5) { height: 32px; animation-delay: 0.4s; }
+.voice-wave-bar:nth-child(6) { height: 16px; animation-delay: 0.5s; }
+.voice-wave-bar:nth-child(7) { height: 28px; animation-delay: 0.6s; }
+.voice-wave-bar:nth-child(8) { height: 10px; animation-delay: 0.7s; }
+.voice-wave-bar:nth-child(9) { height: 22px; animation-delay: 0.8s; }
+@keyframes voiceWave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+    50% { transform: scaleY(1.0); opacity: 1; }
+}
+.voice-hint { font-size: 12px; color: var(--text-muted); text-align: center; }
+.voice-modal-bottom { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+/* Bank Connect Modal */
+.bank-modal-search {
+    position: relative;
+    margin-bottom: 12px;
+}
+.bank-modal-search input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px 11px 40px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+.bank-modal-search input:focus { border-color: var(--accent-blue); }
+.bank-modal-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
+.bank-list { display: flex; flex-direction: column; gap: 2px; }
+.bank-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.bank-item:hover, .bank-item:active { background: var(--bg-elevated); }
+.bank-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.bank-item-text { flex: 1; }
+.bank-item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.bank-item-country { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.bank-item-chevron { color: var(--text-muted); font-size: 18px; }
+/* Bank confirm screen */
+.bank-confirm { display: none; flex-direction: column; align-items: center; text-align: center; padding: 8px 0 16px; }
+.bank-confirm.show { display: flex; }
+.bank-list-wrap { display: block; }
+.bank-list-wrap.hidden { display: none; }
+.bank-confirm-logo { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; margin: 0 auto 16px; }
+.bank-confirm-name { font-size: 20px; font-weight: 700; font-family: 'Satoshi',sans-serif; color: var(--text-primary); margin-bottom: 6px; }
+.bank-confirm-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; max-width: 280px; margin-bottom: 24px; }
+.bank-confirm-perms { width: 100%; text-align: left; background: var(--bg-secondary); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; }
+.bank-confirm-perm { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
+.bank-confirm-perm svg { width: 16px; height: 16px; color: var(--accent-emerald); flex-shrink: 0; }
+
 /* Coming soon card */
 .coming-soon-card {
     opacity: 0.75;
@@ -3109,6 +3259,30 @@ select.input-field option {
                     </button>
                 </div>
 
+                <!-- ── Банкинг ── -->
+                <div class="settings-group">
+                    <div class="settings-group-title" id="settingsBankingTitle">Банкинг</div>
+                    <div class="settings-list">
+                        <div class="settings-item" onclick="openBankModal()">
+                            <div class="settings-icon si-cyan">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="8" width="16" height="9" rx="2"/>
+                                    <path d="M2 11h16"/>
+                                    <path d="M10 2L2 7h16L10 2z"/>
+                                </svg>
+                            </div>
+                            <div class="settings-text">
+                                <div class="settings-label" style="display:flex;align-items:center;gap:8px;">
+                                    <span id="settingsBankLabel">Подключить банк</span>
+                                    <span id="settingsBankBadge" style="font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;background:var(--accent-blue);color:white;padding:2px 6px;border-radius:5px;">Скоро</span>
+                                </div>
+                                <div class="settings-desc" id="settingsBankDesc">Open Banking · Авто-синхронизация</div>
+                            </div>
+                            <div class="settings-chevron">&#8250;</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── Категории и бюджеты ── -->
                 <div class="settings-group">
                     <div class="settings-group-title" data-i18n="catAndBudgets">Категории и бюджеты</div>
@@ -3369,15 +3543,16 @@ select.input-field option {
             <div class="amount-input-wrap">
                 <input type="number" class="amount-display" id="amountInput" placeholder="0" inputmode="decimal" step="0.01">
                 <div class="amount-currency" id="amountCurrency">USD</div>
-                <button class="voice-btn" onclick="showComingSoonSheet('voice')" title="Voice input">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="7" y="2" width="6" height="9" rx="3"/>
-                        <path d="M4 10a6 6 0 0 0 12 0"/>
-                        <line x1="10" y1="16" x2="10" y2="18"/>
-                        <line x1="7" y1="18" x2="13" y2="18"/>
-                    </svg>
-                </button>
             </div>
+            <button class="voice-input-btn" onclick="openVoiceModal()">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="7" y="2" width="6" height="9" rx="3"/>
+                    <path d="M4 10a6 6 0 0 0 12 0"/>
+                    <line x1="10" y1="16" x2="10" y2="18"/>
+                    <line x1="7" y1="18" x2="13" y2="18"/>
+                </svg>
+                <span id="voiceInputBtnLabel">Голосовой ввод</span>
+            </button>
 
             <div id="categorySection">
                 <div class="category-label" id="categoryLabel" data-i18n="category">Категория</div>
@@ -3799,6 +3974,100 @@ select.input-field option {
         </div>
     </div>
 
+    <!-- VOICE INPUT MODAL -->
+    <div class="voice-modal" id="voiceModal">
+        <div class="voice-modal-top">
+            <button onclick="closeVoiceModal()" style="background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0 auto 24px;">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:16px;height:16px;"><path d="M12 4l-6 6 6 6"/></svg>
+                <span id="voiceBackLabel">Назад</span>
+            </button>
+            <div class="voice-modal-title" id="voiceModalTitle">Голосовой ввод</div>
+            <div class="voice-modal-subtitle" id="voiceModalSubtitle">Говорите чётко и укажите сумму и категорию</div>
+        </div>
+        <div class="voice-modal-center">
+            <div class="voice-mic-wrap">
+                <div class="voice-mic-ring"></div>
+                <div class="voice-mic-ring"></div>
+                <div class="voice-mic-ring"></div>
+                <button class="voice-mic-btn" id="voiceMicBtn">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="7" y="2" width="6" height="9" rx="3"/>
+                        <path d="M4 10a6 6 0 0 0 12 0"/>
+                        <line x1="10" y1="16" x2="10" y2="18"/>
+                        <line x1="7" y1="18" x2="13" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="voice-waveform">
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+                <div class="voice-wave-bar"></div>
+            </div>
+            <div class="voice-hint" id="voiceListeningHint">🎤 Слушаю...</div>
+        </div>
+        <div class="voice-modal-bottom">
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:14px 16px;min-height:52px;text-align:center;">
+                <div id="voiceResultText" style="font-size:15px;color:var(--text-secondary);font-style:italic;" data-placeholder="Распознанный текст появится здесь">Распознанный текст появится здесь</div>
+            </div>
+            <button class="submit-btn" id="voiceAddBtn" onclick="voiceAddComingSoon()" style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-soft));">
+                <span id="voiceAddLabel">Добавить</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- BANK CONNECT MODAL -->
+    <div class="modal-overlay" id="bankModal">
+        <div class="modal-sheet" style="max-height:88vh;">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title" id="bankModalTitle">Подключить банк</div>
+                <button class="modal-close" onclick="closeBankModal()">&times;</button>
+            </div>
+            <!-- Bank list view -->
+            <div id="bankListWrap" class="bank-list-wrap">
+                <div class="bank-modal-search">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                        <circle cx="8.5" cy="8.5" r="5.5"/><path d="M13.5 13.5l3.5 3.5"/>
+                    </svg>
+                    <input type="text" id="bankSearchInput" oninput="filterBanks(this.value)" placeholder="Search bank..." id="bankSearchPlaceholder">
+                </div>
+                <div class="bank-list" id="bankListEl"></div>
+            </div>
+            <!-- Bank confirm view -->
+            <div id="bankConfirmWrap" class="bank-confirm">
+                <div class="bank-confirm-logo" id="bankConfirmLogo"></div>
+                <div class="bank-confirm-name" id="bankConfirmName"></div>
+                <div class="bank-confirm-desc" id="bankConfirmDesc">Alar Finance запросит доступ к чтению транзакций и балансу счёта.</div>
+                <div class="bank-confirm-perms">
+                    <div class="bank-confirm-perm">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10l4 4 8-8"/></svg>
+                        <span id="bankPermTx">Чтение транзакций</span>
+                    </div>
+                    <div class="bank-confirm-perm">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10l4 4 8-8"/></svg>
+                        <span id="bankPermBal">Просмотр баланса</span>
+                    </div>
+                    <div class="bank-confirm-perm">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="6.5" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+                        <span id="bankPermNo" style="color:var(--text-muted);">Без права на платежи</span>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="bankConnectComingSoon()" style="background:linear-gradient(135deg,#0891b2,#06b6d4);width:100%;">
+                    <span id="bankConnectBtnLabel">Подключить</span>
+                </button>
+                <button onclick="showBankList()" style="background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:8px;padding:6px;">
+                    <span id="bankBackLabel">← Выбрать другой банк</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- COMING SOON SHEET -->
     <div class="modal-overlay" id="comingSoonSheet" onclick="closeComingSoonSheet()">
         <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:60vh;">
@@ -4162,6 +4431,12 @@ const T = {
         voiceComingSoonText: 'Голосовой ввод появится в следующем обновлении. Вы сможете добавлять расходы голосом.',
         notifyMe: 'Уведомить меня',
         bankConnectLabel: 'Подключить банк', bankConnectDesc: 'Open Banking · Авто-синхронизация',
+        banking: 'Банкинг', back: 'Назад', connect: 'Подключить',
+        voiceSubtitle: 'Говорите чётко и укажите сумму и категорию',
+        voiceListening: '🎤 Слушаю...', voicePlaceholder: 'Распознанный текст появится здесь',
+        bankSearch: 'Поиск банка...', bankAccessDesc: 'Alar Finance запросит доступ к чтению транзакций и балансу счёта.',
+        bankPermTx: 'Чтение транзакций', bankPermBal: 'Просмотр баланса', bankPermNo: 'Без права на платежи',
+        bankOtherBank: '← Выбрать другой банк',
         // Months
         months: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
         monthsShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
@@ -4289,6 +4564,12 @@ const T = {
         voiceComingSoonText: 'Voice input is coming in the next update. You\'ll be able to add expenses by voice.',
         notifyMe: 'Notify me',
         bankConnectLabel: 'Connect Bank', bankConnectDesc: 'Open Banking · Auto-sync',
+        banking: 'Banking', back: 'Back', connect: 'Connect',
+        voiceSubtitle: 'Speak clearly and mention the amount and category',
+        voiceListening: '🎤 Listening...', voicePlaceholder: 'Recognized text will appear here',
+        bankSearch: 'Search bank...', bankAccessDesc: 'Alar Finance will request access to read your transactions and balance.',
+        bankPermTx: 'Read transactions', bankPermBal: 'View balance', bankPermNo: 'No payment rights',
+        bankOtherBank: '← Choose another bank',
         months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
         monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     },
@@ -4415,6 +4696,12 @@ const T = {
         voiceComingSoonText: 'Wprowadzanie głosowe pojawi się w następnej aktualizacji. Będziesz mógł dodawać wydatki głosem.',
         notifyMe: 'Powiadom mnie',
         bankConnectLabel: 'Połącz bank', bankConnectDesc: 'Open Banking · Auto-sync',
+        banking: 'Bankowość', back: 'Wstecz', connect: 'Połącz',
+        voiceSubtitle: 'Mów wyraźnie i podaj kwotę oraz kategorię',
+        voiceListening: '🎤 Słucham...', voicePlaceholder: 'Rozpoznany tekst pojawi się tutaj',
+        bankSearch: 'Szukaj banku...', bankAccessDesc: 'Alar Finance poprosi o dostęp do odczytu transakcji i salda konta.',
+        bankPermTx: 'Odczyt transakcji', bankPermBal: 'Podgląd salda', bankPermNo: 'Bez prawa do płatności',
+        bankOtherBank: '← Wybierz inny bank',
         months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
         monthsShort: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
     },
@@ -4541,6 +4828,12 @@ const T = {
         voiceComingSoonText: 'Голосове введення з\'явиться в наступному оновленні. Ви зможете додавати витрати голосом.',
         notifyMe: 'Сповістити мене',
         bankConnectLabel: 'Підключити банк', bankConnectDesc: 'Open Banking · Авто-синхронізація',
+        banking: 'Банкінг', back: 'Назад', connect: 'Підключити',
+        voiceSubtitle: 'Говоріть чітко і вкажіть суму та категорію',
+        voiceListening: '🎤 Слухаю...', voicePlaceholder: 'Розпізнаний текст з\'явиться тут',
+        bankSearch: 'Пошук банку...', bankAccessDesc: 'Alar Finance запросить доступ до читання транзакцій та балансу рахунку.',
+        bankPermTx: 'Читання транзакцій', bankPermBal: 'Перегляд балансу', bankPermNo: 'Без права на платежі',
+        bankOtherBank: '← Обрати інший банк',
         months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
         monthsShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
     },
@@ -4617,6 +4910,29 @@ function applyLanguage() {
     setText('actionSheetBankLabel',  t('bankConnectLabel'));
     setText('actionSheetBankBadge',  t('comingSoon'));
     setText('actionSheetBankDesc',   t('bankConnectDesc'));
+    // Settings banking group
+    setText('settingsBankingTitle',  t('banking'));
+    setText('settingsBankLabel',     t('bankConnectLabel'));
+    setText('settingsBankBadge',     t('comingSoon'));
+    setText('settingsBankDesc',      t('bankConnectDesc'));
+    // Voice modal
+    setText('voiceInputBtnLabel',    t('voiceInput'));
+    setText('voiceBackLabel',        t('back'));
+    setText('voiceModalTitle',       t('voiceInput'));
+    setText('voiceModalSubtitle',    t('voiceSubtitle'));
+    setText('voiceListeningHint',    t('voiceListening'));
+    setText('voiceResultText',       t('voicePlaceholder'));
+    setText('voiceAddLabel',         t('add'));
+    // Bank modal
+    setText('bankModalTitle',        t('bankConnectLabel'));
+    const bankSearchEl = document.getElementById('bankSearchInput');
+    if (bankSearchEl) bankSearchEl.placeholder = t('bankSearch');
+    setText('bankConfirmDesc',       t('bankAccessDesc'));
+    setText('bankPermTx',            t('bankPermTx'));
+    setText('bankPermBal',           t('bankPermBal'));
+    setText('bankPermNo',            t('bankPermNo'));
+    setText('bankConnectBtnLabel',   t('connect'));
+    setText('bankBackLabel',         t('bankOtherBank'));
     setText('newAccountExchangeLabel', t('accExchange'));
     setText('newAccountSubmitLabel', t('createAccount'));
 
@@ -4771,6 +5087,83 @@ async function doRegister() {
     setSessionToken(data.token);
     hideAuthScreen();
     await initApp();
+}
+
+// ── Voice Input Modal ─────────────────────────────────
+function openVoiceModal() {
+    document.getElementById('voiceModal').classList.add('show');
+    haptic('light');
+}
+function closeVoiceModal() {
+    document.getElementById('voiceModal').classList.remove('show');
+}
+function voiceAddComingSoon() {
+    closeVoiceModal();
+    showToast(t('comingSoon') + ' 🎤');
+}
+
+// ── Bank Modal ────────────────────────────────────────
+const BANKS = [
+    { id:'pko', name:'PKO Bank Polski', country:'Polska', bg:'#003087', fg:'#fff', letter:'P' },
+    { id:'santander', name:'Santander Bank', country:'Polska', bg:'#ec0000', fg:'#fff', letter:'S' },
+    { id:'mbank', name:'mBank', country:'Polska', bg:'#e2001a', fg:'#fff', letter:'m' },
+    { id:'ing', name:'ING Bank Śląski', country:'Polska', bg:'#ff6200', fg:'#fff', letter:'I' },
+    { id:'millennium', name:'Bank Millennium', country:'Polska', bg:'#e30613', fg:'#fff', letter:'M' },
+    { id:'alior', name:'Alior Bank', country:'Polska', bg:'#e31e2d', fg:'#fff', letter:'A' },
+    { id:'bnp', name:'BNP Paribas', country:'Polska', bg:'#00965e', fg:'#fff', letter:'B' },
+    { id:'citi', name:'Citi Handlowy', country:'Polska', bg:'#003087', fg:'#fff', letter:'C' },
+    { id:'mono', name:'Monobank', country:'Україна', bg:'#1f1f1f', fg:'#f9ca24', letter:'m' },
+    { id:'privat', name:'PrivatBank', country:'Україна', bg:'#006747', fg:'#fff', letter:'P' },
+    { id:'ukrsib', name:'UkrSibbank', country:'Україна', bg:'#e30613', fg:'#fff', letter:'U' },
+    { id:'otp', name:'OTP Bank', country:'Polska / Україна', bg:'#004994', fg:'#fff', letter:'O' },
+];
+
+let _bankFilter = '';
+
+function openBankModal() {
+    document.getElementById('bankListWrap').classList.remove('hidden');
+    document.getElementById('bankConfirmWrap').classList.remove('show');
+    renderBanks('');
+    document.getElementById('bankModal').classList.add('show');
+    haptic('light');
+}
+function closeBankModal() {
+    document.getElementById('bankModal').classList.remove('show');
+    document.getElementById('bankSearchInput').value = '';
+}
+function renderBanks(filter) {
+    const list = document.getElementById('bankListEl');
+    const f = filter.toLowerCase();
+    const banks = f ? BANKS.filter(b => b.name.toLowerCase().includes(f) || b.country.toLowerCase().includes(f)) : BANKS;
+    list.innerHTML = banks.map(b => `
+        <div class="bank-item" onclick="selectBank('${b.id}')">
+            <div class="bank-logo" style="background:${b.bg};color:${b.fg};">${b.letter}</div>
+            <div class="bank-item-text">
+                <div class="bank-item-name">${b.name}</div>
+                <div class="bank-item-country">${b.country}</div>
+            </div>
+            <div class="bank-item-chevron">›</div>
+        </div>`).join('');
+}
+function filterBanks(val) { renderBanks(val); }
+function selectBank(id) {
+    const bank = BANKS.find(b => b.id === id);
+    if (!bank) return;
+    document.getElementById('bankListWrap').classList.add('hidden');
+    const confirm = document.getElementById('bankConfirmWrap');
+    confirm.classList.add('show');
+    document.getElementById('bankConfirmLogo').style.cssText = `background:${bank.bg};color:${bank.fg};`;
+    document.getElementById('bankConfirmLogo').textContent = bank.letter;
+    document.getElementById('bankConfirmName').textContent = bank.name;
+    haptic('light');
+}
+function showBankList() {
+    document.getElementById('bankConfirmWrap').classList.remove('show');
+    document.getElementById('bankListWrap').classList.remove('hidden');
+}
+function bankConnectComingSoon() {
+    closeBankModal();
+    showToast(t('comingSoon') + ' 🏦');
 }
 
 // Coming Soon sheet
