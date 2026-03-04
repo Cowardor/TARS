@@ -19,7 +19,7 @@ function error(msg, status = 400) {
 }
 
 // Generate random session token
-function generateToken() {
+export function generateToken() {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
   return [...arr].map(b => b.toString(16).padStart(2, '0')).join('');
@@ -46,7 +46,7 @@ async function verifyPassword(password, stored) {
 }
 
 // Save session to KV (30 days)
-async function createSession(userId, kv) {
+export async function createSession(userId, kv) {
   const token = generateToken();
   await kv.put(`session:${token}`, JSON.stringify({ userId, createdAt: Date.now() }), {
     expirationTtl: 60 * 60 * 24 * 30,

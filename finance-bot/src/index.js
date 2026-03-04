@@ -17,6 +17,7 @@ import { parseMonth, getMonthRange } from './utils/db.js';
 import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
 import { handleMiniAppAPI } from './api/miniapp.js';
 import { handleAuth } from './api/auth.js';
+import { handleOAuth } from './api/oauth.js';
 // ============================================
 // STATIC ASSETS: served from public/ via Cloudflare Workers Static Assets
 // ============================================
@@ -46,6 +47,11 @@ export default {
           'Content-Length': apk.byteLength.toString(),
         },
       });
+    }
+
+    // OAuth (Google, Apple, Facebook) — must be before generic /api/auth/
+    if (url.pathname.startsWith('/api/auth/oauth/')) {
+      return handleOAuth(request, env, url.pathname);
     }
 
     // Auth API (register, login, telegram, logout, me)

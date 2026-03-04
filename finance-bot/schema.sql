@@ -20,11 +20,17 @@ CREATE TABLE IF NOT EXISTS users (
     daily_reminder INTEGER DEFAULT 1,
     monthly_report INTEGER DEFAULT 1,
     reminder_hour INTEGER DEFAULT 21,
+    google_id TEXT,
+    apple_id TEXT,
+    facebook_id TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_apple_id ON users(apple_id) WHERE apple_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_facebook_id ON users(facebook_id) WHERE facebook_id IS NOT NULL;
 
 -- 2. FAMILIES - Family/shared accounts
 CREATE TABLE IF NOT EXISTS families (
