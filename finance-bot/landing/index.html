@@ -112,7 +112,7 @@
       margin: 0 auto;
     }
 
-    .hero-left { display: flex; flex-direction: column; gap: 28px; }
+    .hero-left { display: flex; flex-direction: column; gap: 28px; overflow: hidden; }
 
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
@@ -130,9 +130,10 @@
     .hero h1 {
       font-family: 'Satoshi', sans-serif;
       font-weight: 900;
-      font-size: clamp(44px, 6vw, 76px);
-      line-height: 1.02;
+      font-size: clamp(38px, 5.5vw, 76px);
+      line-height: 1.05;
       letter-spacing: -0.03em;
+      overflow: hidden;
     }
     .hero h1 em {
       font-style: italic;
@@ -140,9 +141,8 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      /* fix gradient-text clipping on descenders */
-      padding-bottom: 6px;
-      display: inline-block;
+      padding-bottom: 8px;
+      display: block;
     }
 
     .hero-desc {
@@ -448,10 +448,11 @@
 
       .hero {
         grid-template-columns: 1fr;
-        padding: 90px 24px 60px;
+        padding: 90px 20px 60px;
         min-height: auto;
-        gap: 48px;
+        gap: 40px;
       }
+      .hero h1 { font-size: clamp(36px, 10vw, 56px); }
       .hero-phone-wrap { order: -1; }
       .iphone { width: 220px; }
 
