@@ -2157,6 +2157,23 @@ select.input-field option {
     overflow: hidden;
 }
 
+/* ── Input groups & labels ── */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-label {
+    font-family: 'Switzer', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-left: 2px;
+}
+
 /* Currency picker modal */
 .currency-picker {
     position: fixed;
@@ -3266,9 +3283,12 @@ select.input-field option {
                         <div class="settings-item" onclick="openBankModal()">
                             <div class="settings-icon si-cyan">
                                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="2" y="8" width="16" height="9" rx="2"/>
-                                    <path d="M2 11h16"/>
-                                    <path d="M10 2L2 7h16L10 2z"/>
+                                    <path d="M10 2L2 6.5h16L10 2z"/>
+                                    <line x1="2" y1="17.5" x2="18" y2="17.5"/>
+                                    <line x1="4" y1="9" x2="4" y2="15"/>
+                                    <line x1="8" y1="9" x2="8" y2="15"/>
+                                    <line x1="12" y1="9" x2="12" y2="15"/>
+                                    <line x1="16" y1="9" x2="16" y2="15"/>
                                 </svg>
                             </div>
                             <div class="settings-text">
@@ -3836,9 +3856,12 @@ select.input-field option {
             <div class="action-sheet-item" onclick="closeActionSheet();showComingSoonSheet('bank');" style="position:relative;">
                 <div class="action-sheet-item-icon" style="background:linear-gradient(135deg,#0891b2,#06b6d4);">
                     <svg viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="8" width="16" height="9" rx="2"/>
-                        <path d="M2 11h16"/>
-                        <path d="M10 2L2 7h16L10 2z"/>
+                        <path d="M10 2L2 6.5h16L10 2z"/>
+                        <line x1="2" y1="17.5" x2="18" y2="17.5"/>
+                        <line x1="4" y1="9" x2="4" y2="15"/>
+                        <line x1="8" y1="9" x2="8" y2="15"/>
+                        <line x1="12" y1="9" x2="12" y2="15"/>
+                        <line x1="16" y1="9" x2="16" y2="15"/>
                     </svg>
                 </div>
                 <div style="flex:1;">
@@ -3913,21 +3936,18 @@ select.input-field option {
                         <div class="coming-soon-badge" id="accTplBankBadge">Скоро</div>
                         <div class="account-template-icon acc-icon-cyan">
                             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="8" width="16" height="9" rx="2"/>
-                                <path d="M2 11h16"/>
-                                <path d="M10 2L2 7h16L10 2z"/>
+                                <path d="M10 2L2 6.5h16L10 2z"/>
+                                <line x1="2" y1="17.5" x2="18" y2="17.5"/>
+                                <line x1="4" y1="9" x2="4" y2="15"/>
+                                <line x1="8" y1="9" x2="8" y2="15"/>
+                                <line x1="12" y1="9" x2="12" y2="15"/>
+                                <line x1="16" y1="9" x2="16" y2="15"/>
                             </svg>
                         </div>
                         <div class="account-template-label" id="accTplBank">Банк</div>
                         <div class="account-template-desc" id="accTplBankDesc">Авто-синхронизация</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Template category preview -->
-            <div id="templatePreviewBlock" style="margin-bottom:16px;background:var(--bg-card);border-radius:var(--radius-md);padding:12px 14px;">
-                <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;" id="tplPreviewLabel">Категории шаблона</div>
-                <div id="tplPreviewContent" style="font-size:13px;color:var(--text-secondary);line-height:1.7;"></div>
             </div>
 
             <!-- Step 2: Name -->
@@ -3963,7 +3983,7 @@ select.input-field option {
                 </div>
                 <div style="background:var(--warning-soft);border-radius:var(--radius-md);padding:10px 12px;font-size:11px;color:var(--text-secondary);margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;color:var(--accent-amber)"><circle cx="10" cy="10" r="7.5"/><line x1="10" y1="6.5" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.8" fill="currentColor" stroke="none"/></svg>
-                    <span id="cryptoKeyWarning">Ключи шифруются AES-256-GCM. Используй ключи только с правом на <strong>чтение</strong>.</span>
+                    <span id="cryptoKeyWarning">Keys are encrypted with AES-256-GCM. Use only keys with <strong>read-only</strong> permissions.</span>
                 </div>
             </div>
 
@@ -4430,6 +4450,7 @@ const T = {
         bankComingSoonText: 'Подключение банка появится в следующем обновлении. Вы сможете автоматически синхронизировать транзакции через Open Banking.',
         voiceComingSoonText: 'Голосовой ввод появится в следующем обновлении. Вы сможете добавлять расходы голосом.',
         notifyMe: 'Уведомить меня',
+        cryptoKeyNote: 'Ключи шифруются AES-256-GCM. Используй только ключи с правом на <strong>чтение</strong>.',
         bankConnectLabel: 'Подключить банк', bankConnectDesc: 'Open Banking · Авто-синхронизация',
         banking: 'Банкинг', back: 'Назад', connect: 'Подключить',
         voiceSubtitle: 'Говорите чётко и укажите сумму и категорию',
@@ -4563,6 +4584,7 @@ const T = {
         bankComingSoonText: 'Bank connection is coming in the next update. You\'ll be able to automatically sync transactions via Open Banking.',
         voiceComingSoonText: 'Voice input is coming in the next update. You\'ll be able to add expenses by voice.',
         notifyMe: 'Notify me',
+        cryptoKeyNote: 'Keys are encrypted with AES-256-GCM. Use only keys with <strong>read-only</strong> permissions.',
         bankConnectLabel: 'Connect Bank', bankConnectDesc: 'Open Banking · Auto-sync',
         banking: 'Banking', back: 'Back', connect: 'Connect',
         voiceSubtitle: 'Speak clearly and mention the amount and category',
@@ -4695,6 +4717,7 @@ const T = {
         bankComingSoonText: 'Połączenie z bankiem pojawi się w następnej aktualizacji. Będziesz mógł automatycznie synchronizować transakcje przez Open Banking.',
         voiceComingSoonText: 'Wprowadzanie głosowe pojawi się w następnej aktualizacji. Będziesz mógł dodawać wydatki głosem.',
         notifyMe: 'Powiadom mnie',
+        cryptoKeyNote: 'Klucze szyfrowane są AES-256-GCM. Używaj tylko kluczy z uprawnieniami <strong>tylko do odczytu</strong>.',
         bankConnectLabel: 'Połącz bank', bankConnectDesc: 'Open Banking · Auto-sync',
         banking: 'Bankowość', back: 'Wstecz', connect: 'Połącz',
         voiceSubtitle: 'Mów wyraźnie i podaj kwotę oraz kategorię',
@@ -4827,6 +4850,7 @@ const T = {
         bankComingSoonText: 'Підключення банку з\'явиться в наступному оновленні. Ви зможете автоматично синхронізувати транзакції через Open Banking.',
         voiceComingSoonText: 'Голосове введення з\'явиться в наступному оновленні. Ви зможете додавати витрати голосом.',
         notifyMe: 'Сповістити мене',
+        cryptoKeyNote: 'Ключі шифруються AES-256-GCM. Використовуй лише ключі з правом <strong>тільки читання</strong>.',
         bankConnectLabel: 'Підключити банк', bankConnectDesc: 'Open Banking · Авто-синхронізація',
         banking: 'Банкінг', back: 'Назад', connect: 'Підключити',
         voiceSubtitle: 'Говоріть чітко і вкажіть суму та категорію',
@@ -4935,6 +4959,8 @@ function applyLanguage() {
     setText('bankBackLabel',         t('bankOtherBank'));
     setText('newAccountExchangeLabel', t('accExchange'));
     setText('newAccountSubmitLabel', t('createAccount'));
+    const cryptoWarn = document.getElementById('cryptoKeyWarning');
+    if (cryptoWarn) cryptoWarn.innerHTML = t('cryptoKeyNote');
 
     // Re-translate system category names already loaded
     CATEGORIES.expense.forEach(cat => {
@@ -5177,7 +5203,7 @@ function showComingSoonSheet(type) {
 
     if (type === 'bank') {
         icon.style.background = 'linear-gradient(135deg, var(--accent-cyan), #0e7490)';
-        svg.innerHTML = '<rect x="2" y="8" width="16" height="9" rx="2"/><path d="M2 11h16"/><path d="M10 2L2 7h16L10 2z"/>';
+        svg.innerHTML = '<path d="M10 2L2 6.5h16L10 2z"/><line x1="2" y1="17.5" x2="18" y2="17.5"/><line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="9" x2="8" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="16" y1="9" x2="16" y2="15"/>';
         headline.textContent = t('comingSoonTitle');
         body.textContent = t('bankComingSoonText');
         badge.textContent = 'Open Banking · ' + t('comingSoon');
@@ -7203,16 +7229,33 @@ async function downloadExcel() {
     const qs = accountId ? `?account_id=${accountId}` : '';
     const exportUrl = `${API_BASE}/api/export${qs}`;
 
-    // In Telegram WebApp, use openLink for downloads
-    if (tg && tg.openLink) {
-        tg.openLink(exportUrl);
-        showToast(t('excelDownloading'));
-        haptic('success');
-    } else {
-        // Fallback for browser
-        window.open(exportUrl, '_blank');
+    showToast(t('excelDownloading'));
+    haptic('success');
+
+    try {
+        const headers = {};
+        const token = getSessionToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const initData = tg?.initData;
+        if (initData) headers['X-Telegram-Init-Data'] = initData;
+
+        const res = await fetch(exportUrl, { headers });
+        if (!res.ok) throw new Error(await res.text());
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+        a.href = url;
+        a.download = `finance_${months[now.getMonth()]}_${now.getFullYear()}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
         showToast(t('excelExported'));
-        haptic('success');
+    } catch (err) {
+        showToast('❌ ' + (err.message || 'Export error'));
     }
 }
 
