@@ -7235,7 +7235,7 @@ async function downloadExcel() {
     try {
         const headers = {};
         const token = getSessionToken();
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (token) headers['X-Session-Token'] = token;
         const initData = tg?.initData;
         if (initData) headers['X-Telegram-Init-Data'] = initData;
 
