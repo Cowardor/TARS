@@ -18,6 +18,7 @@ import { getTranslations, getLanguages, getMonthName } from './utils/i18n.js';
 import { handleMiniAppAPI } from './api/miniapp.js';
 import { handleAuth } from './api/auth.js';
 import { handleOAuth } from './api/oauth.js';
+import { handleVoice } from './api/voice.js';
 // ============================================
 // STATIC ASSETS: served from public/ via Cloudflare Workers Static Assets
 // ============================================
@@ -47,6 +48,11 @@ export default {
           'Content-Length': apk.byteLength.toString(),
         },
       });
+    }
+
+    // Voice API (transcribe + parse via Groq)
+    if (url.pathname.startsWith('/api/voice/')) {
+      return handleVoice(request, env, url.pathname);
     }
 
     // OAuth (Google, Apple, Facebook) — must be before generic /api/auth/
