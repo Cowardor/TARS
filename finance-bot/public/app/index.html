@@ -20,14 +20,6 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
     <style>
-/* ============================================
-   ALAR DESIGN SYSTEM - DEEP COSMOS PALETTE
-   ① #4f46e5 Deep Indigo  ② #818cf8 Soft Indigo
-   ③ #22d3ee Cyan Spark   ④ #10b981 Emerald
-   ⑤ #f59e0b Amber
-   Font: Switzer (UI), Zodiak (headings), DM Mono (numbers)
-   ============================================ */
-
 /* ============================================================
    ALAR DESIGN SYSTEM — DEEP COSMOS PALETTE
    ① #4f46e5  Deep Indigo  — primary CTA, nav, logo
@@ -35,6 +27,7 @@
    ③ #22d3ee  Cyan         — accent spark, beam
    ④ #10b981  Emerald      — income, success
    ⑤ #f59e0b  Amber        — budgets, warnings
+   Font: Satoshi (headings), Switzer (UI), DM Mono (numbers)
    ============================================================ */
 
 /* ── DARK (default) ── */
@@ -1199,6 +1192,18 @@ select.input-field option {
 }
 
 /* Quick Add Button — Alar spring + gradient pulse */
+/* quick-add row: add + mic side by side */
+.quick-add-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 12px;
+}
+.quick-add-row .quick-add-btn {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .quick-add-btn {
     width: 100%;
     padding: 14px;
@@ -1222,6 +1227,29 @@ select.input-field option {
     box-shadow: 0 4px 20px var(--accent-blue-glow);
     will-change: transform;
 }
+
+/* mic button — square, same height as quick-add */
+.quick-mic-btn {
+    flex-shrink: 0;
+    width: 52px;
+    padding: 0;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.quick-mic-btn:active {
+    transform: scale(0.92);
+    transition-duration: 0.06s;
+    transition-timing-function: ease-in;
+}
+.quick-mic-btn svg { width: 22px; height: 22px; }
 
 .quick-add-btn:active {
     transform: scale(0.92);
@@ -2372,6 +2400,12 @@ select.input-field option {
     animation: toastWave 0.7s ease-out 0.35s both;
 }
 
+.success-toast.error {
+    background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.10) 100%);
+    border-color: rgba(239,68,68,0.35);
+    box-shadow: 0 8px 32px rgba(239,68,68,0.22), 0 2px 8px rgba(0,0,0,0.3);
+}
+
 .success-toast-icon {
     width: 26px;
     height: 26px;
@@ -3182,10 +3216,20 @@ select.input-field option {
                     <div class="account-dot active" data-idx="0" onclick="switchToAccountIndex(0)"></div>
                 </div>
 
-                <button class="quick-add-btn" id="quickAddBtn" onclick="openAddModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span data-i18n="add">Добавить</span>
-                </button>
+                <div class="quick-add-row" id="quickAddRow">
+                    <button class="quick-add-btn" id="quickAddBtn" onclick="openAddModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span data-i18n="add">Добавить</span>
+                    </button>
+                    <button class="quick-mic-btn" id="quickMicBtn" onclick="openVoiceModal()" aria-label="Голосовой ввод">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="7" y="2" width="6" height="10" rx="3"/>
+                            <path d="M4 10a6 6 0 0012 0"/>
+                            <line x1="10" y1="16" x2="10" y2="19"/>
+                            <line x1="7" y1="19" x2="13" y2="19"/>
+                        </svg>
+                    </button>
+                </div>
 
                 <button class="undo-btn" id="undoBtn" onclick="undoLast()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
@@ -5208,10 +5252,10 @@ async function doRegister() {
 
 // ── Voice Input Modal ─────────────────────────────────
 
-const _voice = { mode: null, state: 'idle', recognition: null, mediaRecorder: null, chunks: [], transcript: '' };
+const _voice = { mode: null, state: 'idle', recognition: null, mediaRecorder: null, chunks: [], transcript: '', parsedResult: null };
 
 function _voiceLang() {
-    return { ru: 'ru-RU', en: 'en-US', pl: 'pl-PL', uk: 'uk-UA' }[state.lang] || 'en-US';
+    return { ru: 'ru-RU', en: 'en-US', pl: 'pl-PL', uk: 'uk-UA' }[state.language] || 'en-US';
 }
 
 function _voiceSetState(s) {
@@ -5325,7 +5369,7 @@ async function _voiceGroqStart() {
             const ext = mimeType.includes('mp4') ? 'audio.mp4' : 'audio.webm';
             const form = new FormData();
             form.append('audio', blob, ext);
-            form.append('lang', { ru:'ru', en:'en', pl:'pl', uk:'uk' }[state.lang] || 'en');
+            form.append('lang', { ru:'ru', en:'en', pl:'pl', uk:'uk' }[state.language] || 'en');
             try {
                 const token = getSessionToken();
                 const hdrs = {};
@@ -5378,6 +5422,7 @@ function voiceMicTap() {
 // ── Parse + Apply ───────────────────────────────────────
 async function _voiceParse(text) {
     _voiceSetState('processing');
+    _voice.parsedResult = null;
     const allCats = [
         ...CATEGORIES.expense.map(c => ({ id: c.id, name: c.name, type: 'expense' })),
         ...CATEGORIES.income.map(c => ({ id: c.id, name: c.name, type: 'income' })),
@@ -5385,42 +5430,65 @@ async function _voiceParse(text) {
     try {
         const result = await apiFetch('/api/voice/parse', {
             method: 'POST',
-            body: JSON.stringify({ text, language: state.lang, categories: allCats }),
+            body: JSON.stringify({ text, language: state.language, categories: allCats }),
         });
         if (result.error === 'no_amount' || !result.amount) {
             _voiceSetState('ready');
             return;
         }
-        _voiceApply(result, text);
+        _voice.parsedResult = result;
+        _voiceSetState('ready');
+        // Show parsed summary in hint
+        const hint = document.getElementById('voiceListeningHint');
+        if (hint) {
+            const type = result.type || 'expense';
+            const cats = type === 'expense' ? CATEGORIES.expense : CATEGORIES.income;
+            const cat = cats.find(c => c.id == result.category_id);
+            const sign = type === 'expense' ? '-' : '+';
+            hint.textContent = `${sign}${parseFloat(result.amount).toFixed(2)} ${state.userCurrency}${cat ? ' · ' + cat.emoji + ' ' + cat.name : ''}`;
+        }
     } catch {
         _voiceSetState('ready');
     }
 }
 
-function _voiceApply(result, transcript) {
+async function _voiceApply(result, transcript) {
     _voiceStop();
-    closeVoiceModal();
-    openAddModal();
+    _voiceSetState('processing');
     const type = result.type || 'expense';
-    setType(type);
-    if (result.amount) document.getElementById('amountInput').value = result.amount;
-    if (result.description) document.getElementById('descInput').value = result.description;
-    if (result.category_id) {
-        const cats = type === 'expense' ? CATEGORIES.expense : CATEGORIES.income;
-        const cat = cats.find(c => c.id == result.category_id);
-        if (cat) setTimeout(() => selectCategory(cat.key), 80);
+    const cats = type === 'expense' ? CATEGORIES.expense : CATEGORIES.income;
+    const catId = result.category_id || cats[0]?.id || (type === 'expense' ? 1 : 13);
+    const saveResult = await apiFetch('/api/transaction', {
+        method: 'POST',
+        body: JSON.stringify({
+            type,
+            amount: parseFloat(result.amount),
+            category_id: catId,
+            description: result.description || undefined,
+        }),
+    });
+    if (saveResult && saveResult.success) {
+        closeVoiceModal();
+        const sign = type === 'expense' ? '-' : '+';
+        showToast(`${sign}${parseFloat(result.amount).toFixed(2)} ${state.userCurrency} ${saveResult.transaction.category_emoji}`);
+        haptic('success');
+        await loadDashboard();
+    } else {
+        showToast(t('errSave'));
+        haptic('medium');
+        _voiceSetState('ready');
     }
-    haptic('success');
-    showToast('🎤 ' + (transcript || t('voiceAdded')));
 }
 
 function voiceAdd() {
+    if (_voice.state === 'ready' && _voice.parsedResult) {
+        _voiceApply(_voice.parsedResult, _voice.transcript);
+        return;
+    }
     const text = _voice.transcript;
     if (!text) return;
     if (_voice.state === 'recording') {
         _voiceStop();
-        _voiceParse(text);
-    } else if (_voice.state === 'ready' || _voice.state === 'processing') {
         _voiceParse(text);
     }
 }
@@ -6689,9 +6757,10 @@ async function changeCurrency(code) {
 // TOAST
 // ============================================
 
-function showToast(text) {
+function showToast(text, type = '') {
     const toast = document.getElementById('successToast');
     document.getElementById('toastText').innerHTML = text;
+    toast.className = 'success-toast' + (type === 'error' ? ' error' : '');
     toast.classList.add('show');
 
     setTimeout(() => toast.classList.remove('show'), 2500);
@@ -6746,11 +6815,13 @@ function renderDashboard() {
     const isCrypto = acc?.type === 'crypto';
 
     // Toggle add/undo/section-link visibility for crypto accounts
+    const quickAddRow = document.getElementById('quickAddRow');
     const quickAddBtn = document.getElementById('quickAddBtn');
     const undoBtn = document.getElementById('undoBtn');
     const titleEl = document.getElementById('recentTxTitle');
     const allLink = document.getElementById('recentTxAllLink');
-    if (quickAddBtn) quickAddBtn.style.display = isCrypto ? 'none' : '';
+    if (quickAddRow) quickAddRow.style.display = isCrypto ? 'none' : '';
+    else if (quickAddBtn) quickAddBtn.style.display = isCrypto ? 'none' : '';
     if (undoBtn) undoBtn.style.display = isCrypto ? 'none' : '';
     if (allLink) allLink.style.display = isCrypto ? 'none' : '';
     if (titleEl) titleEl.textContent = isCrypto ? (t('cryptoPortfolioTitle') || 'Portfolio') : t('recentTx');
@@ -7406,7 +7477,7 @@ function renderCategoryManagerItem(cat, type) {
                 <div class="category-manager-meta">${txCountText}</div>
             </div>
             <div class="category-actions">
-                <button class="category-action-btn edit" onclick="startRenameCategoryItem(${cat.id}, '${cat.name.replace(/'/g, "'")}')">
+                <button class="category-action-btn edit" onclick="startRenameCategoryItem(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')">
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2.5a2.121 2.121 0 0 1 3 3L6 17l-4 1 1-4 11.5-11.5z"/></svg>
                 </button>
                 <button class="category-action-btn delete" onclick="deleteCategoryItem(${cat.id})">
@@ -9037,8 +9108,7 @@ async function submitCsvImport() {
     btn.disabled = true;
     btn.textContent = '...';
 
-    const importSel = { value: _importAccountId };
-    const importAccountId = importSel?.value ? parseInt(importSel.value) : null;
+    const importAccountId = _importAccountId || null;
 
     const transactions = csvRows.map(row => ({
         date: row.date,
