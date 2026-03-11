@@ -25,7 +25,8 @@ export async function encrypt(text, passphrase) {
     combined.set(iv);
     combined.set(new Uint8Array(cipherBuf), 12);
     return ENC_PREFIX + btoa(String.fromCharCode(...combined));
-  } catch {
+  } catch (err) {
+    console.error('encrypt() failed — storing plaintext. Check ENCRYPTION_KEY:', err.message);
     return text; // fallback: store plaintext
   }
 }

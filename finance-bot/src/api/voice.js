@@ -1,6 +1,8 @@
 // Voice API — Transcription (Groq Whisper) + Parsing (Groq llama)
 // Used as fallback when Web Speech API is unavailable (e.g. Telegram iOS)
 
+import { resolveUser } from './auth.js';
+
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
 
 function json(data, status = 200) {
@@ -14,6 +16,10 @@ export async function handleVoice(request, env, pathname) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { ...CORS, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': '*' } });
   }
+
+  // Require valid session — prevents public use of Groq API key
+  const user = await resolveUser(request, env);
+  if (!user) return error('Unauthorized', 401);
 
   if (!env.GROQ_API_KEY) return error('GROQ_API_KEY not configured', 500);
 
@@ -81,6 +87,22 @@ async function parse(request, env) {
 
   const systemPrompt = `You are a financial transaction parser. Extract transaction data from a voice phrase and return ONLY valid JSON.
 Available categories: ${catList || 'none'}
+
+Category keyword hints — use these to match the phrase to the correct category regardless of language:
+- Groceries/Продукты/Żywność/Продукти: supermarket, grocery, food store, market, lidl, biedronka, kaufland, aldi, spar, tesco, carrefour, vegetables, fruits, bread, milk, eggs, продукты, супермаркет, магазин еды, продукти
+- Dining/Кафе/Restauracja/Кав'ярня: restaurant, cafe, coffee, lunch, dinner, breakfast, pizza, sushi, burger, mcdonalds, kfc, kebab, bar, pub, delivery, takeout, ресторан, кафе, обед, ужин, завтрак, пицца
+- Transport/Транспорт/Transport: taxi, uber, bolt, cabify, bus, tram, metro, subway, train, fuel, petrol, gas station, parking, такси, метро, автобус, трамвай, бензин, заправка, парковка
+- Housing/Жильё/Mieszkanie/Житло: rent, utilities, electricity, heating, water bill, internet, phone bill, mortgage, аренда, коммуналка, электричество, вода, интернет, телефон, квартплата
+- Subscriptions/Подписки/Subskrypcje: netflix, spotify, youtube, apple, google, amazon prime, chatgpt, canva, hbo, disney, подписка, сервис
+- Shopping/Покупки/Zakupy/Покупки: clothes, clothing, dress, shirt, pants, jacket, shoes, sneakers, electronics, laptop, tablet, headphones, amazon, zara, h&m, aliexpress, одежда, обувь, электроника, наушники, ноутбук
+- Beauty/Красота/Uroda/Краса: haircut, salon, barber, cosmetics, makeup, perfume, manicure, pedicure, парикмахерская, косметика, стрижка, маникюр, духи, beauty
+- Health/Здоровье/Zdrowie/Здоров'я: pharmacy, medicine, pills, vitamins, doctor, dentist, hospital, clinic, аптека, лекарство, врач, стоматолог, больница, таблетки
+- Sport/Спорт/Sport: gym, fitness, yoga, swimming pool, trainer, running, cycling, спортзал, тренажерный зал, фитнес, йога, бассейн, тренер
+- Travel/Путешествия/Podróże/Подорожі: hotel, hostel, flight, airbnb, booking, vacation, trip, airport, visa, путешествие, отель, перелет, отпуск, билет, виза
+- Home/Дом/Dom/Дім: furniture, ikea, repair, renovation, tools, hardware store, мебель, ремонт, инструменты, хозтовары, стройматериалы
+- Salary/Зарплата/Wypłata/Зарплата: salary, wage, paycheck, work income, freelance payment, зарплата, оклад, фриланс, выплата
+- Gift/Подарок/Prezent/Подарунок: gift, present, bonus, prize, подарок, бонус, премия, приз
+
 Rules:
 - amount: positive number (no currency symbols)
 - type: "expense" or "income"

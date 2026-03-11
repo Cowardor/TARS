@@ -9,25 +9,25 @@ export class ExportService {
   }
 
   // Generate Excel-compatible XML with full statistics
-  async generateExcelXML(userId, date = new Date(), familyId = null, familyName = null, lang = 'en') {
+  async generateExcelXML(userId, date = new Date(), familyId = null, familyName = null, lang = 'en', accountId = null) {
     const ts = this.transactionService;
     const t = getTranslations(lang);
     const { start, end } = getMonthRange(date);
 
     // Current month data
-    const transactions = await ts.getByPeriod(userId, start, end, familyId);
-    const stats = await ts.getStatsByCategory(userId, date, familyId);
-    const totalExpenses = await ts.getMonthTotal(userId, 'expense', date, familyId);
-    const totalIncome = await ts.getMonthTotal(userId, 'income', date, familyId);
-    const expenseCount = await ts.getMonthCount(userId, 'expense', date, familyId);
-    const incomeCount = await ts.getMonthCount(userId, 'income', date, familyId);
-    const avgExpense = await ts.getMonthAverage(userId, 'expense', date, familyId);
+    const transactions = await ts.getByPeriod(userId, start, end, familyId, null, null, accountId);
+    const stats = await ts.getStatsByCategory(userId, date, familyId, accountId);
+    const totalExpenses = await ts.getMonthTotal(userId, 'expense', date, familyId, accountId);
+    const totalIncome = await ts.getMonthTotal(userId, 'income', date, familyId, accountId);
+    const expenseCount = await ts.getMonthCount(userId, 'expense', date, familyId, accountId);
+    const incomeCount = await ts.getMonthCount(userId, 'income', date, familyId, accountId);
+    const avgExpense = await ts.getMonthAverage(userId, 'expense', date, familyId, accountId);
 
     // Previous month data
     const prevDate = ts.getPreviousMonth(date);
-    const prevExpenses = await ts.getMonthTotal(userId, 'expense', prevDate, familyId);
-    const prevIncome = await ts.getMonthTotal(userId, 'income', prevDate, familyId);
-    const prevStats = await ts.getStatsByCategory(userId, prevDate, familyId);
+    const prevExpenses = await ts.getMonthTotal(userId, 'expense', prevDate, familyId, accountId);
+    const prevIncome = await ts.getMonthTotal(userId, 'income', prevDate, familyId, accountId);
+    const prevStats = await ts.getStatsByCategory(userId, prevDate, familyId, accountId);
 
     // Create prev month lookup
     const prevByCategory = {};
@@ -36,7 +36,7 @@ export class ExportService {
     }
 
     // Get trend data (6 months)
-    const trend = await ts.getMonthlyTrend(userId, 6, familyId);
+    const trend = await ts.getMonthlyTrend(userId, 6, familyId, accountId);
 
     const monthName = getMonthName(date, lang);
     const prevMonthName = getMonthName(prevDate, lang);

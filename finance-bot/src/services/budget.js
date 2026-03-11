@@ -26,20 +26,21 @@ export class BudgetService {
 
   // Set budget for a category
   async setBudget(userId, categoryId, amount, familyId = null) {
-    // Use UPSERT (INSERT OR REPLACE)
-    const query = `
+    // SQLite treats NULL != NULL in UNIQUE constraints, so ON CONFLICT won't fire
+    // for personal budgets (family_id = NULL). Use select-then-update instead.
+    const existing = await this.getBudget(userId, categoryId, familyId);
+
+    if (existing) {
+      return this.db.prepare(`
+        UPDATE budgets SET amount = ?, updated_at = datetime('now')
+        WHERE id = ? RETURNING *
+      `).bind(amount, existing.id).first();
+    }
+
+    return this.db.prepare(`
       INSERT INTO budgets (user_id, family_id, category_id, amount)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(user_id, family_id, category_id)
-      DO UPDATE SET amount = ?, updated_at = datetime('now')
-      RETURNING *
-    `;
-
-    const result = await this.db.prepare(query)
-      .bind(familyId ? null : userId, familyId, categoryId, amount, amount)
-      .first();
-
-    return result;
+      VALUES (?, ?, ?, ?) RETURNING *
+    `).bind(familyId ? null : userId, familyId, categoryId, amount).first();
   }
 
   // Get budget for a category

@@ -435,9 +435,25 @@ export class AccountService {
       if (bal <= 0) continue;
       map[acc.currency] = (map[acc.currency] || 0) + bal;
     }
+    if (Object.keys(map).length === 0) return [];
+
+    // Attach USD values via Binance public price feed (no auth needed)
+    const pricesRes = await fetch('https://api.binance.com/api/v3/ticker/price');
+    const priceMap = {};
+    if (pricesRes.ok) {
+      const list = await pricesRes.json();
+      for (const p of list) priceMap[p.symbol] = parseFloat(p.price);
+    }
+
     return Object.entries(map)
-      .map(([symbol, amount]) => ({ symbol, amount, usd_value: 0 }))
-      .sort((a, b) => b.amount - a.amount);
+      .map(([symbol, amount]) => {
+        let usd_value = 0;
+        if (['USDT', 'USDC', 'BUSD'].includes(symbol)) usd_value = amount;
+        else usd_value = amount * (priceMap[`${symbol}USDT`] || priceMap[`${symbol}BUSD`] || 0);
+        return { symbol, amount, usd_value: Math.round(usd_value * 100) / 100 };
+      })
+      .filter(b => b.amount > 0)
+      .sort((a, b) => b.usd_value - a.usd_value);
   }
 
   // ── MEXC (Binance-compatible format) ──

@@ -9,7 +9,6 @@ import { FamilyService } from './services/family.js';
 import { ExportService } from './services/export.js';
 import { BudgetService } from './services/budget.js';
 import { BankImportService } from './services/bank-import.js';
-import { NordigenService } from './services/nordigen.js';
 import { SaltEdgeService } from './services/saltedge.js';
 import { AccountService } from './services/account.js';
 import { sendMessage, editMessage, answerCallback, sendDocument, downloadFile, inlineKeyboard, button, buttonRow } from './utils/telegram.js';
@@ -78,8 +77,12 @@ export default {
       }
     }
 
-    // Setup webhook to point to this worker
+    // Setup webhook to point to this worker (requires ?secret= matching WEBHOOK_SECRET env var)
     if (url.pathname === '/setup-webhook') {
+      const secret = url.searchParams.get('secret');
+      if (!secret || secret !== env.WEBHOOK_SECRET) {
+        return new Response('Forbidden', { status: 403 });
+      }
       try {
         const botApi = `https://api.telegram.org/bot${env.TELEGRAM_TOKEN}`;
         const webhookUrl = url.origin;
@@ -483,15 +486,13 @@ export default {
         const exportService = new ExportService(transactionService);
         const budgetService = new BudgetService(env.DB, transactionService);
         const bankImportService = new BankImportService(env.DB, categoryService, transactionService);
-        const nordigenService = new NordigenService(env.DB, env);
         const saltEdgeService = new SaltEdgeService(env.DB, env);
         const accountService = new AccountService(env.DB, env.ENCRYPTION_KEY);
 
-        // Use Salt Edge if configured, otherwise fall back to Nordigen
-        const openBankingService = env.SALTEDGE_APP_ID ? saltEdgeService : nordigenService;
-        const openBankingProvider = env.SALTEDGE_APP_ID ? 'saltedge' : 'nordigen';
+        const openBankingService = saltEdgeService;
+        const openBankingProvider = 'saltedge';
 
-        const services = { userService, categoryService, transactionService, statsService, familyService, exportService, budgetService, bankImportService, nordigenService, saltEdgeService, openBankingService, openBankingProvider, accountService };
+        const services = { userService, categoryService, transactionService, statsService, familyService, exportService, budgetService, bankImportService, saltEdgeService, openBankingService, openBankingProvider, accountService };
 
         if (data.message) {
           console.log('Processing message...');
@@ -521,12 +522,10 @@ export default {
     const transactionService = new TransactionService(env.DB, env.ENCRYPTION_KEY);
     const statsService = new StatsService(transactionService);
     const categoryService = new CategoryService(env.DB);
-    const nordigenService = new NordigenService(env.DB, env);
     const saltEdgeService = new SaltEdgeService(env.DB, env);
 
-    // Use Salt Edge if configured, otherwise Nordigen
-    const openBankingService = env.SALTEDGE_APP_ID ? saltEdgeService : nordigenService;
-    const openBankingProvider = env.SALTEDGE_APP_ID ? 'saltedge' : 'nordigen';
+    const openBankingService = saltEdgeService;
+    const openBankingProvider = 'saltedge';
 
     // Daily reminder at 21:00 (20:00 UTC)
     if (event.cron === '0 20 * * *') {

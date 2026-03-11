@@ -132,13 +132,18 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
   const userId = user.id;
 
-  // Get active family from session (same as bot does)
+  // Get active family/account from session
   let familyId = null;
   let activeAccountId = null;
   if (user.telegram_id) {
+    // Telegram users — session stored in D1 user_sessions table
     const session = await userService.getSession(user.telegram_id);
     familyId = session?.active_family_id || null;
     activeAccountId = session?.active_account_id || null;
+  } else {
+    // Email/OAuth users — active account stored in KV (user_sessions table requires telegram_id)
+    const kvSession = await env.FINANCE_KV.get(`user_account:${userId}`, 'json');
+    activeAccountId = kvSession?.active_account_id || null;
   }
 
   const currency = user.currency || 'USD';
@@ -236,7 +241,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
 
     case '/api/accounts/switch':
       if (request.method !== 'POST') return error('Method not allowed', 405);
-      return handleAccountSwitch(request, userId, user.telegram_id, accountService, familyId, familyService);
+      return handleAccountSwitch(request, userId, user.telegram_id, accountService, familyId, familyService, env.FINANCE_KV);
 
     case '/api/accounts/sync-crypto':
       if (request.method !== 'POST') return error('Method not allowed', 405);
@@ -632,7 +637,7 @@ async function handleExport(request, userId, familyId, ts, exportService, family
   }
 
   const lang = user.language || 'en';
-  const excelContent = await exportService.generateExcelXML(userId, now, familyId, familyName, lang);
+  const excelContent = await exportService.generateExcelXML(userId, now, familyId, familyName, lang, exportAccountId);
 
   const encoder = new TextEncoder();
   const buffer = encoder.encode(excelContent);
@@ -1249,7 +1254,7 @@ async function handleDeleteAccount(request, userId, as) {
 // POST /api/accounts/switch — Switch active account
 // ============================================
 
-async function handleAccountSwitch(request, userId, telegramId, as, familyId = null, fs = null) {
+async function handleAccountSwitch(request, userId, telegramId, as, familyId = null, fs = null, kv = null) {
   let body;
   try { body = await request.json(); } catch { return error('Invalid JSON'); }
 
@@ -1267,7 +1272,16 @@ async function handleAccountSwitch(request, userId, telegramId, as, familyId = n
     }
   }
 
-  await as.switchAccount(telegramId, account_id || null);
+  if (telegramId) {
+    // Telegram users — persist in D1 user_sessions
+    await as.switchAccount(telegramId, account_id || null);
+  } else if (kv) {
+    // Email/OAuth users — persist in KV (user_sessions table requires telegram_id NOT NULL)
+    await kv.put(`user_account:${userId}`, JSON.stringify({ active_account_id: account_id || null }), {
+      expirationTtl: 60 * 60 * 24 * 90, // 90 days
+    });
+  }
+
   return json({ success: true, active_account_id: account_id || null });
 }
 
