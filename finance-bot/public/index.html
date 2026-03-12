@@ -130,8 +130,15 @@
       border-bottom-color: var(--border);
     }
     [data-theme="light"] .hero-badge { background: rgba(79,70,229,0.08); }
-    [data-theme="light"] .iphone { box-shadow: 0 40px 80px rgba(0,0,0,0.12); }
-    [data-theme="light"] .iphone-inner { background: #e8e8ef; }
+    [data-theme="light"] .iphone {
+      background: #e3e3e8;
+      box-shadow:
+        0 40px 80px rgba(0,0,0,0.14),
+        inset 0 0 0 1.5px rgba(255,255,255,0.9),
+        inset 0 0 0 3px #c8c8d0;
+    }
+    [data-theme="light"] .iphone-inner { background: #d1d1d6; }
+    [data-theme="light"] .iphone-notch { background: #e3e3e8; }
     [data-theme="light"] .stat { color: var(--text); }
     [data-theme="light"] .feature-item h3 { color: var(--text); }
     [data-theme="light"] .store-badge { background: var(--bg-card); border-color: var(--border); color: var(--text); }
