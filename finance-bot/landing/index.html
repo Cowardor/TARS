@@ -447,6 +447,89 @@
     .footer-support:hover { color: var(--text); }
     .footer-support svg { width: 14px; height: 14px; fill: currentColor; opacity: 0.6; }
 
+    /* ─── SUPPORT MODAL ──────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      width: 100%; max-width: 480px;
+      transform: translateY(16px);
+      transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700; font-size: 22px;
+    }
+    .modal-close {
+      width: 32px; height: 32px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 50%; cursor: pointer; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; line-height: 1; transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+
+    .modal-field { margin-bottom: 16px; }
+    .modal-label {
+      display: block; font-size: 13px; font-weight: 500;
+      color: var(--muted); margin-bottom: 6px;
+    }
+    .modal-input, .modal-select, .modal-textarea {
+      width: 100%; padding: 11px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text);
+      font-family: 'Switzer', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+      appearance: none;
+    }
+    .modal-input:focus, .modal-select:focus, .modal-textarea:focus {
+      border-color: var(--primary);
+    }
+    .modal-textarea { resize: vertical; min-height: 100px; }
+    .modal-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23a1a1aa'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .modal-select option { background: #18181b; }
+
+    .modal-submit {
+      width: 100%; padding: 13px;
+      background: var(--grad); color: #fff; border: none;
+      border-radius: 100px; font-family: 'Switzer', sans-serif;
+      font-weight: 600; font-size: 15px; cursor: pointer;
+      margin-top: 8px; transition: opacity 0.2s, transform 0.2s;
+    }
+    .modal-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .modal-success {
+      text-align: center; padding: 20px 0;
+      display: none;
+    }
+    .modal-success-icon { font-size: 48px; margin-bottom: 12px; }
+    .modal-success h3 {
+      font-family: 'Satoshi', sans-serif; font-weight: 700;
+      font-size: 20px; margin-bottom: 8px;
+    }
+    .modal-success p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
     /* ─── TOAST ───────────────────────────────────── */
     .toast {
       position: fixed; bottom: 24px; left: 50%;
@@ -691,7 +774,7 @@
     </svg>
     <span>ALAR</span>
   </a>
-  <a href="mailto:support@alarfinance.com" class="footer-support">
+  <a href="#" class="footer-support" id="supportLink" onclick="openSupport(event)">
     <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
     support@alarfinance.com
   </a>
@@ -699,6 +782,61 @@
 </footer>
 
 <div class="toast" id="toast"></div>
+
+<!-- SUPPORT MODAL -->
+<div class="modal-overlay" id="supportOverlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" data-i18n="supportTitle">Contact Support</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;" data-i18n="supportSub">We'll reply within 24 hours</div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+    </div>
+
+    <div id="supportFormWrap">
+      <form id="supportForm" action="https://formsubmit.co/support@alarfinance.com" method="POST">
+        <input type="hidden" name="_subject" value="[Alar Finance Support]">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="">
+
+        <div class="modal-field">
+          <label class="modal-label" data-i18n="supportName">Your name</label>
+          <input type="text" name="name" class="modal-input" data-i18n-placeholder="supportNamePh" placeholder="John Smith" required>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label" data-i18n="supportEmail">Email</label>
+          <input type="email" name="email" class="modal-input" placeholder="your@email.com" required>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label" data-i18n="supportType">Type</label>
+          <select name="type" class="modal-select">
+            <option value="bug" data-i18n="supportTypeBug">🐛 Bug report</option>
+            <option value="feature" data-i18n="supportTypeFeature">💡 Feature request</option>
+            <option value="account" data-i18n="supportTypeAccount">👤 Account issue</option>
+            <option value="other" data-i18n="supportTypeOther">💬 Other</option>
+          </select>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label" data-i18n="supportMsg">Describe the issue</label>
+          <textarea name="message" class="modal-textarea" data-i18n-placeholder="supportMsgPh" placeholder="What happened? What did you expect?" required></textarea>
+        </div>
+
+        <button type="submit" class="modal-submit" data-i18n="supportSend">Send message</button>
+      </form>
+    </div>
+
+    <div class="modal-success" id="supportSuccess">
+      <div class="modal-success-icon">✅</div>
+      <h3 data-i18n="supportDoneTitle">Message sent!</h3>
+      <p data-i18n="supportDoneText">We received your request and will reply to your email within 24 hours.</p>
+    </div>
+  </div>
+</div>
 
 <script>
 // ─── i18n ───────────────────────────────────────────
@@ -728,6 +866,14 @@ const t = {
     ctaSub:"We'll notify you the moment Alar Finance lands on App Store & Google Play.",
     ctaPlaceholder:"your@email.com", ctaBtn:"Notify me",
     toast:"You're on the list! We'll let you know 🎉",
+    supportTitle:"Contact Support", supportSub:"We'll reply within 24 hours",
+    supportName:"Your name", supportNamePh:"John Smith",
+    supportEmail:"Email", supportType:"Type",
+    supportTypeBug:"🐛 Bug report", supportTypeFeature:"💡 Feature request",
+    supportTypeAccount:"👤 Account issue", supportTypeOther:"💬 Other",
+    supportMsg:"Describe the issue", supportMsgPh:"What happened? What did you expect?",
+    supportSend:"Send message",
+    supportDoneTitle:"Message sent!", supportDoneText:"We received your request and will reply within 24 hours.",
   },
   ru: {
     navFeatures:"Возможности", navDownload:"Скачать", navCta:"Ранний доступ",
@@ -754,6 +900,14 @@ const t = {
     ctaSub:"Мы сообщим, как только Alar Finance появится в App Store и Google Play.",
     ctaPlaceholder:"ваш@email.com", ctaBtn:"Сообщить мне",
     toast:"Вы в списке! Сообщим о запуске 🎉",
+    supportTitle:"Написать в поддержку", supportSub:"Ответим в течение 24 часов",
+    supportName:"Ваше имя", supportNamePh:"Иван Иванов",
+    supportEmail:"Email", supportType:"Тип обращения",
+    supportTypeBug:"🐛 Баг / ошибка", supportTypeFeature:"💡 Предложение",
+    supportTypeAccount:"👤 Проблема с аккаунтом", supportTypeOther:"💬 Другое",
+    supportMsg:"Опишите проблему", supportMsgPh:"Что произошло? Что ожидали?",
+    supportSend:"Отправить",
+    supportDoneTitle:"Отправлено!", supportDoneText:"Мы получили ваш запрос и ответим на почту в течение 24 часов.",
   },
   pl: {
     navFeatures:"Funkcje", navDownload:"Pobierz", navCta:"Wczesny dostęp",
@@ -780,6 +934,14 @@ const t = {
     ctaSub:"Powiadomimy Cię, gdy Alar Finance pojawi się w App Store i Google Play.",
     ctaPlaceholder:"twoj@email.com", ctaBtn:"Powiadom mnie",
     toast:"Jesteś na liście! Damy Ci znać 🎉",
+    supportTitle:"Kontakt z pomocą", supportSub:"Odpowiemy w ciągu 24 godzin",
+    supportName:"Imię i nazwisko", supportNamePh:"Jan Kowalski",
+    supportEmail:"Email", supportType:"Rodzaj zgłoszenia",
+    supportTypeBug:"🐛 Błąd / bug", supportTypeFeature:"💡 Propozycja",
+    supportTypeAccount:"👤 Problem z kontem", supportTypeOther:"💬 Inne",
+    supportMsg:"Opisz problem", supportMsgPh:"Co się stało? Czego oczekiwałeś?",
+    supportSend:"Wyślij",
+    supportDoneTitle:"Wysłano!", supportDoneText:"Otrzymaliśmy Twoje zgłoszenie i odpowiemy w ciągu 24 godzin.",
   },
   ua: {
     navFeatures:"Можливості", navDownload:"Завантажити", navCta:"Ранній доступ",
@@ -806,6 +968,14 @@ const t = {
     ctaSub:"Ми повідомимо, як тільки Alar Finance з'явиться в App Store та Google Play.",
     ctaPlaceholder:"ваш@email.com", ctaBtn:"Повідомити мене",
     toast:"Ви у списку! Повідомимо про запуск 🎉",
+    supportTitle:"Написати в підтримку", supportSub:"Відповімо протягом 24 годин",
+    supportName:"Ваше ім'я", supportNamePh:"Іван Іваненко",
+    supportEmail:"Email", supportType:"Тип звернення",
+    supportTypeBug:"🐛 Баг / помилка", supportTypeFeature:"💡 Пропозиція",
+    supportTypeAccount:"👤 Проблема з акаунтом", supportTypeOther:"💬 Інше",
+    supportMsg:"Опишіть проблему", supportMsgPh:"Що сталося? Чого очікували?",
+    supportSend:"Надіслати",
+    supportDoneTitle:"Надіслано!", supportDoneText:"Ми отримали ваш запит і відповімо на пошту протягом 24 годин.",
   }
 };
 
@@ -879,6 +1049,53 @@ document.getElementById('notifyForm').addEventListener('submit', e => {
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3500);
   e.target.reset();
+});
+
+// ─── SUPPORT MODAL ───────────────────────────────────
+function openSupport(e) {
+  if (e) e.preventDefault();
+  document.getElementById('supportOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  track('support_open', { lang });
+}
+
+function closeSupport() {
+  document.getElementById('supportOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => {
+    document.getElementById('supportFormWrap').style.display = '';
+    document.getElementById('supportSuccess').style.display = 'none';
+    document.getElementById('supportForm').reset();
+  }, 300);
+}
+
+document.getElementById('modalClose').addEventListener('click', closeSupport);
+document.getElementById('supportOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSupport();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSupport();
+});
+
+document.getElementById('supportForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('.modal-submit');
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    const data = new FormData(form);
+    await fetch('https://formsubmit.co/ajax/support@alarfinance.com', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: data
+    });
+  } catch (_) {}
+
+  document.getElementById('supportFormWrap').style.display = 'none';
+  document.getElementById('supportSuccess').style.display = 'block';
+  track('support_submit', { type: form.querySelector('[name=type]').value, lang });
 });
 
 // ─── ANALYTICS EVENTS ────────────────────────────────
