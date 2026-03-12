@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
+  <!-- Restore theme before paint to avoid flash -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('alar-theme');
+      if (t === 'light' || t === 'dark') document.getElementById('htmlRoot').setAttribute('data-theme', t);
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alar Finance — Smart Personal Finance Tracker</title>
   <meta name="description" content="Track expenses, income, crypto and bank accounts. Voice input, open banking, and a minimal UI that doesn't get in your way.">
@@ -1108,10 +1115,10 @@ function applyThemeImages(theme) {
   });
 }
 
-// Apply images on load based on saved theme
+// Apply correct images on load based on current theme
 (function() {
-  const saved = localStorage.getItem('alar-theme');
-  if (saved === 'light') applyThemeImages('light');
+  const theme = document.getElementById('htmlRoot').getAttribute('data-theme') || 'dark';
+  applyThemeImages(theme);
 })();
 
 document.getElementById('themeToggle').addEventListener('click', () => {
