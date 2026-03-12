@@ -439,6 +439,13 @@
       font-size: 14px; letter-spacing: 3px; color: var(--text);
     }
     .footer-right { color: var(--dim); font-size: 12px; font-weight: 500; }
+    .footer-support {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 13px; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-support:hover { color: var(--text); }
+    .footer-support svg { width: 14px; height: 14px; fill: currentColor; opacity: 0.6; }
 
     /* ─── TOAST ───────────────────────────────────── */
     .toast {
@@ -683,6 +690,10 @@
       <defs><linearGradient id="f1" x1="22" y1="138" x2="138" y2="18"><stop stop-color="#4f46e5"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs>
     </svg>
     <span>ALAR</span>
+  </a>
+  <a href="mailto:support@alarfinance.com" class="footer-support">
+    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    support@alarfinance.com
   </a>
   <span class="footer-right">Powered by Alar ▲</span>
 </footer>
