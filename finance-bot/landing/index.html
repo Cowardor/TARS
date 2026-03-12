@@ -11,6 +11,24 @@
   <meta property="og:url" content="https://alarfinance.com">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='12' fill='url(%23g)'/%3E%3Cpath d='M24 8 L38 38 L10 38 Z' stroke='white' stroke-width='2' stroke-linejoin='round' fill='none'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='48' y2='48'%3E%3Cstop stop-color='%234f46e5'/%3E%3Cstop offset='1' stop-color='%23818cf8'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-G443TR878E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-G443TR878E');
+  </script>
+
+  <!-- Microsoft Clarity -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "vuk43a02uc");
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://api.fontshare.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -851,6 +869,52 @@ document.getElementById('notifyForm').addEventListener('submit', e => {
   setTimeout(() => toast.classList.remove('show'), 3500);
   e.target.reset();
 });
+
+// ─── ANALYTICS EVENTS ────────────────────────────────
+function track(event, params) {
+  if (typeof gtag !== 'undefined') gtag('event', event, params || {});
+}
+
+// CTA кнопки
+document.querySelectorAll('.btn-primary, .btn-nav, .notify-btn').forEach(el => {
+  el.addEventListener('click', () => {
+    track('cta_click', { label: el.textContent.trim(), lang });
+  });
+});
+
+// Email форма
+document.getElementById('notifyForm').addEventListener('submit', () => {
+  track('email_signup', { lang });
+});
+
+// Переключение языка
+document.querySelectorAll('.lang-btn').forEach(b => {
+  b.addEventListener('click', () => track('lang_switch', { to: b.dataset.lang }));
+});
+
+// Скролл до Features
+const featSection = document.getElementById('features');
+if (featSection) {
+  const featObs2 = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      track('section_view', { section: 'features' });
+      featObs2.disconnect();
+    }
+  }, { threshold: 0.2 });
+  featObs2.observe(featSection);
+}
+
+// Скролл до CTA (notify)
+const ctaSection = document.getElementById('notify');
+if (ctaSection) {
+  const ctaObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      track('section_view', { section: 'cta' });
+      ctaObs.disconnect();
+    }
+  }, { threshold: 0.5 });
+  ctaObs.observe(ctaSection);
+}
 
 // ─── INIT ────────────────────────────────────────────
 applyLang(lang);
