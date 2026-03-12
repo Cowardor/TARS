@@ -1303,6 +1303,195 @@ select.input-field option {
     height: 18px;
 }
 
+/* ── Subscription trial banner ── */
+.sub-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+}
+.sub-banner:active { opacity: 0.7; }
+.sub-banner-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.sub-banner-icon svg { width: 16px; height: 16px; color: #fff; }
+.sub-banner-text { flex: 1; min-width: 0; }
+.sub-banner-title {
+    font-family: 'Switzer', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary); line-height: 1.3;
+}
+.sub-banner-desc {
+    font-family: 'Switzer', sans-serif;
+    font-size: 11px; color: var(--text-muted);
+    margin-top: 1px;
+}
+.sub-banner-cta {
+    font-family: 'Switzer', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--accent-amber);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Paywall modal ── */
+.paywall-overlay {
+    position: fixed; inset: 0; z-index: 1100;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.28s ease;
+    display: flex; align-items: flex-end;
+}
+.paywall-overlay.show {
+    opacity: 1; pointer-events: all;
+}
+.paywall-card {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 calc(28px + var(--safe-bottom));
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+}
+.paywall-overlay.show .paywall-card {
+    transform: translateY(0);
+}
+.paywall-header {
+    padding: 20px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.paywall-close {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.paywall-close svg { width: 16px; height: 16px; }
+.paywall-crown {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(245,158,11,0.4);
+}
+.paywall-crown svg { width: 26px; height: 26px; color: #fff; }
+.paywall-body { padding: 16px 20px 0; }
+.paywall-title {
+    font-family: 'Satoshi', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.paywall-subtitle {
+    font-family: 'Switzer', sans-serif;
+    font-size: 14px; color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+.paywall-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.paywall-feature {
+    display: flex; align-items: center; gap: 12px;
+}
+.paywall-feature-check {
+    width: 24px; height: 24px; border-radius: 8px;
+    background: rgba(79,70,229,0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.paywall-feature-check svg { width: 13px; height: 13px; color: var(--accent-blue); }
+.paywall-feature-name {
+    font-family: 'Switzer', sans-serif;
+    font-size: 14px; font-weight: 500;
+    color: var(--text-primary);
+}
+.paywall-cta {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-gradient);
+    border: none; border-radius: var(--radius-lg);
+    color: #fff;
+    font-family: 'Switzer', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px var(--accent-blue-glow);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.paywall-cta:active { transform: scale(0.96); transition-duration: 0.06s; }
+.paywall-fine {
+    text-align: center;
+    font-family: 'Switzer', sans-serif;
+    font-size: 12px; color: var(--text-muted);
+    margin-top: 10px;
+}
+
+/* ── Settings Pro card ── */
+.settings-pro-card {
+    margin-bottom: 20px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(79,70,229,0.18) 0%, rgba(129,140,248,0.12) 100%);
+    border: 1px solid rgba(79,70,229,0.25);
+    padding: 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+}
+.settings-pro-card:active { opacity: 0.8; }
+.settings-pro-card-row {
+    display: flex; align-items: center; gap: 12px;
+}
+.settings-pro-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+}
+.settings-pro-icon svg { width: 20px; height: 20px; color: #fff; }
+.settings-pro-text { flex: 1; }
+.settings-pro-title {
+    font-family: 'Satoshi', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text-primary);
+}
+.settings-pro-desc {
+    font-family: 'Switzer', sans-serif;
+    font-size: 12px; color: var(--text-muted);
+    margin-top: 2px;
+}
+.settings-pro-badge {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    background: var(--accent-gradient);
+    color: #fff; padding: 3px 8px; border-radius: 6px;
+}
+.settings-pro-active-badge {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    background: rgba(16,185,129,0.15);
+    color: var(--accent-emerald); padding: 3px 8px; border-radius: 6px;
+    border: 1px solid rgba(16,185,129,0.3);
+}
+
 /* Recent Transactions */
 .section-header {
     display: flex;
@@ -3216,6 +3405,9 @@ select.input-field option {
                     <div class="account-dot active" data-idx="0" onclick="switchToAccountIndex(0)"></div>
                 </div>
 
+                <!-- Subscription banner (trial / upgrade) -->
+                <div id="subBanner" style="display:none;"></div>
+
                 <div class="quick-add-row" id="quickAddRow">
                     <button class="quick-add-btn" id="quickAddBtn" onclick="openAddModal()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -3341,6 +3533,9 @@ select.input-field option {
                     <div class="stats-subtitle">Finance</div>
                 </div>
 
+                <!-- ── Subscription ── -->
+                <div id="settingsProCard"></div>
+
                 <!-- ── Профиль ── -->
                 <div class="settings-group">
                     <div class="settings-group-title" data-i18n="profile">Профиль</div>
@@ -3388,7 +3583,7 @@ select.input-field option {
                 </div>
 
                 <!-- ── Банкинг ── -->
-                <div class="settings-group">
+                <div class="settings-group" style="display:none;">
                     <div class="settings-group-title" id="settingsBankingTitle">Банкинг</div>
                     <div class="settings-list">
                         <div class="settings-item" onclick="openBankModal()">
@@ -5024,6 +5219,7 @@ let state = {
     newAccountTemplate: 'personal',
     newAccountColor: '#4f46e5',
     _usingFallbackCategories: false,
+    subscription: null,  // { tier, isActive, stripeStatus, trialEndsAt, currentPeriodEnd }
 };
 
 // ============================================
@@ -5278,6 +5474,7 @@ function _voiceSetState(s) {
 }
 
 function openVoiceModal() {
+    if (!isPro()) { showPaywall('voice'); return; }
     _voice.transcript = '';
     _voice.chunks = [];
     document.getElementById('voiceResultText').textContent = t('voicePlaceholder');
@@ -5756,7 +5953,7 @@ async function initApp() {
     await loadUser();
     await loadCategories();
     buildCategoryGrid();
-    await Promise.all([loadDashboard(), loadAccounts()]);
+    await Promise.all([loadDashboard(), loadAccounts(), loadSubscriptionStatus()]);
 
     // Auto-hide FAB whenever any modal opens or closes
     const _fabObserver = new MutationObserver(updateFabVisibility);
@@ -6123,6 +6320,12 @@ function closeActionSheet() {
 
 // ── New Account Modal ────────────────────────────────────────────────────
 function openNewAccount() {
+    if (!isPro()) {
+        const accounts = state.accounts || [];
+        const regularCount = accounts.filter(a => !a._shared && a.type !== 'crypto').length;
+        const cryptoCount  = accounts.filter(a => !a._shared && a.type === 'crypto').length;
+        if (regularCount >= 1 && cryptoCount >= 1) { showPaywall('accounts'); return; }
+    }
     document.getElementById('newAccountName').value = '';
     document.getElementById('newAccountApiKey').value = '';
     document.getElementById('newAccountApiSecret').value = '';
@@ -7760,6 +7963,7 @@ function closeExportPreview() {
 }
 
 async function downloadExcel() {
+    if (!isPro()) { showPaywall('export'); return; }
     const accountId = _exportAccountId;
     const qs = accountId ? `?account_id=${accountId}` : '';
     const exportUrl = `${API_BASE}/api/export${qs}`;
@@ -8038,6 +8242,7 @@ document.addEventListener('touchmove', (e) => {
 // ============================================
 
 async function openFamilyManager() {
+    if (!isPro()) { showPaywall('family'); return; }
     const modal = document.getElementById('familyManager');
     modal.classList.add('show');
     haptic('light');
@@ -9137,6 +9342,222 @@ async function submitCsvImport() {
         haptic('medium');
     }
 }
+
+// ═══════════════════════════════════════════════════
+// SUBSCRIPTION — Stripe Pro plan
+// ═══════════════════════════════════════════════════
+
+async function loadSubscriptionStatus() {
+    try {
+        const headers = {};
+        const token = getSessionToken();
+        if (token) headers['X-Session-Token'] = token;
+        const initData = tg?.initData;
+        if (initData) headers['X-Telegram-Init-Data'] = initData;
+
+        const res = await fetch(`${API_BASE}/api/subscription/status`, { headers });
+        if (!res.ok) return;
+        state.subscription = await res.json();
+    } catch { /* silent */ }
+    renderSubscriptionBanner();
+    renderSubscriptionCard();
+}
+
+function isPro() {
+    return state.subscription?.isActive === true;
+}
+
+function requiresPro(featureName, callback) {
+    if (isPro()) { callback(); return; }
+    showPaywall(featureName);
+}
+
+function showPaywall(featureName) {
+    haptic('medium');
+    document.getElementById('paywallOverlay').classList.add('show');
+}
+
+function closePaywall() {
+    document.getElementById('paywallOverlay').classList.remove('show');
+}
+
+async function startProTrial() {
+    haptic('success');
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getSessionToken();
+        if (token) headers['X-Session-Token'] = token;
+        const initData = tg?.initData;
+        if (initData) headers['X-Telegram-Init-Data'] = initData;
+
+        const res = await fetch(`${API_BASE}/api/subscription/checkout`, {
+            method: 'POST', headers,
+            body: JSON.stringify({
+                successUrl: `${location.origin}/app?sub=success`,
+                cancelUrl: `${location.origin}/app?sub=cancel`,
+            }),
+        });
+        const data = await res.json();
+        if (data.url) {
+            if (tg?.openLink) tg.openLink(data.url);
+            else window.open(data.url, '_blank');
+        }
+    } catch (e) {
+        showToast('Ошибка подключения к Stripe');
+    }
+}
+
+async function manageSubscription() {
+    haptic('light');
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = getSessionToken();
+        if (token) headers['X-Session-Token'] = token;
+        const initData = tg?.initData;
+        if (initData) headers['X-Telegram-Init-Data'] = initData;
+
+        const res = await fetch(`${API_BASE}/api/subscription/portal`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ returnUrl: `${location.origin}/app` }),
+        });
+        const data = await res.json();
+        if (data.url) {
+            if (tg?.openLink) tg.openLink(data.url);
+            else window.open(data.url, '_blank');
+        }
+    } catch (e) {
+        showToast('Ошибка');
+    }
+}
+
+function renderSubscriptionBanner() {
+    const el = document.getElementById('subBanner');
+    if (!el) return;
+    const sub = state.subscription;
+    if (!sub || isPro()) { el.style.display = 'none'; return; }
+
+    let title, desc;
+    if (sub.stripeStatus === 'trialing' && sub.trialEndsAt) {
+        const days = Math.max(0, Math.ceil((new Date(sub.trialEndsAt) - Date.now()) / 86400000));
+        title = `Пробный период: осталось ${days} дн.`;
+        desc = 'После окончания — $4.99/мес';
+    } else {
+        title = 'Попробуй Alar Finance Pro';
+        desc = '30 дней бесплатно · $4.99/мес после';
+    }
+
+    el.style.display = 'flex';
+    el.innerHTML = `
+        <div class="sub-banner" onclick="showPaywall()">
+            <div class="sub-banner-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 7l8-4 8 4-8 4-8-4z"/><path d="M2 12l8 4 8-4"/><path d="M2 9.5l8 4 8-4"/>
+                </svg>
+            </div>
+            <div class="sub-banner-text">
+                <div class="sub-banner-title">${title}</div>
+                <div class="sub-banner-desc">${desc}</div>
+            </div>
+            <div class="sub-banner-cta">Pro →</div>
+        </div>`;
+}
+
+function renderSubscriptionCard() {
+    const el = document.getElementById('settingsProCard');
+    if (!el) return;
+    const sub = state.subscription;
+    const pro = isPro();
+
+    let badge, title, desc, onclick;
+    if (pro) {
+        const expDate = sub.currentPeriodEnd
+            ? new Date(sub.currentPeriodEnd).toLocaleDateString('ru', { day: 'numeric', month: 'short' })
+            : '—';
+        badge = `<span class="settings-pro-active-badge">Pro активен</span>`;
+        title = 'Alar Finance Pro';
+        desc = sub.stripeStatus === 'trialing'
+            ? `Пробный период до ${expDate}`
+            : `Следующее списание ${expDate}`;
+        onclick = 'manageSubscription()';
+    } else {
+        badge = `<span class="settings-pro-badge">30 дней бесплатно</span>`;
+        title = 'Alar Finance Pro';
+        desc = 'Голос · Экспорт · Безлимит счетов';
+        onclick = 'showPaywall()';
+    }
+
+    el.innerHTML = `
+        <div class="settings-pro-card" onclick="${onclick}">
+            <div class="settings-pro-card-row">
+                <div class="settings-pro-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 7l8-4 8 4-8 4-8-4z"/><path d="M2 12l8 4 8-4"/><path d="M2 9.5l8 4 8-4"/>
+                    </svg>
+                </div>
+                <div class="settings-pro-text">
+                    <div class="settings-pro-title">${title}</div>
+                    <div class="settings-pro-desc">${desc}</div>
+                </div>
+                ${badge}
+            </div>
+        </div>`;
+}
+
+// Handle ?sub=success after Stripe redirect
+(function checkSubRedirect() {
+    const p = new URLSearchParams(location.search);
+    if (p.get('sub') === 'success') {
+        history.replaceState(null, '', location.pathname);
+        setTimeout(() => showToast('Pro активирован! Добро пожаловать 🎉'), 800);
+        setTimeout(loadSubscriptionStatus, 1500);
+    }
+})();
     </script>
+
+<!-- ── Paywall Modal ── -->
+<div class="paywall-overlay" id="paywallOverlay" onclick="if(event.target===this)closePaywall()">
+    <div class="paywall-card">
+        <div class="paywall-header">
+            <div class="paywall-crown">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 7l8-4 8 4-8 4-8-4z"/><path d="M2 12l8 4 8-4"/><path d="M2 9.5l8 4 8-4"/>
+                </svg>
+            </div>
+            <button class="paywall-close" onclick="closePaywall()">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                    <line x1="5" y1="5" x2="15" y2="15"/><line x1="15" y1="5" x2="5" y2="15"/>
+                </svg>
+            </button>
+        </div>
+        <div class="paywall-body">
+            <div class="paywall-title">Alar Finance Pro</div>
+            <div class="paywall-subtitle">Всё что нужно для полного контроля над финансами</div>
+            <div class="paywall-features">
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Голосовой ввод транзакций</div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Экспорт в Excel / CSV</div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Неограниченные счета</div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Семейный и совместный учёт</div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Неограниченное кол-во крипто счетов</div>
+                </div>
+            </div>
+            <button class="paywall-cta" onclick="startProTrial()">Начать бесплатный пробный месяц</button>
+            <div class="paywall-fine">30 дней бесплатно · $4.99/мес после · Отмена в любой момент</div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-03-12
+
+**[MARKETING]** Landing page полный редизайн в стиле slush.app. Full-viewport hero, marquee strip, stats strip, 4 чередующихся feature block'а (Open Banking / Voice / Crypto / UI), секция testimonials, email CTA. Тёмная/светлая тема + image swap. Скрины обновлены (dark + light пары). GA4 + Clarity аналитика. Support modal с FormSubmit. Задеплоено на alarfinance.com (Cloudflare Pages).
+
+## 2026-03-11
+
+**[QA]** Frontend audit + deploy. Баги исправлены:
+1. Category rename onclick — `replace(/'/g, "'")` был no-op → JS error для названий с апострофом (Joe's и т.п.). Исправлено на `\\\'`.
+2. `showToast` не поддерживал тип `error` — ошибки и успех выглядели одинаково. Добавлен параметр `type`, CSS-вариант `.success-toast.error` (красный).
+3. `submitCsvImport` — лишняя обёртка `{ value: _importAccountId }` убрана.
+4. Дублирующийся CSS комментарий в начале файла удалён.
+
+**[DEV]** Backend audit (предыдущая сессия): 8 фиксов — auth на voice API, KuCoin USD price fix, email users account switching (KV), export account filter, budget upsert NULL bug, /setup-webhook protection, Nordigen removed, crypto.js logging.
+
 ## 2026-02-25
 
 **[Team Lead]** MCP расширен до 7 серверов (n8n, context7, fetch, filesystem, playwright, github, sequential-thinking). GitHub подключён. Текущий фокус — завершить Alar Finance (Worker API + деплой). Следующий этап — Phase 1 воркфлоу.

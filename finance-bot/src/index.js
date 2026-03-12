@@ -18,6 +18,7 @@ import { handleMiniAppAPI } from './api/miniapp.js';
 import { handleAuth } from './api/auth.js';
 import { handleOAuth } from './api/oauth.js';
 import { handleVoice } from './api/voice.js';
+import { handleSubscription } from './api/subscription.js';
 // ============================================
 // STATIC ASSETS: served from public/ via Cloudflare Workers Static Assets
 // ============================================
@@ -52,6 +53,16 @@ export default {
     // Voice API (transcribe + parse via Groq)
     if (url.pathname.startsWith('/api/voice/')) {
       return handleVoice(request, env, url.pathname);
+    }
+
+    // Stripe webhook (no auth, before subscription routes)
+    if (url.pathname === '/api/stripe/webhook') {
+      return handleSubscription(request, env, url.pathname);
+    }
+
+    // Subscription API (checkout, portal, status)
+    if (url.pathname.startsWith('/api/subscription/')) {
+      return handleSubscription(request, env, url.pathname);
     }
 
     // OAuth (Google, Apple, Facebook) — must be before generic /api/auth/

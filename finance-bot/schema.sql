@@ -184,7 +184,24 @@ CREATE INDEX IF NOT EXISTS idx_bank_connections_user ON bank_connections(user_id
 CREATE INDEX IF NOT EXISTS idx_bank_connections_status ON bank_connections(status);
 CREATE INDEX IF NOT EXISTS idx_bank_connections_requisition ON bank_connections(requisition_id);
 
--- 10. SYSTEM DEFAULT CATEGORIES
+-- 10. SUBSCRIPTIONS — Stripe subscription data
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL UNIQUE,
+    stripe_customer_id TEXT UNIQUE,
+    stripe_subscription_id TEXT,
+    status TEXT DEFAULT 'free',  -- free, trialing, active, past_due, canceled
+    trial_ends_at TEXT,
+    current_period_end TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(stripe_customer_id);
+
+-- 11. SYSTEM DEFAULT CATEGORIES
 -- Extended keywords for better auto-categorization of bank imports
 INSERT OR IGNORE INTO categories (owner_type, owner_id, name, emoji, type, keywords, sort_order) VALUES
 -- Expenses (expanded with Polish stores and services)
