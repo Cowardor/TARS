@@ -697,7 +697,7 @@
       <div class="iphone-inner">
         <div class="iphone-notch"></div>
         <div class="iphone-screen active" id="hero-screen">
-          <img src="assets/screen-home.png" alt="Alar Finance Home Screen" loading="eager">
+          <img src="assets/screen-home.png" data-dark="assets/screen-home.png" data-light="assets/screen-home-light.png" alt="Alar Finance Home Screen" loading="eager" class="theme-img">
         </div>
       </div>
     </div>
@@ -762,16 +762,16 @@
         <div class="iphone-inner">
           <div class="iphone-notch"></div>
           <div class="iphone-screen active" data-slide="0">
-            <img src="assets/screen-open-banking-millennium.png" alt="Open Banking" loading="lazy">
+            <img src="assets/screen-open-banking-millennium.png" data-dark="assets/screen-open-banking-millennium.png" data-light="assets/screen-open-banking-light.png" alt="Open Banking" loading="lazy" class="theme-img">
           </div>
           <div class="iphone-screen" data-slide="1">
-            <img src="assets/screen-voice-result.png" alt="Voice Input" loading="lazy">
+            <img src="assets/screen-voice-result.png" data-dark="assets/screen-voice-result.png" data-light="assets/screen-voice-added-light.png" alt="Voice Input" loading="lazy" class="theme-img">
           </div>
           <div class="iphone-screen" data-slide="2">
-            <img src="assets/screen-crypto-stats.png" alt="Crypto" loading="lazy">
+            <img src="assets/screen-crypto-stats.png" data-dark="assets/screen-crypto-stats.png" data-light="assets/screen-crypto-stats-light.png" alt="Crypto" loading="lazy" class="theme-img">
           </div>
           <div class="iphone-screen" data-slide="3">
-            <img src="assets/screen-stats.png" alt="Minimal UI" loading="lazy">
+            <img src="assets/screen-stats.png" data-dark="assets/screen-stats.png" data-light="assets/screen-stats-light.png" alt="Minimal UI" loading="lazy" class="theme-img">
           </div>
         </div>
       </div>
@@ -1094,9 +1094,17 @@ document.getElementById('notifyForm').addEventListener('submit', e => {
 });
 
 // ─── THEME TOGGLE ────────────────────────────────────
+function applyThemeImages(theme) {
+  document.querySelectorAll('img.theme-img').forEach(img => {
+    const src = img.dataset[theme];
+    if (src) img.src = src;
+  });
+}
+
+// Apply images on load based on saved theme
 (function() {
   const saved = localStorage.getItem('alar-theme');
-  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (saved === 'light') applyThemeImages('light');
 })();
 
 document.getElementById('themeToggle').addEventListener('click', () => {
@@ -1104,6 +1112,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   const next = isLight ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('alar-theme', next);
+  applyThemeImages(next);
   track('theme_toggle', { theme: next });
 });
 
