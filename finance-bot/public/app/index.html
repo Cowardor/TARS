@@ -5956,7 +5956,7 @@ async function initApp() {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.token) saveSession(data.token);
+                if (data.token) setSessionToken(data.token);
             }
         } catch { /* silent, will retry on next load */ }
     }
