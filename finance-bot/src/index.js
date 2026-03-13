@@ -581,7 +581,15 @@ async function handleMessage(message, env, services) {
   // Get active family (if any)
   const familyId = await userService.getActiveFamily(telegramId);
 
-  // Command routing
+  // Only /start is handled — all other messages redirect to the app
+  const webappUrl = 'https://finance-bot.alar-app.workers.dev/app/';
+  if (textLower !== '/start') {
+    await sendMessage(chatId, '📊 Use <b>Alar Finance</b> app to manage your finances.', env, {
+      reply_markup: { inline_keyboard: [[{ text: '📊 Open Alar Finance', web_app: { url: webappUrl } }]] },
+    });
+    return;
+  }
+
   if (textLower === '/start') {
     await handleStart(chatId, user, env, services);
     return;
