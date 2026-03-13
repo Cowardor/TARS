@@ -19,6 +19,7 @@ import { handleAuth } from './api/auth.js';
 import { handleOAuth } from './api/oauth.js';
 import { handleVoice } from './api/voice.js';
 import { handleSubscription } from './api/subscription.js';
+import { handleReceipt } from './api/receipt.js';
 // ============================================
 // STATIC ASSETS: served from public/ via Cloudflare Workers Static Assets
 // ============================================
@@ -53,6 +54,11 @@ export default {
     // Voice API (transcribe + parse via Groq)
     if (url.pathname.startsWith('/api/voice/')) {
       return handleVoice(request, env, url.pathname);
+    }
+
+    // Receipt scanning API
+    if (url.pathname.startsWith('/api/receipt') || url.pathname === '/api/receipts') {
+      return handleReceipt(request, env, url.pathname);
     }
 
     // Stripe webhook (no auth, before subscription routes)
@@ -593,6 +599,14 @@ async function handleMessage(message, env, services) {
     return;
   }
 
+  if (textLower === '/app') {
+    const webappUrl = 'https://finance-bot.alar-app.workers.dev/app/';
+    await sendMessage(chatId, '📊 <b>Alar Finance</b>', env, {
+      reply_markup: { inline_keyboard: [[{ text: '📊 Open Alar Finance', web_app: { url: webappUrl } }]] },
+    });
+    return;
+  }
+
   if (textLower === '/menu') {
     await handleMenu(chatId, user, env);
     return;
@@ -775,7 +789,12 @@ ${t.errorExample} <code>${t.expenseExample}</code>
 
 <i>Powered by Alar ▲</i>`;
 
-  await sendMessage(chatId, message, env);
+  const webappUrl = 'https://finance-bot.alar-app.workers.dev/app/';
+  await sendMessage(chatId, message, env, {
+    reply_markup: {
+      inline_keyboard: [[{ text: '📊 Open Alar Finance', web_app: { url: webappUrl } }]],
+    },
+  });
 }
 
 async function handleHelp(chatId, env) {
