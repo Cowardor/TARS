@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-03-13
+
+**[DEV]** OAuth Social Login + Desktop Dashboard.
+- Backend: `oauth.js` — Authorization Code + PKCE (Google), Apple JWT client_secret, Facebook. Find-or-create user с account linking по email. State в KV (TTL 10 мин).
+- DB: migration `004_oauth_columns.sql` — `google_id`, `apple_id`, `facebook_id` + уникальные индексы.
+- Frontend: кнопки Telegram / Google / Apple / Facebook на auth screen. `oauthLogin()` + `checkOAuthReturn()`.
+- Desktop: 4-card dashboard (Баланс, Расходы, Операции, Профили). Sidebar с `data-dsk-tab` (Dashboard / History / Settings). FPS fix — `transform: none` на desktop.
+- Задеплоено: https://finance-bot.alar-app.workers.dev
+
+> ⚠️ OAuth заработает после: регистрации apps у провайдеров + `wrangler secret put` credentials. D1 migration нужно применить: `wrangler d1 execute alar-finance-db --file=migrations/004_oauth_columns.sql`
+
 ## 2026-03-12
 
 **[MARKETING]** Landing page полный редизайн в стиле slush.app. Full-viewport hero, marquee strip, stats strip, 4 чередующихся feature block'а (Open Banking / Voice / Crypto / UI), секция testimonials, email CTA. Тёмная/светлая тема + image swap. Скрины обновлены (dark + light пары). GA4 + Clarity аналитика. Support modal с FormSubmit. Задеплоено на alarfinance.com (Cloudflare Pages).
