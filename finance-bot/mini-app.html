@@ -5946,6 +5946,21 @@ async function initApp() {
         return;
     }
 
+    // Exchange Telegram initData for session token (once per session)
+    if (hasTelegram && !hasSession) {
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/telegram-webapp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.token) saveSession(data.token);
+            }
+        } catch { /* silent, will retry on next load */ }
+    }
+
     // Verify session is still valid
     if (hasSession && !hasTelegram) {
         const res = await fetch(`${API_BASE}/api/auth/me`, {

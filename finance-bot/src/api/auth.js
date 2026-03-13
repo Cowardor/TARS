@@ -134,6 +134,41 @@ export async function handleAuth(request, env, pathname) {
     return json({ success: true, token, user: { id: user.id, name: user.display_name, email: user.email } });
   }
 
+  // POST /api/auth/telegram-webapp — Telegram Mini App initData → session token
+  if (pathname === '/api/auth/telegram-webapp' && request.method === 'POST') {
+    const { initData } = await request.json().catch(() => ({}));
+    if (!initData) return error('Missing initData', 400);
+
+    // Validate initData HMAC
+    const params = new URLSearchParams(initData);
+    const hash = params.get('hash');
+    if (!hash) return error('Invalid initData', 401);
+    params.delete('hash');
+    const checkString = [...params.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`).join('\n');
+    const encoder = new TextEncoder();
+    const secretKey = await crypto.subtle.importKey('raw', encoder.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const secretBytes = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(env.TELEGRAM_TOKEN));
+    const validationKey = await crypto.subtle.importKey('raw', secretBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', validationKey, encoder.encode(checkString));
+    const hexHash = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hexHash !== hash) return error('Invalid initData signature', 401);
+
+    const tgUser = JSON.parse(params.get('user') || '{}');
+    const tgId = tgUser.id?.toString();
+    if (!tgId) return error('Missing user ID', 400);
+
+    let user = await db.prepare('SELECT * FROM users WHERE telegram_id = ?').bind(tgId).first();
+    if (!user) {
+      const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'User';
+      const result = await db.prepare(
+        `INSERT INTO users (telegram_id, telegram_username, display_name, language, currency) VALUES (?, ?, ?, 'en', 'USD')`
+      ).bind(tgId, tgUser.username || null, name).run();
+      user = await db.prepare('SELECT * FROM users WHERE id = ?').bind(result.meta.last_row_id).first();
+    }
+    const token = await createSession(user.id, kv);
+    return json({ success: true, token, user: { id: user.id, name: user.display_name } });
+  }
+
   // POST /api/auth/telegram — Telegram Login Widget callback
   if (pathname === '/api/auth/telegram' && request.method === 'POST') {
     const data = await request.json().catch(() => ({}));
