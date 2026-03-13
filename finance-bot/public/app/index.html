@@ -3512,6 +3512,12 @@ select.input-field option {
                 </div>
 
                 <div id="historyList"></div>
+                <div id="receiptsHistorySection" style="display:none;margin-top:24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px;margin-bottom:12px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Чеки</div>
+                    </div>
+                    <div id="receiptsHistoryList"></div>
+                </div>
             </div>
 
             <!-- SETTINGS -->
@@ -4142,6 +4148,18 @@ select.input-field option {
                 <div>
                     <div style="font-weight:600;" id="actionSheetTxLabel">Расход / Доход</div>
                     <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionSheetTxDesc">Добавить транзакцию</div>
+                </div>
+            </div>
+            <div class="action-sheet-item" onclick="closeActionSheet();setTimeout(openReceiptScanner,200);">
+                <div class="action-sheet-item-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="14" height="14" rx="2"/>
+                        <path d="M7 7h2M11 7h2M7 10h2M11 10h2M7 13h2M11 13h2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-weight:600;" id="actionReceiptLabel">Сканировать чек</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="actionReceiptDesc">Фото чека → авто расход</div>
                 </div>
             </div>
             <div class="action-sheet-item" onclick="closeActionSheet();openNewAccount();">
@@ -7604,6 +7622,7 @@ async function renderHistory() {
     }
 
     container.innerHTML = html;
+    loadReceiptsHistory();
 }
 
 // ============================================
@@ -8140,6 +8159,8 @@ function initSheetSwipe() {
         budgetManager:   () => closeBudgetManager(),
         customPickerModal: () => closeCustomPicker(),
         languagePicker:  () => closeLanguagePicker(),
+        receiptModal:    () => closeReceiptModal(),
+        receiptConsentModal: () => document.getElementById('receiptConsentModal').classList.remove('show'),
     };
 
     document.querySelectorAll('.modal-sheet').forEach(sheet => {
@@ -9344,6 +9365,218 @@ async function submitCsvImport() {
 }
 
 // ═══════════════════════════════════════════════════
+// RECEIPT SCANNER
+// ═══════════════════════════════════════════════════
+
+const _receipt = {
+    file: null,
+    scanResult: null,
+    selectedCategoryId: null,
+    splitItems: false,
+};
+
+function openReceiptScanner() {
+    resetReceiptScanner();
+    document.getElementById('receiptModal').classList.add('show');
+    haptic('medium');
+}
+
+function closeReceiptModal() {
+    document.getElementById('receiptModal').classList.remove('show');
+    haptic('light');
+}
+
+function handleReceiptFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    _receipt.file = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('receiptPreviewImg').src = e.target.result;
+        document.getElementById('receiptImagePreview').style.display = 'block';
+        document.getElementById('receiptDropZone').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    const btn = document.getElementById('receiptScanBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+}
+
+function resetReceiptScanner() {
+    _receipt.file = null;
+    _receipt.scanResult = null;
+    _receipt.selectedCategoryId = null;
+    _receipt.splitItems = false;
+    document.getElementById('receiptUploadStep').style.display = '';
+    document.getElementById('receiptResultStep').style.display = 'none';
+    document.getElementById('receiptLoadingStep').style.display = 'none';
+    document.getElementById('receiptImagePreview').style.display = 'none';
+    document.getElementById('receiptDropZone').style.display = '';
+    document.getElementById('receiptFileInput').value = '';
+    const btn = document.getElementById('receiptScanBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    updateToggle('receiptSplitToggle', false);
+}
+
+async function submitReceiptScan() {
+    if (!_receipt.file) return;
+    document.getElementById('receiptUploadStep').style.display = 'none';
+    document.getElementById('receiptLoadingStep').style.display = '';
+    haptic('medium');
+
+    const form = new FormData();
+    form.append('image', _receipt.file);
+
+    try {
+        const hdrs = { 'X-Telegram-Init-Data': getInitData() };
+        const token = getSessionToken();
+        if (token) hdrs['X-Session-Token'] = token;
+        const res = await fetch(`${API_BASE}/api/receipt/scan`, { method: 'POST', headers: hdrs, body: form });
+        const data = await res.json();
+        document.getElementById('receiptLoadingStep').style.display = 'none';
+        if (res.status === 402) {
+            closeReceiptModal();
+            showPaywall('receipt');
+            return;
+        }
+        if (!data.success || !data.receipt) {
+            showToast('Не удалось распознать чек');
+            document.getElementById('receiptUploadStep').style.display = '';
+            return;
+        }
+        _receipt.scanResult = data.receipt;
+        renderReceiptResult(data.receipt, data.suggested_category);
+        document.getElementById('receiptResultStep').style.display = '';
+    } catch (e) {
+        document.getElementById('receiptLoadingStep').style.display = 'none';
+        document.getElementById('receiptUploadStep').style.display = '';
+        showToast('Ошибка: ' + (e.message || 'Scan failed'));
+    }
+}
+
+function renderReceiptResult(receipt, suggestedCategory) {
+    document.getElementById('receiptMerchantName').textContent = receipt.merchant_name || 'Неизвестный магазин';
+    document.getElementById('receiptDate').textContent = receipt.receipt_date || '';
+    document.getElementById('receiptTotal').textContent =
+        `-${(receipt.total || 0).toFixed(2)} ${receipt.currency || state.userCurrency}`;
+
+    const itemsList = document.getElementById('receiptItemsList');
+    if (receipt.items?.length > 0) {
+        itemsList.style.display = '';
+        itemsList.innerHTML = receipt.items.map(item => `
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-subtle);">
+                <div style="font-size:13px;color:var(--text-primary);flex:1;padding-right:8px;">${item.name}</div>
+                <div style="font-size:13px;font-family:'DM Mono',monospace;color:var(--text-secondary);white-space:nowrap;">
+                    ${item.quantity > 1 ? `${item.quantity}× ` : ''}${(item.total_price || 0).toFixed(2)}
+                </div>
+            </div>`).join('');
+    } else {
+        itemsList.style.display = 'none';
+    }
+
+    const grid = document.getElementById('receiptCategoryGrid');
+    const cats = CATEGORIES?.expense || [];
+    grid.innerHTML = cats.map(cat => `
+        <button class="category-btn ${cat.name === suggestedCategory ? 'selected' : ''}"
+                data-key="${cat.key || cat.name}"
+                onclick="selectReceiptCategory(${cat.id}, '${cat.key || cat.name}')">
+            <span class="category-emoji">${cat.emoji}</span>
+            <span class="category-name">${cat.name}</span>
+        </button>`).join('');
+
+    const preset = cats.find(c => c.name === suggestedCategory);
+    _receipt.selectedCategoryId = preset ? preset.id : (cats[0]?.id || null);
+}
+
+function selectReceiptCategory(id, key) {
+    _receipt.selectedCategoryId = id;
+    document.querySelectorAll('#receiptCategoryGrid .category-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.key === key);
+    });
+    haptic('light');
+}
+
+function toggleReceiptSplit() {
+    _receipt.splitItems = !_receipt.splitItems;
+    updateToggle('receiptSplitToggle', _receipt.splitItems);
+    haptic('light');
+}
+
+async function confirmReceiptSave() {
+    if (!_receipt.scanResult || !_receipt.selectedCategoryId) return;
+    const btn = document.getElementById('receiptConfirmBtn');
+    btn.disabled = true;
+    document.getElementById('receiptConfirmLabel').textContent = '...';
+
+    const consentKey = 'alar_receipt_consent';
+    const savedConsent = localStorage.getItem(consentKey);
+    const shareAnalytics = savedConsent === '1';
+
+    const result = await apiFetch('/api/receipt/confirm', {
+        method: 'POST',
+        body: JSON.stringify({
+            receipt: _receipt.scanResult,
+            category_id: _receipt.selectedCategoryId,
+            account_id: state.activeAccountId || null,
+            split_items: _receipt.splitItems,
+            share_analytics: shareAnalytics,
+        }),
+    });
+
+    btn.disabled = false;
+    document.getElementById('receiptConfirmLabel').textContent = 'Добавить расход';
+
+    if (result?.success) {
+        closeReceiptModal();
+        const total = (_receipt.scanResult.total || 0).toFixed(2);
+        const curr = _receipt.scanResult.currency || state.userCurrency;
+        showToast(`🧾 -${total} ${curr} добавлено`);
+        haptic('success');
+        await loadDashboard();
+        if (state.currentTab === 'history') renderHistory();
+        if (savedConsent === null) {
+            setTimeout(() => document.getElementById('receiptConsentModal').classList.add('show'), 600);
+        }
+    } else {
+        showToast('Ошибка: ' + (result?.error || 'Save failed'));
+        haptic('medium');
+    }
+}
+
+async function handleReceiptConsent(agreed) {
+    document.getElementById('receiptConsentModal').classList.remove('show');
+    localStorage.setItem('alar_receipt_consent', agreed ? '1' : '0');
+    haptic('light');
+    await apiFetch('/api/receipt/consent', { method: 'POST', body: JSON.stringify({ consent: agreed }) });
+}
+
+async function loadReceiptsHistory() {
+    const data = await apiFetch('/api/receipts?limit=10');
+    const receipts = data?.receipts || [];
+    const section = document.getElementById('receiptsHistorySection');
+    const list = document.getElementById('receiptsHistoryList');
+    if (!section || !list) return;
+    if (!receipts.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = receipts.map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:12px 14px;background:var(--bg-card);border-radius:var(--radius-lg);margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);
+                            background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;">🧾</div>
+                <div>
+                    <div style="font-size:14px;font-weight:500;">${r.merchant_name || 'Чек'}</div>
+                    <div style="font-size:12px;color:var(--text-muted);">${r.receipt_date || r.created_at?.split('T')[0] || ''}</div>
+                </div>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--danger);">
+                -${(r.total_amount || 0).toFixed(2)} ${r.currency || ''}
+            </div>
+        </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
 // SUBSCRIPTION — Stripe Pro plan
 // ═══════════════════════════════════════════════════
 
@@ -9482,7 +9715,7 @@ function renderSubscriptionCard() {
     } else {
         badge = `<span class="settings-pro-badge">30 дней бесплатно</span>`;
         title = 'Alar Finance Pro';
-        desc = 'Голос · Экспорт · Безлимит счетов';
+        desc = 'Голос · Чеки · Экспорт · Безлимит счетов';
         onclick = 'showPaywall()';
     }
 
@@ -9513,6 +9746,103 @@ function renderSubscriptionCard() {
     }
 })();
     </script>
+
+<!-- ── Receipt Scanner Modal ── -->
+<div class="modal-overlay" id="receiptModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div id="receiptUploadStep">
+            <div class="modal-header">
+                <div class="modal-title" id="receiptModalTitle">Сканировать чек</div>
+                <button class="modal-close" onclick="closeReceiptModal()">&times;</button>
+            </div>
+            <div style="padding: 0 20px 20px; display:flex; flex-direction:column; gap:12px;">
+                <div id="receiptDropZone" onclick="document.getElementById('receiptFileInput').click()"
+                     style="border:2px dashed var(--border);border-radius:var(--radius-xl);
+                            padding:40px 20px;text-align:center;cursor:pointer;
+                            transition:border-color 0.2s,background 0.2s;">
+                    <div style="font-size:40px;margin-bottom:12px;">🧾</div>
+                    <div style="font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:6px;" id="receiptDropLabel">Нажмите чтобы загрузить</div>
+                    <div style="font-size:13px;color:var(--text-muted);" id="receiptDropSub">Фото из галереи или камеры</div>
+                </div>
+                <input type="file" id="receiptFileInput" accept="image/*" capture="environment"
+                       style="display:none;" onchange="handleReceiptFile(this)">
+                <div id="receiptImagePreview" style="display:none;position:relative;">
+                    <img id="receiptPreviewImg" style="width:100%;border-radius:var(--radius-lg);max-height:240px;object-fit:cover;">
+                    <button onclick="resetReceiptScanner()"
+                            style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);
+                                   border:none;border-radius:50%;width:32px;height:32px;
+                                   color:#fff;font-size:18px;cursor:pointer;display:flex;
+                                   align-items:center;justify-content:center;">×</button>
+                </div>
+                <button id="receiptScanBtn" onclick="submitReceiptScan()" disabled
+                        class="submit-btn expense-mode" style="opacity:0.5;">
+                    <span id="receiptScanBtnLabel">Сканировать</span>
+                </button>
+            </div>
+        </div>
+        <div id="receiptResultStep" style="display:none;padding:0 20px 20px;">
+            <div class="modal-header" style="padding:0 0 16px;">
+                <div class="modal-title" id="receiptResultTitle">Чек</div>
+                <button class="modal-close" onclick="closeReceiptModal()">&times;</button>
+            </div>
+            <div style="background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:600;font-size:15px;" id="receiptMerchantName">—</div>
+                        <div style="font-size:12px;color:var(--text-muted);" id="receiptDate">—</div>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:var(--danger);" id="receiptTotal">—</div>
+                </div>
+            </div>
+            <div id="receiptItemsList" style="margin-bottom:12px;max-height:180px;overflow-y:auto;"></div>
+            <div style="margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;" id="receiptCatLabel">Категория</div>
+                <div id="receiptCategoryGrid" class="category-grid"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                <div class="toggle" id="receiptSplitToggle" onclick="toggleReceiptSplit()" style="cursor:pointer;"><div class="toggle-knob"></div></div>
+                <div>
+                    <div style="font-size:13px;font-weight:500;" id="receiptSplitLabel">Разбить по позициям</div>
+                    <div style="font-size:11px;color:var(--text-muted);" id="receiptSplitDesc">Отдельная транзакция для каждого товара</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button onclick="resetReceiptScanner()"
+                        style="flex:1;padding:14px;border-radius:var(--radius-lg);background:var(--bg-elevated);
+                               border:none;color:var(--text-secondary);font-size:14px;font-weight:500;cursor:pointer;" id="receiptBackBtn">Назад</button>
+                <button onclick="confirmReceiptSave()" class="submit-btn expense-mode" style="flex:2;" id="receiptConfirmBtn">
+                    <span id="receiptConfirmLabel">Добавить расход</span>
+                </button>
+            </div>
+        </div>
+        <div id="receiptLoadingStep" style="display:none;padding:48px 20px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+            <div style="font-weight:600;font-size:16px;margin-bottom:8px;" id="receiptLoadingTitle">Сканирую...</div>
+            <div style="font-size:13px;color:var(--text-muted);" id="receiptLoadingDesc">AI читает ваш чек</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Receipt Consent Modal ── -->
+<div class="modal-overlay" id="receiptConsentModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div style="padding:24px 20px;">
+            <div style="font-size:36px;text-align:center;margin-bottom:12px;">📊</div>
+            <div style="font-weight:700;font-size:18px;text-align:center;margin-bottom:8px;font-family:'Satoshi',sans-serif;" id="receiptConsentTitle">Помочь улучшить Alar?</div>
+            <div style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:24px;line-height:1.6;" id="receiptConsentDesc">
+                Поделитесь анонимными данными о покупках для улучшения категорий. Личные данные никогда не продаются.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="handleReceiptConsent(true)" class="submit-btn income-mode" id="receiptConsentYes">Поделиться анонимно</button>
+                <button onclick="handleReceiptConsent(false)"
+                        style="padding:14px;border-radius:var(--radius-lg);background:var(--bg-elevated);
+                               border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;" id="receiptConsentNo">Не сейчас</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ── Paywall Modal ── -->
 <div class="paywall-overlay" id="paywallOverlay" onclick="if(event.target===this)closePaywall()">
@@ -9552,6 +9882,10 @@ function renderSubscriptionCard() {
                 <div class="paywall-feature">
                     <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
                     <div class="paywall-feature-name">Неограниченное кол-во крипто счетов</div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="paywall-feature-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>
+                    <div class="paywall-feature-name">Сканирование чеков — безлимит <span style="color:var(--text-muted);font-size:12px;">(бесплатно: 10/мес)</span></div>
                 </div>
             </div>
             <button class="paywall-cta" onclick="startProTrial()">Начать бесплатный пробный месяц</button>
