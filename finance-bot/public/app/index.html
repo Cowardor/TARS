@@ -5946,8 +5946,8 @@ async function initApp() {
         return;
     }
 
-    // Exchange Telegram initData for session token (once per session)
-    if (hasTelegram && !hasSession) {
+    // In Telegram: always exchange initData for a fresh session token
+    if (hasTelegram) {
         try {
             const res = await fetch(`${API_BASE}/api/auth/telegram-webapp`, {
                 method: 'POST',
@@ -5957,8 +5957,11 @@ async function initApp() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.token) setSessionToken(data.token);
+            } else {
+                const e = await res.json().catch(() => ({}));
+                showToast('Auth error: ' + (e.error || res.status));
             }
-        } catch { /* silent, will retry on next load */ }
+        } catch (e) { showToast('Auth failed: ' + e.message); }
     }
 
     // Verify session is still valid
