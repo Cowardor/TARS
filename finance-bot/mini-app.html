@@ -5957,11 +5957,12 @@ async function initApp() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.token) setSessionToken(data.token);
-            } else {
+            } else if (!hasSession) {
+                // Only show error if there's no existing session to fall back on
                 const e = await res.json().catch(() => ({}));
                 showToast('Auth error: ' + (e.error || res.status));
             }
-        } catch (e) { showToast('Auth failed: ' + e.message); }
+        } catch (e) { if (!hasSession) showToast('Auth failed: ' + e.message); }
     }
 
     // Verify session is still valid
