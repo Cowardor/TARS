@@ -3235,6 +3235,7 @@ select.input-field option {
     z-index: 10;
 }
 
+/* Logo pill */
 .ds-logo {
     display: flex;
     align-items: center;
@@ -3257,6 +3258,7 @@ select.input-field option {
 
 .ds-logo-pill svg { width: 22px; height: 22px; }
 
+/* "+" FAB in sidebar */
 .ds-fab {
     width: 40px;
     height: 40px;
@@ -3278,6 +3280,7 @@ select.input-field option {
 .ds-fab:active { transform: scale(0.92); }
 .ds-fab svg { width: 20px; height: 20px; }
 
+/* Nav icons */
 .ds-nav {
     display: flex;
     flex-direction: column;
@@ -3304,13 +3307,17 @@ select.input-field option {
     -webkit-tap-highlight-color: transparent;
 }
 
-.ds-nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.ds-nav-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
 
 .ds-nav-item.active {
     background: var(--accent-blue-soft);
     color: var(--accent-blue);
 }
 
+/* Active left indicator bar */
 .ds-nav-item.active::before {
     content: '';
     position: absolute;
@@ -3325,6 +3332,7 @@ select.input-field option {
 
 .ds-nav-item svg { width: 20px; height: 20px; }
 
+/* Version */
 .ds-version {
     font-family: 'DM Mono', monospace;
     font-size: 9px;
@@ -3516,6 +3524,7 @@ select.input-field option {
 
         <!-- DESKTOP SIDEBAR (icon-only, hidden on mobile) -->
         <aside class="desktop-sidebar" id="desktopSidebar">
+            <!-- Logo -->
             <div class="ds-logo">
                 <div class="ds-logo-pill">
                     <svg viewBox="0 0 48 48" fill="none">
@@ -3528,10 +3537,12 @@ select.input-field option {
                 </div>
             </div>
 
+            <!-- Add button -->
             <button class="ds-fab" onclick="openActionSheet()" title="Добавить">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
             </button>
 
+            <!-- Nav -->
             <nav class="ds-nav">
                 <button class="ds-nav-item active" data-dsk-tab="dashboard" title="Главная">
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8L10 2 17.5 8v9.5a1 1 0 01-1 1H13v-5H7v5H3.5a1 1 0 01-1-1V8z"/></svg>
@@ -3858,7 +3869,7 @@ select.input-field option {
                     </button>
                 </div>
 
-                <!-- ── Банкинг ── -->
+                <!-- ── Банкинг (скрыт — Open Banking в разработке) ── -->
                 <div class="settings-group" style="display:none;">
                     <div class="settings-group-title" id="settingsBankingTitle">Банкинг</div>
                     <div class="settings-list">
@@ -6228,6 +6239,7 @@ async function initApp() {
                 const data = await res.json();
                 if (data.token) setSessionToken(data.token);
             } else if (!hasSession) {
+                // Only show error if there's no existing session to fall back on
                 const e = await res.json().catch(() => ({}));
                 showToast('Auth error: ' + (e.error || res.status));
             }
@@ -6946,7 +6958,7 @@ function switchTab(tab, fromSwipe = false) {
     const navBtn = document.querySelector(`.nav-item[data-tab="${tab}"]`);
     if (navBtn) navBtn.classList.add('active');
 
-    // Update .active class — desktop: panel focus ring; mobile: semantic
+    // Update .active class — on desktop: panel focus ring; on mobile: semantic
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const newScreen = document.getElementById(SCREEN_MAP[tab]);
     if (newScreen) {
