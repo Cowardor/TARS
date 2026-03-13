@@ -3348,8 +3348,44 @@ select.input-field option {
     .desktop-sidebar { display: flex; }
     .bottom-nav { display: none !important; }
     .nav-fab    { display: none !important; }
-    .screen { padding-bottom: 28px; }
     .dash-logo-bar { display: none; }
+
+    .app-content { overflow: hidden; }
+
+    #screenTrack {
+        width: 100% !important;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        transform: none !important;
+        transition: none !important;
+        gap: 1px;
+        background: var(--border-subtle);
+        height: 100%;
+    }
+
+    .screen {
+        width: 100% !important;
+        padding-bottom: 24px;
+        background: var(--bg-primary);
+    }
+
+    .screen.active {
+        box-shadow: inset 0 0 0 2px rgba(79,70,229,0.22);
+    }
+
+    .screen::before {
+        content: attr(data-panel-title);
+        display: block;
+        font-family: 'Switzer', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 12px 16px 2px;
+        opacity: 0.55;
+    }
 }
     </style>
 </head>
@@ -3524,7 +3560,7 @@ select.input-field option {
         <div class="app-content" id="appContent">
         <div id="screenTrack">
             <!-- DASHBOARD -->
-            <div class="screen active" id="screenDashboard">
+            <div class="screen active" id="screenDashboard" data-panel-title="Главная">
                 <!-- Compact logo bar -->
                 <div class="dash-logo-bar">
                     <div class="dash-logo-left">
@@ -3623,7 +3659,7 @@ select.input-field option {
             </div>
 
             <!-- STATS -->
-            <div class="screen" id="screenStats">
+            <div class="screen" id="screenStats" data-panel-title="Статистика">
                 <!-- Regular stats (expense categories) -->
                 <div id="regularStatsView">
                     <div class="stats-header">
@@ -3680,7 +3716,7 @@ select.input-field option {
             </div>
 
             <!-- HISTORY -->
-            <div class="screen" id="screenHistory">
+            <div class="screen" id="screenHistory" data-panel-title="История">
                 <div class="stats-header">
                     <div class="stats-title" data-i18n="tabHistory">История</div>
                     <div class="stats-subtitle" data-i18n="recentTx">Все операции</div>
@@ -3702,7 +3738,7 @@ select.input-field option {
             </div>
 
             <!-- SETTINGS -->
-            <div class="screen" id="screenSettings">
+            <div class="screen" id="screenSettings" data-panel-title="Настройки">
                 <div class="stats-header" style="display:flex;flex-direction:column;align-items:center;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
                         <div class="dash-logo-pill">
@@ -6172,6 +6208,12 @@ async function initApp() {
     buildCategoryGrid();
     await Promise.all([loadDashboard(), loadAccounts(), loadSubscriptionStatus()]);
 
+    // Desktop: render all panels upfront (4-grid, all visible simultaneously)
+    if (window.innerWidth >= 768) {
+        renderStats();
+        renderHistory();
+    }
+
     // Auto-hide FAB whenever any modal opens or closes
     const _fabObserver = new MutationObserver(updateFabVisibility);
     document.querySelectorAll('.modal-overlay').forEach(el => {
@@ -6825,13 +6867,16 @@ function switchTab(tab, fromSwipe = false) {
     if (newIndex === prevIndex) return;
 
     const track = document.getElementById('screenTrack');
+    const isDesktop = window.innerWidth >= 768;
 
-    // Animate track to target position (unless swipe already moved it)
+    // Mobile: slide animation. Desktop: CSS grid handles layout, no transform.
     if (!fromSwipe) {
-        track.style.transition = 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)';
-        track.style.transform  = `translateX(${-newIndex * 25}%)`;
-        setTimeout(() => { track.style.transition = ''; }, 420);
-        playAlarBeam(newIndex > prevIndex ? 'right' : 'left');
+        if (!isDesktop) {
+            track.style.transition = 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)';
+            track.style.transform  = `translateX(${-newIndex * 25}%)`;
+            setTimeout(() => { track.style.transition = ''; }, 420);
+            playAlarBeam(newIndex > prevIndex ? 'right' : 'left');
+        }
     }
 
     // Update nav active state (bottom nav + desktop sidebar)
@@ -6841,10 +6886,13 @@ function switchTab(tab, fromSwipe = false) {
     const dsBtn = document.querySelector(`.ds-nav-item[data-tab="${tab}"]`);
     if (dsBtn) dsBtn.classList.add('active');
 
-    // Update .active class (semantic, not visual)
+    // Update .active class — desktop: panel focus ring; mobile: semantic
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const newScreen = document.getElementById(SCREEN_MAP[tab]);
-    if (newScreen) { newScreen.classList.add('active'); newScreen.scrollTop = 0; }
+    if (newScreen) {
+        newScreen.classList.add('active');
+        if (!isDesktop) newScreen.scrollTop = 0;
+    }
 
     state.currentTab = tab;
 
