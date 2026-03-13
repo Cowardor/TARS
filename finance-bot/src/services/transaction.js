@@ -342,7 +342,7 @@ export class TransactionService {
     return result?.avg || 0;
   }
 
-  // Daily expense totals for last N days (for sparkline)
+  // Daily expense totals for last N days with category breakdown (for sparkline tooltip)
   async getDailyTotals(userId, days = 7, familyId = null, accountId = null) {
     const end = new Date();
     const start = new Date(end);
@@ -351,16 +351,29 @@ export class TransactionService {
     const endStr = end.toISOString().slice(0, 10);
 
     let query = `
-      SELECT transaction_date as date, COALESCE(SUM(amount), 0) as total
-      FROM transactions
-      WHERE transaction_date BETWEEN ? AND ? AND type = 'expense'
+      SELECT t.transaction_date as date, c.name as category_name, c.emoji as category_emoji,
+             COALESCE(SUM(t.amount), 0) as total
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.transaction_date BETWEEN ? AND ? AND t.type = 'expense'
     `;
     const params = [startStr, endStr];
-    query = this._accountFilterBare(query, params, userId, familyId, accountId);
-    query += ' GROUP BY transaction_date ORDER BY transaction_date';
+    query = this._accountFilter(query, params, userId, familyId, accountId);
+    query += ' GROUP BY t.transaction_date, c.id ORDER BY t.transaction_date, total DESC';
 
     const result = await this.db.prepare(query).bind(...params).all();
-    return result.results || [];
+
+    const byDate = {};
+    for (const row of (result.results || [])) {
+      if (!byDate[row.date]) byDate[row.date] = { date: row.date, total: 0, categories: [] };
+      byDate[row.date].total += row.total;
+      byDate[row.date].categories.push({
+        name: row.category_name || 'Другое',
+        emoji: row.category_emoji || '📦',
+        total: row.total,
+      });
+    }
+    return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
   }
 
   // Recent transactions

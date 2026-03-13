@@ -4175,6 +4175,9 @@ select.input-field option {
         </nav>
     </div>
 
+    <!-- Sparkline tooltip -->
+    <div id="sparkTip" style="display:none;position:fixed;z-index:9999;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,0.35);pointer-events:none;min-width:150px;max-width:210px;"></div>
+
     <!-- ADD MODAL -->
     <div class="modal-overlay" id="addModal">
         <div class="modal-sheet">
@@ -7425,6 +7428,46 @@ function renderDashboard() {
 
 // ── Desktop helpers ──────────────────────────────────────────────────────────
 
+// Sparkline tooltip data store: date → {total, categories}
+const _sparkTipData = {};
+
+function showSparkTip(el, date) {
+    const d = _sparkTipData[date];
+    if (!d || d.total === 0) return;
+    const tip = document.getElementById('sparkTip');
+    if (!tip) return;
+    const curr = state.dashboardData?.currency || '';
+    const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('ru', { day: 'numeric', month: 'short', weekday: 'short' });
+    let html = `<div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;text-transform:capitalize;">${dateLabel}</div>`;
+    html += `<div style="font-size:15px;font-weight:700;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:7px;">−${d.total.toFixed(2)} ${curr}</div>`;
+    if (d.categories && d.categories.length) {
+        html += (d.categories).map(c => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:3px;">
+            <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;">${c.emoji} ${c.name}</span>
+            <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-primary);flex-shrink:0;">${c.total.toFixed(2)}</span>
+        </div>`).join('');
+    }
+    tip.innerHTML = html;
+    tip.style.display = 'block';
+    const rect = el.getBoundingClientRect();
+    const tipW = 190;
+    let left = rect.left + rect.width / 2 - tipW / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+    tip.style.width = tipW + 'px';
+    tip.style.left = left + 'px';
+    tip.style.top = '0px'; // temp to measure
+    requestAnimationFrame(() => {
+        const tipH = tip.offsetHeight;
+        let top = rect.top - tipH - 10;
+        if (top < 8) top = rect.bottom + 10;
+        tip.style.top = top + 'px';
+    });
+}
+
+function hideSparkTip() {
+    const tip = document.getElementById('sparkTip');
+    if (tip) tip.style.display = 'none';
+}
+
 // 7-day expense sparkline bars
 function buildSparklineSVG(recent, sparklineData) {
     const today = new Date();
@@ -7433,16 +7476,14 @@ function buildSparklineSVG(recent, sparklineData) {
     for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
-        days.push({ date: d.toLocaleDateString('sv'), total: 0 });
+        days.push({ date: d.toLocaleDateString('sv'), total: 0, categories: [] });
     }
     if (sparklineData && sparklineData.length) {
-        // Use pre-aggregated data from API
         sparklineData.forEach(row => {
             const slot = days.find(d => d.date === row.date);
-            if (slot) slot.total = Number(row.total) || 0;
+            if (slot) { slot.total = Number(row.total) || 0; slot.categories = row.categories || []; }
         });
     } else {
-        // Fallback: aggregate from recent transactions
         (recent || []).forEach(tx => {
             if (tx.type !== 'expense') return;
             const raw = tx.date || '';
@@ -7451,6 +7492,8 @@ function buildSparklineSVG(recent, sparklineData) {
             if (slot) slot.total += Math.abs(Number(tx.amount) || 0);
         });
     }
+    // Populate tooltip data store
+    days.forEach(d => { _sparkTipData[d.date] = d; });
     const max = Math.max(...days.map(d => d.total), 1);
     const dn = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
     return `<div style="display:flex;align-items:flex-end;gap:3px;height:52px;">${
@@ -7458,7 +7501,7 @@ function buildSparklineSVG(recent, sparklineData) {
             const h = d.total > 0 ? Math.max((d.total / max) * 36, 5) : 2;
             const dow = new Date(d.date + 'T12:00:00').getDay();
             const isToday = d.date === todayStr;
-            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:${d.total > 0 ? 'pointer' : 'default'};" onmouseenter="showSparkTip(this,'${d.date}')" onmouseleave="hideSparkTip()">
                 <div style="width:100%;height:${h.toFixed(1)}px;background:${d.total > 0 ? (isToday ? 'var(--accent-blue)' : 'var(--accent-soft)') : 'var(--bg-elevated)'};border-radius:3px 3px 0 0;opacity:${isToday ? '1' : '0.65'};transition:height 0.4s ease;"></div>
                 <div style="font-size:8px;color:${isToday ? 'var(--accent-blue)' : 'var(--text-muted)'};font-family:'Switzer',sans-serif;font-weight:${isToday ? '700' : '400'};">${dn[dow]}</div>
             </div>`;
