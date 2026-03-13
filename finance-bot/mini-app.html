@@ -9625,17 +9625,20 @@ async function startProTrial() {
         const res = await fetch(`${API_BASE}/api/subscription/checkout`, {
             method: 'POST', headers,
             body: JSON.stringify({
-                successUrl: `${location.origin}/app?sub=success`,
-                cancelUrl: `${location.origin}/app?sub=cancel`,
+                successUrl: `https://finance-bot.alar-app.workers.dev/app/?sub=success`,
+                cancelUrl: `https://finance-bot.alar-app.workers.dev/app/?sub=cancel`,
             }),
         });
         const data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Ошибка сервера'); return; }
         if (data.url) {
-            if (tg?.openLink) tg.openLink(data.url);
+            if (tg) tg.openLink(data.url, { try_instant_view: false });
             else window.open(data.url, '_blank');
+        } else {
+            showToast('Не удалось получить ссылку на оплату');
         }
     } catch (e) {
-        showToast('Ошибка подключения к Stripe');
+        showToast('Ошибка: ' + e.message);
     }
 }
 
