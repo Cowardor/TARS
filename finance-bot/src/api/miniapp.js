@@ -330,11 +330,12 @@ export async function handleMiniAppAPI(request, env, pathname) {
 async function handleDashboard(userId, familyId, accountId, ts, currency) {
   const now = new Date();
 
-  const [expenseTotal, incomeTotal, recent, statsByCategory] = await Promise.all([
+  const [expenseTotal, incomeTotal, recent, statsByCategory, dailyTotals] = await Promise.all([
     ts.getMonthTotal(userId, 'expense', now, familyId, accountId),
     ts.getMonthTotal(userId, 'income', now, familyId, accountId),
     ts.getRecent(userId, 5, familyId, accountId),
     ts.getStatsByCategory(userId, now, familyId, accountId),
+    ts.getDailyTotals(userId, 7, familyId, accountId),
   ]);
 
   const balance = incomeTotal - expenseTotal;
@@ -346,6 +347,7 @@ async function handleDashboard(userId, familyId, accountId, ts, currency) {
     currency,
     spent_percent: incomeTotal > 0 ? Math.min((expenseTotal / incomeTotal) * 100, 100) : 0,
     recent: recent.map(formatTransaction),
+    sparkline: dailyTotals,
     categories_summary: statsByCategory.filter(c => c.type === 'expense').map(c => ({
       name: c.name || 'Другое',
       emoji: c.emoji || '📦',

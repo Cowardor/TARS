@@ -7425,8 +7425,8 @@ function renderDashboard() {
 
 // ── Desktop helpers ──────────────────────────────────────────────────────────
 
-// 7-day expense sparkline bars (from recent transactions)
-function buildSparklineSVG(recent) {
+// 7-day expense sparkline bars
+function buildSparklineSVG(recent, sparklineData) {
     const today = new Date();
     const todayStr = today.toLocaleDateString('sv'); // YYYY-MM-DD in local tz
     const days = [];
@@ -7435,13 +7435,22 @@ function buildSparklineSVG(recent) {
         d.setDate(today.getDate() - i);
         days.push({ date: d.toLocaleDateString('sv'), total: 0 });
     }
-    (recent || []).forEach(tx => {
-        if (tx.type !== 'expense') return;
-        const raw = tx.date || '';
-        const txDate = raw ? new Date(raw + (raw.endsWith('Z') ? '' : 'Z')).toLocaleDateString('sv') : '';
-        const slot = days.find(d => d.date === txDate);
-        if (slot) slot.total += Math.abs(Number(tx.amount) || 0);
-    });
+    if (sparklineData && sparklineData.length) {
+        // Use pre-aggregated data from API
+        sparklineData.forEach(row => {
+            const slot = days.find(d => d.date === row.date);
+            if (slot) slot.total = Number(row.total) || 0;
+        });
+    } else {
+        // Fallback: aggregate from recent transactions
+        (recent || []).forEach(tx => {
+            if (tx.type !== 'expense') return;
+            const raw = tx.date || '';
+            const txDate = raw ? new Date(raw.length === 10 ? raw + 'T12:00:00' : raw).toLocaleDateString('sv') : '';
+            const slot = days.find(d => d.date === txDate);
+            if (slot) slot.total += Math.abs(Number(tx.amount) || 0);
+        });
+    }
     const max = Math.max(...days.map(d => d.total), 1);
     const dn = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
     return `<div style="display:flex;align-items:flex-end;gap:3px;height:52px;">${
@@ -7553,7 +7562,7 @@ function renderDesktopDashboard() {
             </div>
             <div>
                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;">Расходы за 7 дней</div>
-                ${buildSparklineSVG(recent)}
+                ${buildSparklineSVG(recent, state.dashboardData?.sparkline)}
             </div>
             <div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">

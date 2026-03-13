@@ -342,6 +342,27 @@ export class TransactionService {
     return result?.avg || 0;
   }
 
+  // Daily expense totals for last N days (for sparkline)
+  async getDailyTotals(userId, days = 7, familyId = null, accountId = null) {
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - (days - 1));
+    const startStr = start.toISOString().slice(0, 10);
+    const endStr = end.toISOString().slice(0, 10);
+
+    let query = `
+      SELECT transaction_date as date, COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE transaction_date BETWEEN ? AND ? AND type = 'expense'
+    `;
+    const params = [startStr, endStr];
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
+    query += ' GROUP BY transaction_date ORDER BY transaction_date';
+
+    const result = await this.db.prepare(query).bind(...params).all();
+    return result.results || [];
+  }
+
   // Recent transactions
   async getRecent(userId, limit = 10, familyId = null, accountId = null) {
     let query = `
