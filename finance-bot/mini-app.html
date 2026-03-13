@@ -9589,8 +9589,7 @@ async function loadSubscriptionStatus() {
         if (initData) headers['X-Telegram-Init-Data'] = initData;
 
         const res = await fetch(`${API_BASE}/api/subscription/status`, { headers });
-        if (!res.ok) return;
-        state.subscription = await res.json();
+        if (res.ok) state.subscription = await res.json();
     } catch { /* silent */ }
     renderSubscriptionBanner();
     renderSubscriptionCard();
