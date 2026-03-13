@@ -4,7 +4,7 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token, X-Telegram-Init-Data',
 };
 
 function json(data, status = 200) {
@@ -195,5 +195,40 @@ export async function resolveUser(request, env) {
       if (user) return user;
     }
   }
+
+  // 2. Try Telegram Mini App initData
+  const initData = request.headers.get('X-Telegram-Init-Data');
+  if (initData && env.TELEGRAM_TOKEN) {
+    try {
+      const params = new URLSearchParams(initData);
+      const hash = params.get('hash');
+      if (hash) {
+        params.delete('hash');
+        const checkString = [...params.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`).join('\n');
+        const encoder = new TextEncoder();
+        const secretKey = await crypto.subtle.importKey('raw', encoder.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const secretBytes = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(env.TELEGRAM_TOKEN));
+        const validationKey = await crypto.subtle.importKey('raw', secretBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const sig = await crypto.subtle.sign('HMAC', validationKey, encoder.encode(checkString));
+        const hexHash = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+        if (hexHash === hash) {
+          const tgUser = JSON.parse(params.get('user') || '{}');
+          const tgId = tgUser.id?.toString();
+          if (tgId) {
+            let user = await env.DB.prepare('SELECT * FROM users WHERE telegram_id = ?').bind(tgId).first();
+            if (!user) {
+              const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'User';
+              const result = await env.DB.prepare(
+                `INSERT INTO users (telegram_id, telegram_username, display_name, language, currency) VALUES (?, ?, ?, 'en', 'USD')`
+              ).bind(tgId, tgUser.username || null, name).run();
+              user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(result.meta.last_row_id).first();
+            }
+            return user;
+          }
+        }
+      }
+    } catch { /* silent */ }
+  }
+
   return null;
 }
