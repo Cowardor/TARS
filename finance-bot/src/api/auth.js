@@ -139,8 +139,24 @@ export async function handleAuth(request, env, pathname) {
     const { initData } = await request.json().catch(() => ({}));
     if (!initData) return error('Missing initData', 400);
 
-    // Parse user from initData (signature validation TODO: fix HMAC algo)
+    // Validate initData HMAC-SHA256
     const params = new URLSearchParams(initData);
+    const hash = params.get('hash');
+    if (!hash) return error('Invalid initData', 401);
+    params.delete('hash');
+    const checkString = [...params.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('\n');
+    const enc = new TextEncoder();
+    const botToken = (env.TELEGRAM_TOKEN || '').trim();
+    const hmacKey = await crypto.subtle.importKey('raw', enc.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const secret = new Uint8Array(await crypto.subtle.sign('HMAC', hmacKey, enc.encode(botToken)));
+    const sigKey = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = new Uint8Array(await crypto.subtle.sign('HMAC', sigKey, enc.encode(checkString)));
+    const computed = [...sig].map(b => b.toString(16).padStart(2, '0')).join('');
+    if (computed !== hash) return error('Invalid initData signature', 401);
+
     const tgUser = JSON.parse(params.get('user') || '{}');
     const tgId = tgUser.id?.toString();
     if (!tgId) return error('Missing user ID', 400);
@@ -229,11 +245,12 @@ export async function resolveUser(request, env) {
         params.delete('hash');
         const checkString = [...params.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`).join('\n');
         const encoder = new TextEncoder();
+        const botToken = (env.TELEGRAM_TOKEN || '').trim();
         const secretKey = await crypto.subtle.importKey('raw', encoder.encode('WebAppData'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-        const secretBytes = await crypto.subtle.sign('HMAC', secretKey, encoder.encode(env.TELEGRAM_TOKEN));
+        const secretBytes = new Uint8Array(await crypto.subtle.sign('HMAC', secretKey, encoder.encode(botToken)));
         const validationKey = await crypto.subtle.importKey('raw', secretBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-        const sig = await crypto.subtle.sign('HMAC', validationKey, encoder.encode(checkString));
-        const hexHash = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+        const sig = new Uint8Array(await crypto.subtle.sign('HMAC', validationKey, encoder.encode(checkString)));
+        const hexHash = [...sig].map(b => b.toString(16).padStart(2, '0')).join('');
         if (hexHash === hash) {
           const tgUser = JSON.parse(params.get('user') || '{}');
           const tgId = tgUser.id?.toString();
