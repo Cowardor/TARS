@@ -3398,6 +3398,8 @@ select.input-field option {
 /* Desktop dashboard header */
 .dsk-dash-header { display: none; }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media (min-width: 768px) {
     .dsk-dash-header {
         display: block;
@@ -3412,6 +3414,19 @@ select.input-field option {
     #screenHistory #receiptsHistorySection { flex-shrink: 0; padding: 0 8px 16px; }
     /* Settings scrollable */
     #screenSettings { overflow-y: auto !important; }
+    /* Add modal — centered dialog on desktop */
+    #addModal { align-items: center; justify-content: center; }
+    #addModal .modal-sheet {
+        border-radius: var(--radius-xl);
+        max-width: 480px;
+        width: 90%;
+        max-height: 82vh;
+        animation: none;
+    }
+    #addModal .category-grid {
+        max-height: 160px;
+        overflow-y: auto;
+    }
 }
 
 /* Card styles (apply always, responsive visibility) */
@@ -7413,16 +7428,17 @@ function renderDashboard() {
 // 7-day expense sparkline bars (from recent transactions)
 function buildSparklineSVG(recent) {
     const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
+    const todayStr = today.toLocaleDateString('sv'); // YYYY-MM-DD in local tz
     const days = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
-        days.push({ date: d.toISOString().slice(0, 10), total: 0 });
+        days.push({ date: d.toLocaleDateString('sv'), total: 0 });
     }
     (recent || []).forEach(tx => {
         if (tx.type !== 'expense') return;
-        const txDate = (tx.date || '').slice(0, 10);
+        const raw = tx.date || '';
+        const txDate = raw ? new Date(raw + (raw.endsWith('Z') ? '' : 'Z')).toLocaleDateString('sv') : '';
         const slot = days.find(d => d.date === txDate);
         if (slot) slot.total += Math.abs(Number(tx.amount) || 0);
     });
@@ -7498,6 +7514,13 @@ function renderDesktopDashboard() {
 
     renderDesktopHeader();
 
+    // If active account is crypto/investment — show crypto-specific dashboard
+    const activeAcc = state.accounts && state.accounts[state.accountIndex];
+    if (activeAcc && (activeAcc.type === 'crypto' || activeAcc.type === 'investment')) {
+        renderDesktopCryptoDashboard(activeAcc);
+        return;
+    }
+
     const d = state.dashboardData;
     const curr = state.userCurrency;
     const balance = d ? (d.balance || 0) : 0;
@@ -7543,7 +7566,7 @@ function renderDesktopDashboard() {
             </div>
         </div>`;
 
-    // ── Card 2: Categories + donut ─────────────────────────────────────────
+    // ── Card 2: Categories + donut — big donut LEFT, rows RIGHT ───────────
     const cats = state.statsData ? (state.statsData.expense_categories || []) : [];
     const catTotal = state.statsData ? (state.statsData.expense_total || 0) : 0;
     const statsBody = document.getElementById('dskStatsBody');
@@ -7551,38 +7574,41 @@ function renderDesktopDashboard() {
         if (cats.length === 0) {
             statsBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;"><div style="font-size:36px;">📊</div><div style="font-size:13px;color:var(--text-muted);">Нет данных за этот месяц</div></div>`;
         } else {
-            const donutSVG = drawMiniDonutSVG(cats, catTotal, 96);
-            const catRows = cats.slice(0, 5).map((c, i) => {
+            const donutSVG = drawMiniDonutSVG(cats, catTotal, 130);
+            const catRows = cats.slice(0, 7).map((c, i) => {
                 const cat = CATEGORIES.expense.find(ct => ct.name === c.name);
                 const color = cat ? cat.color : CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-                return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-subtle);">
-                    <span style="font-size:14px;flex-shrink:0;width:20px;text-align:center;">${c.emoji || '📦'}</span>
+                return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border-subtle);">
+                    <span style="font-size:13px;flex-shrink:0;width:18px;text-align:center;">${c.emoji || '📦'}</span>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:12px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${c.name}</div>
-                        <div style="height:3px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${Math.min(c.percent, 100).toFixed(0)}%;background:${color};border-radius:2px;"></div></div>
+                        <div style="font-size:11px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+                        <div style="height:2px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;margin-top:2px;"><div style="height:100%;width:${Math.min(c.percent, 100).toFixed(0)}%;background:${color};border-radius:2px;"></div></div>
                     </div>
-                    <div style="text-align:right;flex-shrink:0;min-width:52px;">
-                        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--text-primary);">${c.total.toFixed(0)}</div>
+                    <div style="text-align:right;flex-shrink:0;min-width:46px;">
+                        <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--text-primary);">${c.total.toFixed(0)}</div>
                         <div style="font-size:9px;color:var(--text-muted);">${c.percent.toFixed(0)}%</div>
                     </div>
                 </div>`;
             }).join('');
             statsBody.innerHTML = `
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle);">
-                    <div style="position:relative;flex-shrink:0;">
-                        ${donutSVG}
-                        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
-                            <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--text-primary);line-height:1.1;">${catTotal.toFixed(0)}</div>
-                            <div style="font-size:8px;color:var(--text-muted);">${curr}</div>
+                <div style="display:flex;gap:14px;height:100%;">
+                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+                        <div style="position:relative;">
+                            ${donutSVG}
+                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+                                <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text-primary);line-height:1.1;">${catTotal.toFixed(0)}</div>
+                                <div style="font-size:9px;color:var(--text-muted);">${curr}</div>
+                            </div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--danger);">-${catTotal.toFixed(0)}</div>
+                            <div style="font-size:10px;color:var(--text-muted);">${cats.length} кат.</div>
                         </div>
                     </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Топ категории</div>
-                        <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--danger);">-${catTotal.toFixed(0)} ${curr}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">${cats.length} ${cats.length === 1 ? 'категория' : cats.length < 5 ? 'категории' : 'категорий'}</div>
+                    <div style="flex:1;min-width:0;overflow-y:auto;">
+                        ${catRows}
                     </div>
-                </div>
-                ${catRows}`;
+                </div>`;
         }
     }
 
@@ -7657,6 +7683,204 @@ function renderDesktopDashboard() {
     }
 }
 
+// ── Desktop Crypto Dashboard ──────────────────────────────────────────────
+// Renders when active account is type=crypto/investment.
+// Shows: portfolio overview, allocation donut, coin list with 24h, perf chart.
+
+function drawMiniLineSVG(points, w, h) {
+    if (!points || points.length < 2) return '';
+    const min = Math.min(...points), max = Math.max(...points);
+    const range = max - min || 1;
+    const xs = points.map((_, i) => (i / (points.length - 1)) * w);
+    const ys = points.map(v => h - ((v - min) / range) * (h - 6) - 3);
+    const path = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+    const isUp = points[points.length - 1] >= points[0];
+    const color = isUp ? '#10b981' : '#ef4444';
+    const areaPath = path + ` L${xs[xs.length-1].toFixed(1)},${h} L0,${h} Z`;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;">
+        <defs><linearGradient id="lg_${w}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.25"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+        <path d="${areaPath}" fill="url(#lg_${w})"/>
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+}
+
+async function renderDesktopCryptoDashboard(acc) {
+    // Show loading placeholders in all 4 cards
+    ['dskBalanceBody','dskStatsBody','dskTxBody','dskProfilesBody'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;"><div style="width:28px;height:28px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent-blue);animation:spin 0.8s linear infinite;"></div></div>`;
+    });
+
+    const data = await apiFetch(`/api/crypto-stats?account_id=${acc.id}`);
+    const coins = data ? (data.balances || []) : [];
+    const totalUsd = data ? (data.total_usd || 0) : 0;
+    const snapshots = data ? (data.snapshots || []) : [];
+
+    // 24h portfolio change from snapshots
+    let change24h = null;
+    if (snapshots.length >= 2) {
+        const target = Date.now() - 86400000;
+        const snap = snapshots.reduce((best, s) => {
+            const dt = new Date(s.date + (s.date.endsWith('Z') ? '' : 'Z')).getTime();
+            if (dt > target) return best;
+            return !best || Math.abs(dt - target) < Math.abs(new Date((best.date||'') + (best.date?.endsWith('Z') ? '' : 'Z')).getTime() - target) ? s : best;
+        }, null);
+        if (snap) { const diff = totalUsd - snap.total_usd; change24h = { diff, pct: snap.total_usd > 0 ? diff/snap.total_usd*100 : 0 }; }
+    }
+    // Monthly change (first vs last snapshot)
+    let changeMonth = null;
+    if (snapshots.length >= 2) {
+        const first = snapshots[0]; const last = snapshots[snapshots.length - 1];
+        const diff = last.total_usd - first.total_usd;
+        changeMonth = { diff, pct: first.total_usd > 0 ? diff/first.total_usd*100 : 0 };
+    }
+
+    // Fetch CoinGecko 24h price changes
+    let priceChanges = {};
+    if (coins.length > 0) {
+        const idMap = {};
+        coins.forEach(c => { if (COINGECKO_IDS[c.symbol]) idMap[COINGECKO_IDS[c.symbol]] = c.symbol; });
+        const ids = Object.keys(idMap);
+        if (ids.length > 0) {
+            try {
+                const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd&include_24hr_change=true`);
+                if (r.ok) { const p = await r.json(); ids.forEach(id => { if (p[id]?.usd_24h_change != null) priceChanges[idMap[id]] = p[id].usd_24h_change; }); }
+            } catch (_) {}
+        }
+    }
+
+    const chgColor = (v) => v >= 0 ? 'var(--success)' : 'var(--danger)';
+    const chgSign  = (v) => v >= 0 ? '+' : '';
+    const syncedStr = data?.synced_at ? new Date(data.synced_at + (data.synced_at.endsWith('Z') ? '' : 'Z')).toLocaleString('ru', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+
+    // ── Card 1: Portfolio overview ─────────────────────────────────────────
+    const balBody = document.getElementById('dskBalanceBody');
+    if (balBody) balBody.innerHTML = `
+        <div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;gap:8px;">
+            <div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">${acc.name} · Портфель</div>
+                <div style="font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:var(--text-primary);line-height:1.1;">$${totalUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+            </div>
+            <div style="display:flex;gap:0;background:var(--bg-elevated);border-radius:12px;overflow:hidden;">
+                <div style="flex:1;padding:10px 12px;border-right:1px solid var(--border-subtle);">
+                    <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">24ч изменение</div>
+                    ${change24h ? `<div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:${chgColor(change24h.diff)};">${chgSign(change24h.diff)}$${Math.abs(change24h.diff).toFixed(2)}</div><div style="font-size:10px;color:${chgColor(change24h.pct)};">${chgSign(change24h.pct)}${change24h.pct.toFixed(2)}%</div>` : '<div style="font-size:12px;color:var(--text-muted);">—</div>'}
+                </div>
+                <div style="flex:1;padding:10px 12px;">
+                    <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">За месяц</div>
+                    ${changeMonth ? `<div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:${chgColor(changeMonth.diff)};">${chgSign(changeMonth.diff)}$${Math.abs(changeMonth.diff).toFixed(2)}</div><div style="font-size:10px;color:${chgColor(changeMonth.pct)};">${chgSign(changeMonth.pct)}${changeMonth.pct.toFixed(2)}%</div>` : '<div style="font-size:12px;color:var(--text-muted);">—</div>'}
+                </div>
+            </div>
+            <div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">Портфель за 30 дней</div>
+                ${drawMiniLineSVG(snapshots.slice(-30).map(s => s.total_usd), 260, 56)}
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);">Синхронизировано: ${syncedStr}</div>
+        </div>`;
+
+    // ── Card 2: Token allocation donut + bar ──────────────────────────────
+    const statsBody = document.getElementById('dskStatsBody');
+    if (statsBody) {
+        if (coins.length === 0) {
+            statsBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;"><div style="font-size:36px;">₿</div><div style="font-size:13px;color:var(--text-muted);">Нет данных портфеля</div></div>`;
+        } else {
+            const donutData = coins.map(c => ({ name: c.symbol, total: c.usd_value || 0, percent: totalUsd > 0 ? c.usd_value/totalUsd*100 : 0 }));
+            const donutTotal = totalUsd;
+            const coinSVG = drawMiniDonutSVGRaw(coins.map(c => c.usd_value || 0), totalUsd, 130);
+            const allocRows = coins.map((c, i) => {
+                const pct = totalUsd > 0 ? c.usd_value/totalUsd*100 : 0;
+                const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+                return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border-subtle);">
+                    <div style="width:8px;height:8px;border-radius:2px;background:${color};flex-shrink:0;"></div>
+                    <div style="font-size:11px;font-weight:700;color:var(--text-primary);font-family:'DM Mono',monospace;flex-shrink:0;width:36px;">${c.symbol}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="height:2px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct.toFixed(0)}%;background:${color};border-radius:2px;"></div></div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);flex-shrink:0;min-width:30px;text-align:right;">${pct.toFixed(0)}%</div>
+                </div>`;
+            }).join('');
+            statsBody.innerHTML = `
+                <div style="display:flex;gap:14px;height:100%;">
+                    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                        <div style="position:relative;">
+                            ${coinSVG}
+                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+                                <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--text-primary);">${coins.length}</div>
+                                <div style="font-size:8px;color:var(--text-muted);">токенов</div>
+                            </div>
+                        </div>
+                        <div style="font-size:10px;color:var(--text-muted);text-align:center;">${acc.crypto_exchange || 'Portfolio'}</div>
+                    </div>
+                    <div style="flex:1;min-width:0;overflow-y:auto;">${allocRows}</div>
+                </div>`;
+        }
+    }
+
+    // ── Card 3: Coin list with 24h changes ────────────────────────────────
+    const txBody = document.getElementById('dskTxBody');
+    if (txBody) {
+        if (coins.length === 0) {
+            txBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;"><div style="font-size:36px;">₿</div><div style="font-size:13px;color:var(--text-muted);">Нет монет</div></div>`;
+        } else {
+            txBody.innerHTML = coins.map((c, i) => {
+                const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+                const ch = priceChanges[c.symbol];
+                const chHTML = ch != null
+                    ? `<div style="font-size:11px;font-weight:600;color:${chgColor(ch)};">${chgSign(ch)}${ch.toFixed(2)}%</div>`
+                    : `<div style="font-size:11px;color:var(--text-muted);">—</div>`;
+                return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-subtle);">
+                    <div style="width:34px;height:34px;border-radius:10px;background:${color}22;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;font-family:'DM Mono',monospace;color:${color};">${c.symbol.slice(0,3)}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${c.symbol}</div>
+                        <div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">${c.amount?.toFixed(4) || '—'}</div>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text-primary);">$${(c.usd_value||0).toFixed(0)}</div>
+                        ${chHTML}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // ── Card 4: Profiles (same as normal) ─────────────────────────────────
+    const accounts = state.accounts || [];
+    const profBody = document.getElementById('dskProfilesBody');
+    if (profBody) {
+        const accHTML = accounts.map((a, idx) => {
+            const isActive = idx === state.accountIndex;
+            return `<div onclick="dskSwitchProfile(${idx})" style="padding:9px 12px;border-radius:12px;cursor:pointer;border:1px solid ${isActive ? 'var(--accent-blue)' : 'transparent'};background:${isActive ? 'var(--accent-blue-soft)' : 'var(--bg-elevated)'};transition:all 0.15s;margin-bottom:5px;display:flex;align-items:center;gap:9px;">
+                <div style="width:32px;height:32px;border-radius:9px;background:${a.color || 'var(--accent-blue-soft)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    ${getAccountTypeIconHTML(a.type).replace('<svg', `<svg style="width:16px;height:16px;color:${isActive ? 'var(--accent-blue)' : 'var(--text-secondary)'}"`)}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:700;color:${isActive ? 'var(--accent-blue)' : 'var(--text-primary)'};">${a.name}</div>
+                    <div style="font-size:10px;color:var(--text-muted);text-transform:capitalize;">${a.type}</div>
+                </div>
+                ${isActive ? `<svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-blue)" stroke-width="2.2" stroke-linecap="round" style="width:13px;height:13px;flex-shrink:0;"><polyline points="3,8 6.5,11.5 13,4.5"/></svg>` : ''}
+            </div>`;
+        }).join('');
+        profBody.innerHTML = accHTML + `<button onclick="openNewAccount()" style="display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;border-radius:12px;border:1px dashed var(--border);background:none;color:var(--text-muted);font-size:12px;font-family:'Switzer',sans-serif;cursor:pointer;width:100%;box-sizing:border-box;"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:14px;height:14px;"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>Добавить профиль</button>`;
+    }
+}
+
+// Mini donut SVG from raw numeric values (for crypto coins)
+function drawMiniDonutSVGRaw(values, total, size) {
+    size = size || 100;
+    const cx = size/2, cy = size/2, r = size*0.36, stroke = size*0.16;
+    if (!values.length || !total) return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg-elevated)" stroke-width="${stroke}"/></svg>`;
+    const circ = 2 * Math.PI * r;
+    let off = 0, paths = '';
+    values.forEach((v, i) => {
+        const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+        const len = (v / total) * circ;
+        paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-dasharray="${len.toFixed(2)} ${(circ-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round"/>`;
+        off += len;
+    });
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 function switchDesktopView(view) {
     document.querySelectorAll('.ds-nav-item').forEach(n => n.classList.remove('active'));
     const dsBtn = document.querySelector(`.ds-nav-item[data-dsk-tab="${view}"]`);
