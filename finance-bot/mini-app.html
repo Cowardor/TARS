@@ -3208,6 +3208,19 @@ select.input-field option {
 .auth-btn-apple  { background: #000; color: #fff; }
 .auth-btn-fb     { background: #1877F2; color: #fff; }
 
+/* ── Global scrollbar ── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
 /* ============================================================
    DESKTOP LAYOUT  ≥ 768px
    ============================================================ */
