@@ -1501,7 +1501,7 @@ select.input-field option {
 }
 
 .section-title {
-    font-family: 'Switzer', sans-serif;
+    font-family: 'Satoshi', 'Switzer', sans-serif;
     font-size: 16px;
     font-weight: 500;
 }
@@ -4424,9 +4424,9 @@ select.input-field option {
 
                 <div style="background:var(--bg-card);border-radius:var(--radius-md);padding:14px;font-size:12px;color:var(--text-muted);">
                     <div style="font-weight:600;color:var(--text-secondary);margin-bottom:8px;" id="csvFormatLabel">Формат CSV:</div>
-                    <div style="font-family:monospace;margin-bottom:2px;">date,type,amount,description</div>
-                    <div style="font-family:monospace;color:var(--danger);">2026-01-15,expense,45.50,Biedronka</div>
-                    <div style="font-family:monospace;color:var(--success);">2026-01-31,income,3400,Зарплата</div>
+                    <div style="font-family:'DM Mono',monospace;margin-bottom:2px;">date,type,amount,description</div>
+                    <div style="font-family:'DM Mono',monospace;color:var(--danger);">2026-01-15,expense,45.50,Biedronka</div>
+                    <div style="font-family:'DM Mono',monospace;color:var(--success);">2026-01-31,income,3400,Зарплата</div>
                     <div style="margin-top:8px;">• <b>type</b>: expense / income (по умолчанию: expense)</div>
                     <div>• <b>date</b>: YYYY-MM-DD (по умолчанию: сегодня)</div>
                     <div>• Разделители: запятая или точка с запятой</div>
@@ -10199,7 +10199,7 @@ function renderCsvPreview() {
         return `<div style="background:var(--bg-card);border-radius:var(--radius-md);padding:12px;margin-bottom:6px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                 <div style="font-size:12px;color:var(--text-muted);">${row.date}</div>
-                <div style="font-family:monospace;font-size:14px;font-weight:500;color:${color};">${sign}${row.amount.toFixed(2)}</div>
+                <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:${color};">${sign}${row.amount.toFixed(2)}</div>
             </div>
             <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${row.description || '—'}</div>
             <select onchange="csvRows[${idx}].category_id = parseInt(this.value)"
