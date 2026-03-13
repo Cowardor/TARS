@@ -9667,10 +9667,10 @@ function renderSubscriptionBanner() {
     const el = document.getElementById('subBanner');
     if (!el) return;
     const sub = state.subscription;
-    if (!sub || isPro()) { el.style.display = 'none'; return; }
+    if (isPro()) { el.style.display = 'none'; return; }
 
     let title, desc;
-    if (sub.stripeStatus === 'trialing' && sub.trialEndsAt) {
+    if (sub?.stripeStatus === 'trialing' && sub.trialEndsAt) {
         const days = Math.max(0, Math.ceil((new Date(sub.trialEndsAt) - Date.now()) / 86400000));
         title = `Пробный период: осталось ${days} дн.`;
         desc = 'После окончания — $4.99/мес';
