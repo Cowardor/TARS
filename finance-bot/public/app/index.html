@@ -7611,7 +7611,7 @@ function renderDesktopDashboard() {
             <div>
                 <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">${monthNames[now.getMonth()]} ${now.getFullYear()}</div>
                 <div style="font-family:'DM Mono',monospace;font-size:30px;font-weight:700;color:${balColor};line-height:1.1;">${balance >= 0 ? '+' : ''}${balance.toFixed(2)}<span style="font-size:14px;color:var(--text-muted);font-weight:400;margin-left:6px;">${curr}</span></div>
-                ${forecast && forecast.projected > 0 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">→ ~<span style="color:var(--accent-amber);font-family:'DM Mono',monospace;font-weight:600;">${forecast.projected.toFixed(0)} ${curr}</span> к концу месяца${forecast.outlier_days > 0 ? ' · разовые исключены' : ''}</div>` : ''}
+                ${forecast && forecast.projected > 0 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">→ ~<span style="color:var(--accent-amber);font-family:'DM Mono',monospace;font-weight:600;">${forecast.projected.toFixed(0)} ${curr}</span> к концу месяца</div>` : ''}
             </div>
             <div style="display:flex;gap:0;background:var(--bg-elevated);border-radius:12px;overflow:hidden;">
                 <div style="flex:1;padding:10px 14px;border-right:1px solid var(--border-subtle);">
