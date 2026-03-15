@@ -318,9 +318,43 @@ export async function handleMiniAppAPI(request, env, pathname) {
     case '/api/crypto-stats':
       return handleCryptoStats(request, userId, accountService);
 
+    // Recurring payments detection
+    case '/api/recurring':
+      return handleRecurring(userId, familyId, activeAccountId, transactionService);
+
     default:
       return error('Not found', 404);
   }
+}
+
+// ============================================
+// GET /api/recurring
+// ============================================
+
+async function handleRecurring(userId, familyId, accountId, ts) {
+  const payments = await ts.getRecurringPayments(userId, familyId, accountId);
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('sv');
+
+  const result = payments.map(p => {
+    const day = p.last_day;
+    let next = new Date(today.getFullYear(), today.getMonth(), day);
+    if (next.toLocaleDateString('sv') <= todayStr) {
+      next = new Date(today.getFullYear(), today.getMonth() + 1, day);
+    }
+    const daysUntil = Math.ceil((next - today) / 86400000);
+    return {
+      name: p.description || p.name,
+      emoji: p.emoji,
+      amount: p.avg_amount,
+      day_of_month: day,
+      days_until: daysUntil,
+      next_date: next.toLocaleDateString('sv'),
+      months_seen: p.months_count,
+    };
+  }).sort((a, b) => a.days_until - b.days_until);
+
+  return json({ payments: result });
 }
 
 // ============================================

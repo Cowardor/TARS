@@ -376,6 +376,37 @@ export class TransactionService {
     return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
   }
 
+  // Detect recurring payments from last 95 days (appear 2+ months, consistent amount)
+  async getRecurringPayments(userId, familyId = null, accountId = null) {
+    let query = `
+      SELECT
+        COALESCE(c.name, 'Другое') as name,
+        COALESCE(c.emoji, '💳') as emoji,
+        COALESCE(t.description, '') as description,
+        ROUND(AVG(t.amount), 2) as avg_amount,
+        CAST(strftime('%d', MAX(t.transaction_date)) AS INTEGER) as last_day,
+        COUNT(DISTINCT strftime('%Y-%m', t.transaction_date)) as months_count,
+        COUNT(t.id) as tx_count,
+        MAX(t.transaction_date) as last_date
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.transaction_date >= date('now', '-95 days')
+        AND t.type = 'expense'
+    `;
+    const params = [];
+    query = this._accountFilter(query, params, userId, familyId, accountId);
+    query += `
+      GROUP BY t.category_id, COALESCE(t.description, '')
+      HAVING months_count >= 2
+        AND tx_count BETWEEN 2 AND 15
+        AND (CAST(MAX(t.amount) AS REAL) - CAST(MIN(t.amount) AS REAL)) / CAST(AVG(t.amount) AS REAL) < 0.4
+      ORDER BY avg_amount DESC
+      LIMIT 8
+    `;
+    const result = await this.db.prepare(query).bind(...params).all();
+    return result.results || [];
+  }
+
   // Per-day expense totals for current month (for smart forecast)
   async getMonthDailyExpenses(userId, date = new Date(), familyId = null, accountId = null) {
     const { start, end } = getMonthRange(date);
