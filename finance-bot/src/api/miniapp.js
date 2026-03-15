@@ -340,6 +340,10 @@ async function handleDashboard(userId, familyId, accountId, ts, currency) {
 
   const balance = incomeTotal - expenseTotal;
 
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dailyAvg = dayOfMonth > 0 ? expenseTotal / dayOfMonth : 0;
+
   return json({
     balance,
     income: incomeTotal,
@@ -348,6 +352,13 @@ async function handleDashboard(userId, familyId, accountId, ts, currency) {
     spent_percent: incomeTotal > 0 ? Math.min((expenseTotal / incomeTotal) * 100, 100) : 0,
     recent: recent.map(formatTransaction),
     sparkline: dailyTotals,
+    forecast: {
+      daily_avg: Math.round(dailyAvg * 100) / 100,
+      projected: Math.round(dailyAvg * daysInMonth * 100) / 100,
+      day_of_month: dayOfMonth,
+      days_in_month: daysInMonth,
+      days_remaining: daysInMonth - dayOfMonth,
+    },
     categories_summary: statsByCategory.filter(c => c.type === 'expense').map(c => ({
       name: c.name || 'Другое',
       emoji: c.emoji || '📦',
@@ -370,14 +381,22 @@ async function handleStats(request, userId, familyId, accountId, ts, currency) {
 
   const date = new Date(year, month, 1);
 
-  const [statsByCategory, expenseTotal, incomeTotal] = await Promise.all([
+  const prevDate = new Date(year, month - 1, 1);
+
+  const [statsByCategory, expenseTotal, incomeTotal, prevStatsByCategory] = await Promise.all([
     ts.getStatsByCategory(userId, date, familyId, accountId),
     ts.getMonthTotal(userId, 'expense', date, familyId, accountId),
     ts.getMonthTotal(userId, 'income', date, familyId, accountId),
+    ts.getStatsByCategory(userId, prevDate, familyId, accountId),
   ]);
 
   const expenses = statsByCategory.filter(c => c.type === 'expense');
   const incomes = statsByCategory.filter(c => c.type === 'income');
+
+  const prevMap = {};
+  prevStatsByCategory.filter(c => c.type === 'expense').forEach(c => {
+    prevMap[c.name || 'Другое'] = c.total;
+  });
 
   return json({
     month: month + 1,
@@ -386,14 +405,21 @@ async function handleStats(request, userId, familyId, accountId, ts, currency) {
     expense_total: expenseTotal,
     income_total: incomeTotal,
     balance: incomeTotal - expenseTotal,
-    expense_categories: expenses.map(c => ({
-      id: c.id,
-      name: c.name || 'Другое',
-      emoji: c.emoji || '📦',
-      total: c.total,
-      count: c.count,
-      percent: expenseTotal > 0 ? (c.total / expenseTotal) * 100 : 0,
-    })),
+    expense_categories: expenses.map(c => {
+      const name = c.name || 'Другое';
+      const prevTotal = prevMap[name] || 0;
+      const changePct = prevTotal > 0 ? Math.round(((c.total - prevTotal) / prevTotal) * 100) : null;
+      return {
+        id: c.id,
+        name,
+        emoji: c.emoji || '📦',
+        total: c.total,
+        count: c.count,
+        percent: expenseTotal > 0 ? (c.total / expenseTotal) * 100 : 0,
+        prev_total: prevTotal,
+        change_pct: changePct,
+      };
+    }),
     income_categories: incomes.map(c => ({
       id: c.id,
       name: c.name || 'Другое',

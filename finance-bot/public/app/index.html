@@ -7469,7 +7469,7 @@ function hideSparkTip() {
 }
 
 // 7-day expense sparkline bars
-function buildSparklineSVG(recent, sparklineData) {
+function buildSparklineSVG(recent, sparklineData, forecast) {
     const today = new Date();
     const todayStr = today.toLocaleDateString('sv'); // YYYY-MM-DD in local tz
     const days = [];
@@ -7494,16 +7494,34 @@ function buildSparklineSVG(recent, sparklineData) {
     }
     // Populate tooltip data store
     days.forEach(d => { _sparkTipData[d.date] = d; });
-    const max = Math.max(...days.map(d => d.total), 1);
+
+    // Forecast bars (next 3 days at daily_avg)
+    const forecastBars = [];
+    if (forecast && forecast.daily_avg > 0 && forecast.days_remaining > 0) {
+        const daysToShow = Math.min(forecast.days_remaining, 3);
+        for (let i = 1; i <= daysToShow; i++) {
+            const fd = new Date(today);
+            fd.setDate(today.getDate() + i);
+            forecastBars.push({ date: fd.toLocaleDateString('sv'), total: forecast.daily_avg, forecast: true });
+        }
+    }
+
+    const allBars = [...days, ...forecastBars];
+    const max = Math.max(...allBars.map(d => d.total), 1);
     const dn = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-    return `<div style="display:flex;align-items:flex-end;gap:3px;height:52px;">${
-        days.map(d => {
+    return `<div style="display:flex;align-items:flex-end;gap:2px;height:52px;">${
+        allBars.map((d, idx) => {
             const h = d.total > 0 ? Math.max((d.total / max) * 36, 5) : 2;
             const dow = new Date(d.date + 'T12:00:00').getDay();
             const isToday = d.date === todayStr;
-            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:${d.total > 0 ? 'pointer' : 'default'};" onmouseenter="showSparkTip(this,'${d.date}')" onmouseleave="hideSparkTip()">
-                <div style="width:100%;height:${h.toFixed(1)}px;background:${d.total > 0 ? (isToday ? 'var(--accent-blue)' : 'var(--accent-soft)') : 'var(--bg-elevated)'};border-radius:3px 3px 0 0;opacity:${isToday ? '1' : '0.65'};transition:height 0.4s ease;"></div>
-                <div style="font-size:8px;color:${isToday ? 'var(--accent-blue)' : 'var(--text-muted)'};font-family:'Switzer',sans-serif;font-weight:${isToday ? '700' : '400'};">${dn[dow]}</div>
+            const isForecast = !!d.forecast;
+            // Divider before first forecast bar
+            const divider = isForecast && idx > 0 && !allBars[idx-1].forecast
+                ? `<div style="width:1px;height:36px;background:var(--border-subtle);opacity:0.5;flex-shrink:0;align-self:flex-end;margin-bottom:10px;"></div>`
+                : '';
+            return `${divider}<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:${d.total > 0 && !isForecast ? 'pointer' : 'default'};" ${!isForecast ? `onmouseenter="showSparkTip(this,'${d.date}')" onmouseleave="hideSparkTip()"` : ''}>
+                <div style="width:100%;height:${h.toFixed(1)}px;background:${isForecast ? 'var(--accent-amber)' : (d.total > 0 ? (isToday ? 'var(--accent-blue)' : 'var(--accent-soft)') : 'var(--bg-elevated)')};border-radius:3px 3px 0 0;opacity:${isForecast ? '0.35' : isToday ? '1' : '0.65'};transition:height 0.4s ease;"></div>
+                <div style="font-size:8px;color:${isToday ? 'var(--accent-blue)' : isForecast ? 'var(--accent-amber)' : 'var(--text-muted)'};font-family:'Switzer',sans-serif;font-weight:${isToday || isForecast ? '600' : '400'};opacity:${isForecast ? '0.7' : '1'};">${dn[dow]}</div>
             </div>`;
         }).join('')
     }</div>`;
@@ -7580,6 +7598,7 @@ function renderDesktopDashboard() {
     const expenses = d ? (d.expenses || 0) : 0;
     const pct = d ? (d.spent_percent || 0) : 0;
     const recent = d ? (d.recent || []) : [];
+    const forecast = d ? (d.forecast || null) : null;
     const progressW = Math.min(Math.max(pct, 0), 100);
     const balColor = balance >= 0 ? 'var(--success)' : 'var(--danger)';
     const now = new Date();
@@ -7604,8 +7623,8 @@ function renderDesktopDashboard() {
                 </div>
             </div>
             <div>
-                <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;">Расходы за 7 дней</div>
-                ${buildSparklineSVG(recent, state.dashboardData?.sparkline)}
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;">Расходы за 7 дней${forecast && forecast.days_remaining > 0 ? `<span style="font-size:9px;color:var(--accent-amber);opacity:0.7;margin-left:6px;">+ прогноз</span>` : ''}</div>
+                ${buildSparklineSVG(recent, state.dashboardData?.sparkline, forecast)}
             </div>
             <div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
@@ -7616,6 +7635,14 @@ function renderDesktopDashboard() {
                     <div style="height:100%;width:${progressW}%;background:${pct > 90 ? 'var(--danger)' : pct > 70 ? 'var(--warning)' : 'var(--accent-gradient)'};border-radius:3px;transition:width 0.6s ease;"></div>
                 </div>
             </div>
+            ${forecast && forecast.projected > 0 ? `
+            <div style="padding:8px 10px;background:rgba(245,158,11,0.08);border-radius:var(--radius-md);border:1px solid rgba(245,158,11,0.2);">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="font-size:10px;color:var(--accent-amber);font-weight:600;">📈 Прогноз к концу месяца</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent-amber);">~${forecast.projected.toFixed(0)} ${curr}</div>
+                </div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${forecast.daily_avg.toFixed(0)} ${curr}/день · осталось ${forecast.days_remaining} дн.</div>
+            </div>` : ''}
         </div>`;
 
     // ── Card 2: Categories + donut — big donut LEFT, rows RIGHT ───────────
@@ -7630,14 +7657,21 @@ function renderDesktopDashboard() {
             const catRows = cats.slice(0, 7).map((c, i) => {
                 const cat = CATEGORIES.expense.find(ct => ct.name === c.name);
                 const color = cat ? cat.color : CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-                return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border-subtle);">
+                const chg = c.change_pct;
+                const chgBadge = chg != null
+                    ? `<span style="font-size:8px;font-weight:700;color:${chg > 0 ? 'var(--danger)' : 'var(--success)'};background:${chg > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'};border-radius:3px;padding:1px 3px;white-space:nowrap;">${chg > 0 ? '↑' : '↓'}${Math.abs(chg)}%</span>`
+                    : '';
+                return `<div onclick="showCategoryTransactions(${c.id})" style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">
                     <span style="font-size:13px;flex-shrink:0;width:18px;text-align:center;">${c.emoji || '📦'}</span>
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:11px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
                         <div style="height:2px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;margin-top:2px;"><div style="height:100%;width:${Math.min(c.percent, 100).toFixed(0)}%;background:${color};border-radius:2px;"></div></div>
                     </div>
                     <div style="text-align:right;flex-shrink:0;min-width:46px;">
-                        <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--text-primary);">${c.total.toFixed(0)}</div>
+                        <div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;">
+                            <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--text-primary);">${c.total.toFixed(0)}</div>
+                            ${chgBadge}
+                        </div>
                         <div style="font-size:9px;color:var(--text-muted);">${c.percent.toFixed(0)}%</div>
                     </div>
                 </div>`;
@@ -8182,7 +8216,10 @@ async function renderStats() {
                 </div>
                 <div class="breakdown-right">
                     <div class="breakdown-amount">${c.total.toFixed(0)} ${state.userCurrency}</div>
-                    <div class="breakdown-percent">${c.percent.toFixed(1)}%</div>
+                    <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+                        <div class="breakdown-percent">${c.percent.toFixed(1)}%</div>
+                        ${c.change_pct != null ? `<span style="font-size:9px;font-weight:700;color:${c.change_pct > 0 ? 'var(--danger)' : 'var(--success)'};background:${c.change_pct > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'};border-radius:3px;padding:1px 3px;">${c.change_pct > 0 ? '↑' : '↓'}${Math.abs(c.change_pct)}%</span>` : ''}
+                    </div>
                 </div>
             </div>`;
     }).join('');
