@@ -7699,15 +7699,30 @@ function renderDesktopDashboard() {
         </div>`;
 
     // ── Upcoming recurring payments strip (inside Card 1) ─────────────────
-    apiFetch('/api/recurring').then(data => {
+    Promise.all([
+        apiFetch('/api/recurring-bills').catch(() => ({ bills: [] })),
+        apiFetch('/api/recurring').catch(() => ({ recurring: [] }))
+    ]).then(([billsData, detectedData]) => {
         const strip = document.getElementById('dskUpcomingStrip');
         if (!strip) return;
-        const payments = data ? data.payments.slice(0, 4) : [];
-        if (!payments.length) { strip.innerHTML = `<div style="font-size:11px;color:var(--text-muted);opacity:0.5;">не обнаружено</div>`; return; }
+        // Combine: user-managed bills first, then autodetected
+        const managed = (billsData.bills || []).map(b => ({
+            emoji: b.emoji || '💳', name: b.name, amount: b.amount,
+            days_until: calcDaysUntil(b.day_of_month), managed: true
+        }));
+        const detected = (detectedData.recurring || []).map(p => ({
+            emoji: p.emoji || '🔄', name: p.description || p.category_name, amount: p.avg_amount || 0,
+            days_until: 30, managed: false
+        }));
+        const payments = [...managed, ...detected].sort((a, b) => a.days_until - b.days_until).slice(0, 4);
+        if (!payments.length) {
+            strip.innerHTML = `<div onclick="openRecurringModal()" style="font-size:11px;color:var(--accent-blue);cursor:pointer;opacity:0.7;">+ Добавить подписки</div>`;
+            return;
+        }
         strip.innerHTML = payments.map(p => {
             const urg = p.days_until <= 3 ? 'var(--danger)' : p.days_until <= 7 ? 'var(--accent-amber)' : 'var(--text-muted)';
             const lbl = p.days_until === 0 ? 'сегодня' : p.days_until === 1 ? 'завтра' : `${p.days_until} дн.`;
-            return `<div style="display:flex;align-items:center;gap:7px;">
+            return `<div style="display:flex;align-items:center;gap:7px;cursor:pointer;" onclick="openRecurringModal()">
                 <span style="font-size:13px;">${p.emoji}</span>
                 <span style="flex:1;font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
                 <span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--danger);">-${Number(p.amount).toFixed(0)}</span>
@@ -10741,17 +10756,24 @@ function renderSubscriptionCard() {
 })();
 
 // ─── Recurring Bills ─────────────────────────────────────────────────────────
+function calcDaysUntil(dayOfMonth) {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+    if (target <= now) target.setMonth(target.getMonth() + 1);
+    return Math.round((target - now) / 86400000);
+}
+
 let _recCurrentTab = 'my';
 let _recBills = [];
 
 async function openRecurringModal() {
-    document.getElementById('recurringModal').classList.add('active');
+    document.getElementById('recurringModal').classList.add('show');
     switchRecTab('my');
     await renderMyBills();
 }
 
 function closeRecurringModal() {
-    document.getElementById('recurringModal').classList.remove('active');
+    document.getElementById('recurringModal').classList.remove('show');
 }
 
 function switchRecTab(tab) {
@@ -10782,7 +10804,7 @@ async function renderMyBills() {
     const el = document.getElementById('recBillsList');
     el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Загрузка...</div>';
     try {
-        const r = await apiRequest('/api/recurring-bills');
+        const r = await apiFetch('/api/recurring-bills');
         _recBills = r.bills || [];
         if (!_recBills.length) {
             el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0 12px;">Нет добавленных подписок</div>';
@@ -10821,10 +10843,10 @@ async function addRecurringBill() {
     if (!amount || amount <= 0) { showToast('Введите сумму'); return; }
     if (!day || day < 1 || day > 31) { showToast('День: 1–31'); return; }
     try {
-        await apiRequest('/api/recurring-bills', 'POST', {
+        await apiFetch('/api/recurring-bills', { method: 'POST', body: JSON.stringify({
             name, emoji, amount, currency: state.currency || 'PLN', day_of_month: day,
             account_id: state.selectedAccountId || null
-        });
+        })});
         document.getElementById('recEmoji').value = '';
         document.getElementById('recName').value = '';
         document.getElementById('recAmount').value = '';
@@ -10839,7 +10861,7 @@ async function addRecurringBill() {
 
 async function deleteRecurringBill(id) {
     try {
-        await apiRequest('/api/recurring-bills/delete', 'POST', { id });
+        await apiFetch('/api/recurring-bills/delete', { method: 'POST', body: JSON.stringify({ id }) });
         showToast('Удалено');
         await renderMyBills();
         loadDashboard();
@@ -10852,7 +10874,7 @@ async function renderDetected() {
     const el = document.getElementById('recDetectedList');
     el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Анализ истории...</div>';
     try {
-        const r = await apiRequest('/api/recurring' + (state.selectedAccountId ? '?account_id=' + state.selectedAccountId : ''));
+        const r = await apiFetch('/api/recurring' + (state.selectedAccountId ? '?account_id=' + state.selectedAccountId : ''));
         const list = r.recurring || [];
         if (!list.length) {
             el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Регулярных платежей не обнаружено</div>';
@@ -10883,10 +10905,10 @@ async function confirmDetected(idx, name, amount, emoji) {
     if (!name || !amount) return;
     const day = new Date().getDate();
     try {
-        await apiRequest('/api/recurring-bills', 'POST', {
+        await apiFetch('/api/recurring-bills', { method: 'POST', body: JSON.stringify({
             name, emoji, amount, currency: state.currency || 'PLN',
             day_of_month: day, account_id: state.selectedAccountId || null
-        });
+        })});
         showToast('Добавлено в Мои подписки');
         await renderMyBills();
         await renderDetected();
