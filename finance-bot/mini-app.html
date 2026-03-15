@@ -7610,6 +7610,7 @@ function renderDesktopDashboard() {
             <div>
                 <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">${monthNames[now.getMonth()]} ${now.getFullYear()}</div>
                 <div style="font-family:'DM Mono',monospace;font-size:30px;font-weight:700;color:${balColor};line-height:1.1;">${balance >= 0 ? '+' : ''}${balance.toFixed(2)}<span style="font-size:14px;color:var(--text-muted);font-weight:400;margin-left:6px;">${curr}</span></div>
+                ${forecast && forecast.projected > 0 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">→ ~<span style="color:var(--accent-amber);font-family:'DM Mono',monospace;font-weight:600;">${forecast.projected.toFixed(0)} ${curr}</span> к концу месяца${forecast.outlier_days > 0 ? ' · разовые исключены' : ''}</div>` : ''}
             </div>
             <div style="display:flex;gap:0;background:var(--bg-elevated);border-radius:12px;overflow:hidden;">
                 <div style="flex:1;padding:10px 14px;border-right:1px solid var(--border-subtle);">
@@ -7622,7 +7623,7 @@ function renderDesktopDashboard() {
                 </div>
             </div>
             <div>
-                <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;">Расходы за 7 дней${forecast && forecast.days_remaining > 0 ? `<span style="font-size:9px;color:var(--accent-amber);opacity:0.7;margin-left:6px;">+ прогноз</span>` : ''}</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;">Расходы за 7 дней</div>
                 ${buildSparklineSVG(recent, state.dashboardData?.sparkline, forecast)}
             </div>
             <div>
@@ -7634,14 +7635,6 @@ function renderDesktopDashboard() {
                     <div style="height:100%;width:${progressW}%;background:${pct > 90 ? 'var(--danger)' : pct > 70 ? 'var(--warning)' : 'var(--accent-gradient)'};border-radius:3px;transition:width 0.6s ease;"></div>
                 </div>
             </div>
-            ${forecast && forecast.projected > 0 ? `
-            <div style="padding:8px 10px;background:rgba(245,158,11,0.08);border-radius:var(--radius-md);border:1px solid rgba(245,158,11,0.2);">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <div style="font-size:10px;color:var(--accent-amber);font-weight:600;">📈 Прогноз к концу месяца</div>
-                    <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent-amber);">~${forecast.projected.toFixed(0)} ${curr}</div>
-                </div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${forecast.daily_avg.toFixed(0)} ${curr}/день · осталось ${forecast.days_remaining} дн.${forecast.outlier_days > 0 ? ` · <span style="color:var(--accent-amber);opacity:0.8;">разовые исключены</span>` : ''}</div>
-            </div>` : ''}
         </div>`;
 
     // ── Card 2: Categories + donut — big donut LEFT, rows RIGHT ───────────
