@@ -376,6 +376,21 @@ export class TransactionService {
     return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
   }
 
+  // Per-day expense totals for current month (for smart forecast)
+  async getMonthDailyExpenses(userId, date = new Date(), familyId = null, accountId = null) {
+    const { start, end } = getMonthRange(date);
+    let query = `
+      SELECT transaction_date as date, COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE transaction_date BETWEEN ? AND ? AND type = 'expense'
+    `;
+    const params = [start, end];
+    query = this._accountFilterBare(query, params, userId, familyId, accountId);
+    query += ' GROUP BY transaction_date ORDER BY transaction_date';
+    const result = await this.db.prepare(query).bind(...params).all();
+    return result.results || [];
+  }
+
   // Recent transactions
   async getRecent(userId, limit = 10, familyId = null, accountId = null) {
     let query = `

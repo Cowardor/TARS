@@ -330,19 +330,35 @@ export async function handleMiniAppAPI(request, env, pathname) {
 async function handleDashboard(userId, familyId, accountId, ts, currency) {
   const now = new Date();
 
-  const [expenseTotal, incomeTotal, recent, statsByCategory, dailyTotals] = await Promise.all([
+  const [expenseTotal, incomeTotal, recent, statsByCategory, dailyTotals, monthDailyExpenses] = await Promise.all([
     ts.getMonthTotal(userId, 'expense', now, familyId, accountId),
     ts.getMonthTotal(userId, 'income', now, familyId, accountId),
     ts.getRecent(userId, 5, familyId, accountId),
     ts.getStatsByCategory(userId, now, familyId, accountId),
     ts.getDailyTotals(userId, 7, familyId, accountId),
+    ts.getMonthDailyExpenses(userId, now, familyId, accountId),
   ]);
 
   const balance = incomeTotal - expenseTotal;
 
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const dailyAvg = dayOfMonth > 0 ? expenseTotal / dayOfMonth : 0;
+  const daysRemaining = daysInMonth - dayOfMonth;
+
+  // Smart forecast: exclude one-time outliers (rent, subscriptions) using median
+  const activeDays = monthDailyExpenses.map(d => d.total).filter(t => t > 0);
+  let smartDailyAvg = 0;
+  let outlierDays = 0;
+  if (activeDays.length > 0) {
+    const sorted = [...activeDays].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    const threshold = median * 3; // >3× median = one-time (rent, subscriptions)
+    const normalDays = activeDays.filter(t => t <= threshold);
+    outlierDays = activeDays.length - normalDays.length;
+    smartDailyAvg = normalDays.length > 0
+      ? normalDays.reduce((a, b) => a + b, 0) / normalDays.length
+      : median;
+  }
 
   return json({
     balance,
@@ -353,11 +369,12 @@ async function handleDashboard(userId, familyId, accountId, ts, currency) {
     recent: recent.map(formatTransaction),
     sparkline: dailyTotals,
     forecast: {
-      daily_avg: Math.round(dailyAvg * 100) / 100,
-      projected: Math.round(dailyAvg * daysInMonth * 100) / 100,
+      daily_avg: Math.round(smartDailyAvg * 100) / 100,
+      projected: Math.round((expenseTotal + smartDailyAvg * daysRemaining) * 100) / 100,
       day_of_month: dayOfMonth,
       days_in_month: daysInMonth,
-      days_remaining: daysInMonth - dayOfMonth,
+      days_remaining: daysRemaining,
+      outlier_days: outlierDays, // кол-во исключённых "разовых" дней
     },
     categories_summary: statsByCategory.filter(c => c.type === 'expense').map(c => ({
       name: c.name || 'Другое',

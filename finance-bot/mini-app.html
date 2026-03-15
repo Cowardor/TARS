@@ -7640,7 +7640,7 @@ function renderDesktopDashboard() {
                     <div style="font-size:10px;color:var(--accent-amber);font-weight:600;">📈 Прогноз к концу месяца</div>
                     <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent-amber);">~${forecast.projected.toFixed(0)} ${curr}</div>
                 </div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${forecast.daily_avg.toFixed(0)} ${curr}/день · осталось ${forecast.days_remaining} дн.</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">${forecast.daily_avg.toFixed(0)} ${curr}/день · осталось ${forecast.days_remaining} дн.${forecast.outlier_days > 0 ? ` · <span style="color:var(--accent-amber);opacity:0.8;">разовые исключены</span>` : ''}</div>
             </div>` : ''}
         </div>`;
 
