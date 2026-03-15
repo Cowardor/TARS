@@ -3965,6 +3965,21 @@ select.input-field option {
                             </div>
                             <div class="settings-chevron">&#8250;</div>
                         </div>
+                        <!-- Recurring bills -->
+                        <div class="settings-item" onclick="openRecurringModal()">
+                            <div class="settings-icon si-cyan">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2.5 10a7.5 7.5 0 1015 0 7.5 7.5 0 00-15 0z"/>
+                                    <path d="M10 6v4l2.5 2.5"/>
+                                    <path d="M2.5 4L5 6.5M17.5 4L15 6.5"/>
+                                </svg>
+                            </div>
+                            <div class="settings-text">
+                                <div class="settings-label">Регулярные платежи</div>
+                                <div class="settings-desc" id="recurringBillsSummary">Подписки и регулярные расходы</div>
+                            </div>
+                            <div class="settings-chevron">&#8250;</div>
+                        </div>
                     </div>
                 </div>
 
@@ -4362,6 +4377,44 @@ select.input-field option {
                 <button class="modal-close" onclick="closeCatTxModal()">&times;</button>
             </div>
             <div id="catTxList"></div>
+        </div>
+    </div>
+
+    <!-- RECURRING BILLS MODAL -->
+    <div class="modal-overlay" id="recurringModal" onclick="closeRecurringModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:90vh">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title">Регулярные платежи</div>
+                <button class="modal-close" onclick="closeRecurringModal()">&times;</button>
+            </div>
+            <!-- Tabs -->
+            <div style="display:flex;gap:0;border-bottom:1.5px solid var(--border);margin-bottom:0;">
+                <button id="recTabMyBtn" onclick="switchRecTab('my')" style="flex:1;padding:10px 0;font-size:13px;font-weight:600;background:none;border:none;color:var(--accent-blue);border-bottom:2.5px solid var(--accent-blue);cursor:pointer;font-family:'Switzer',sans-serif;">Мои подписки</button>
+                <button id="recTabDetBtn" onclick="switchRecTab('detected')" style="flex:1;padding:10px 0;font-size:13px;font-weight:600;background:none;border:none;color:var(--text-muted);border-bottom:2.5px solid transparent;cursor:pointer;font-family:'Switzer',sans-serif;">Обнаруженные</button>
+            </div>
+            <!-- My bills tab -->
+            <div id="recTabMy" style="overflow-y:auto;max-height:55vh;">
+                <div id="recBillsList" style="padding:12px 16px 0;"></div>
+                <!-- Add form -->
+                <div style="padding:12px 16px 16px;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">Добавить платёж</div>
+                    <div style="display:flex;gap:8px;margin-bottom:8px;">
+                        <input id="recEmoji" type="text" placeholder="💳" maxlength="2" style="width:46px;text-align:center;font-size:18px;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);padding:6px 4px;">
+                        <input id="recName" type="text" placeholder="Название (Netflix, аренда...)" style="flex:1;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);padding:8px 12px;font-size:14px;font-family:'Switzer',sans-serif;">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-bottom:10px;">
+                        <input id="recAmount" type="number" placeholder="Сумма" inputmode="decimal" step="0.01" style="flex:1;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);padding:8px 12px;font-size:14px;font-family:'DM Mono',monospace;">
+                        <input id="recDay" type="number" placeholder="День" min="1" max="31" inputmode="numeric" style="width:70px;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);padding:8px 10px;font-size:14px;font-family:'DM Mono',monospace;">
+                    </div>
+                    <button onclick="addRecurringBill()" style="width:100%;padding:11px;background:var(--accent-blue);color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:'Switzer',sans-serif;cursor:pointer;">+ Добавить</button>
+                </div>
+            </div>
+            <!-- Detected tab -->
+            <div id="recTabDetected" style="display:none;overflow-y:auto;max-height:60vh;padding:12px 16px;">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Обнаружены по истории транзакций. Подтвердите нужные.</div>
+                <div id="recDetectedList"></div>
+            </div>
         </div>
     </div>
 
@@ -9098,6 +9151,7 @@ function initSheetSwipe() {
         languagePicker:  () => closeLanguagePicker(),
         receiptModal:    () => closeReceiptModal(),
         receiptConsentModal: () => document.getElementById('receiptConsentModal').classList.remove('show'),
+        recurringModal:      () => closeRecurringModal(),
     };
 
     document.querySelectorAll('.modal-sheet').forEach(sheet => {
@@ -10684,6 +10738,162 @@ function renderSubscriptionCard() {
         setTimeout(loadSubscriptionStatus, 1500);
     }
 })();
+
+// ─── Recurring Bills ─────────────────────────────────────────────────────────
+let _recCurrentTab = 'my';
+let _recBills = [];
+
+async function openRecurringModal() {
+    document.getElementById('recurringModal').classList.add('active');
+    switchRecTab('my');
+    await renderMyBills();
+}
+
+function closeRecurringModal() {
+    document.getElementById('recurringModal').classList.remove('active');
+}
+
+function switchRecTab(tab) {
+    _recCurrentTab = tab;
+    const myTab = document.getElementById('recTabMy');
+    const detTab = document.getElementById('recTabDetected');
+    const myBtn = document.getElementById('recTabMyBtn');
+    const detBtn = document.getElementById('recTabDetBtn');
+    if (tab === 'my') {
+        myTab.style.display = '';
+        detTab.style.display = 'none';
+        myBtn.style.color = 'var(--accent-blue)';
+        myBtn.style.borderBottom = '2.5px solid var(--accent-blue)';
+        detBtn.style.color = 'var(--text-muted)';
+        detBtn.style.borderBottom = '2.5px solid transparent';
+    } else {
+        myTab.style.display = 'none';
+        detTab.style.display = '';
+        detBtn.style.color = 'var(--accent-blue)';
+        detBtn.style.borderBottom = '2.5px solid var(--accent-blue)';
+        myBtn.style.color = 'var(--text-muted)';
+        myBtn.style.borderBottom = '2.5px solid transparent';
+        renderDetected();
+    }
+}
+
+async function renderMyBills() {
+    const el = document.getElementById('recBillsList');
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Загрузка...</div>';
+    try {
+        const r = await apiRequest('/api/recurring-bills');
+        _recBills = r.bills || [];
+        if (!_recBills.length) {
+            el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0 12px;">Нет добавленных подписок</div>';
+            updateRecurringSummary(0);
+            return;
+        }
+        const cur = state.currency || 'PLN';
+        el.innerHTML = _recBills.map(b => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:22px;width:32px;text-align:center;">${b.emoji || '💳'}</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.name}</div>
+                    <div style="font-size:12px;color:var(--text-muted);">${b.day_of_month}-го числа${b.category_name ? ' · ' + (b.category_emoji || '') + b.category_name : ''}</div>
+                </div>
+                <div style="font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);white-space:nowrap;">${formatAmount(b.amount, b.currency || cur)}</div>
+                <button onclick="deleteRecurringBill(${b.id})" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;">×</button>
+            </div>
+        `).join('');
+        updateRecurringSummary(_recBills.length);
+    } catch(e) {
+        el.innerHTML = '<div style="color:var(--danger);font-size:13px;">Ошибка загрузки</div>';
+    }
+}
+
+function updateRecurringSummary(count) {
+    const el = document.getElementById('recurringBillsSummary');
+    if (el) el.textContent = count ? `${count} подписок` : 'Подписки и регулярные расходы';
+}
+
+async function addRecurringBill() {
+    const emoji = document.getElementById('recEmoji').value.trim() || '💳';
+    const name = document.getElementById('recName').value.trim();
+    const amount = parseFloat(document.getElementById('recAmount').value);
+    const day = parseInt(document.getElementById('recDay').value);
+    if (!name) { showToast('Введите название'); return; }
+    if (!amount || amount <= 0) { showToast('Введите сумму'); return; }
+    if (!day || day < 1 || day > 31) { showToast('День: 1–31'); return; }
+    try {
+        await apiRequest('/api/recurring-bills', 'POST', {
+            name, emoji, amount, currency: state.currency || 'PLN', day_of_month: day,
+            account_id: state.selectedAccountId || null
+        });
+        document.getElementById('recEmoji').value = '';
+        document.getElementById('recName').value = '';
+        document.getElementById('recAmount').value = '';
+        document.getElementById('recDay').value = '';
+        showToast('Платёж добавлен');
+        await renderMyBills();
+        loadDashboard();
+    } catch(e) {
+        showToast('Ошибка добавления');
+    }
+}
+
+async function deleteRecurringBill(id) {
+    try {
+        await apiRequest('/api/recurring-bills/delete', 'POST', { id });
+        showToast('Удалено');
+        await renderMyBills();
+        loadDashboard();
+    } catch(e) {
+        showToast('Ошибка удаления');
+    }
+}
+
+async function renderDetected() {
+    const el = document.getElementById('recDetectedList');
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Анализ истории...</div>';
+    try {
+        const r = await apiRequest('/api/recurring' + (state.selectedAccountId ? '?account_id=' + state.selectedAccountId : ''));
+        const list = r.recurring || [];
+        if (!list.length) {
+            el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Регулярных платежей не обнаружено</div>';
+            return;
+        }
+        const confirmedIds = new Set((_recBills || []).map(b => b.name.toLowerCase()));
+        el.innerHTML = list.map((p, i) => {
+            const alreadyAdded = confirmedIds.has((p.description || p.category_name || '').toLowerCase());
+            return `
+            <div id="detectedRow${i}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);${alreadyAdded ? 'opacity:0.45;' : ''}">
+                <span style="font-size:22px;width:32px;text-align:center;">${p.emoji || '🔄'}</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);">${p.description || p.category_name}</div>
+                    <div style="font-size:12px;color:var(--text-muted);">${p.avg_amount ? '~' + formatAmount(p.avg_amount, state.currency) : ''} · ${p.months_count || 0} мес.</div>
+                </div>
+                ${alreadyAdded
+                    ? '<span style="font-size:12px;color:var(--success);font-weight:600;">✓ добавлено</span>'
+                    : `<button onclick="confirmDetected(${i}, '${(p.description || p.category_name || '').replace(/'/g, '')}', ${p.avg_amount || 0}, '${p.emoji || '🔄'}')" style="background:var(--accent-blue);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Switzer',sans-serif;">+ Добавить</button>`
+                }
+            </div>`;
+        }).join('');
+    } catch(e) {
+        el.innerHTML = '<div style="color:var(--danger);font-size:13px;">Ошибка</div>';
+    }
+}
+
+async function confirmDetected(idx, name, amount, emoji) {
+    if (!name || !amount) return;
+    const day = new Date().getDate();
+    try {
+        await apiRequest('/api/recurring-bills', 'POST', {
+            name, emoji, amount, currency: state.currency || 'PLN',
+            day_of_month: day, account_id: state.selectedAccountId || null
+        });
+        showToast('Добавлено в Мои подписки');
+        await renderMyBills();
+        await renderDetected();
+        loadDashboard();
+    } catch(e) {
+        showToast('Ошибка');
+    }
+}
     </script>
 
 <!-- ── Receipt Scanner Modal ── -->

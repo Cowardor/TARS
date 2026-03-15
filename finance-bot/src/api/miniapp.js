@@ -9,6 +9,7 @@ import { FamilyService } from '../services/family.js';
 import { ExportService } from '../services/export.js';
 import { BudgetService } from '../services/budget.js';
 import { AccountService } from '../services/account.js';
+import { RecurringBillsService } from '../services/recurring.js';
 import { getMonthRange } from '../utils/db.js';
 
 // ============================================
@@ -106,6 +107,7 @@ export async function handleMiniAppAPI(request, env, pathname) {
   const exportService = new ExportService(transactionService);
   const budgetService = new BudgetService(env.DB, transactionService);
   const accountService = new AccountService(env.DB, env.ENCRYPTION_KEY);
+  const recurringService = new RecurringBillsService(env.DB);
 
   // 1. Try session token (PWA / email login)
   let user = await resolveUser(request, env);
@@ -318,9 +320,19 @@ export async function handleMiniAppAPI(request, env, pathname) {
     case '/api/crypto-stats':
       return handleCryptoStats(request, userId, accountService);
 
-    // Recurring payments detection
+    // Recurring payments detection (autodetect from history)
     case '/api/recurring':
       return handleRecurring(userId, familyId, activeAccountId, transactionService);
+
+    // Recurring bills (user-managed subscriptions)
+    case '/api/recurring-bills':
+      if (request.method === 'GET') return handleGetRecurringBills(userId, familyId, activeAccountId, recurringService);
+      if (request.method === 'POST') return handleAddRecurringBill(request, userId, familyId, activeAccountId, recurringService);
+      return error('Method not allowed', 405);
+
+    case '/api/recurring-bills/delete':
+      if (request.method === 'POST') return handleDeleteRecurringBill(request, userId, recurringService);
+      return error('Method not allowed', 405);
 
     default:
       return error('Not found', 404);
@@ -355,6 +367,45 @@ async function handleRecurring(userId, familyId, accountId, ts) {
   }).sort((a, b) => a.days_until - b.days_until);
 
   return json({ payments: result });
+}
+
+// ============================================
+// CRUD /api/recurring-bills
+// ============================================
+
+function calcNextDate(dayOfMonth) {
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('sv');
+  let next = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+  if (next.toLocaleDateString('sv') <= todayStr) {
+    next = new Date(today.getFullYear(), today.getMonth() + 1, dayOfMonth);
+  }
+  return { next, daysUntil: Math.ceil((next - today) / 86400000) };
+}
+
+async function handleGetRecurringBills(userId, familyId, accountId, rs) {
+  const bills = await rs.getAll(userId, familyId, accountId);
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('sv');
+  const result = bills.map(b => {
+    const { next, daysUntil } = calcNextDate(b.day_of_month);
+    return { ...b, days_until: daysUntil, next_date: next.toLocaleDateString('sv') };
+  }).sort((a, b) => a.days_until - b.days_until);
+  return json({ bills: result });
+}
+
+async function handleAddRecurringBill(request, userId, familyId, accountId, rs) {
+  const body = await request.json();
+  if (!body.name || !body.amount || !body.day_of_month) return error('name, amount, day_of_month required', 400);
+  const id = await rs.add(userId, { ...body, family_id: familyId, account_id: accountId });
+  return json({ id, ok: true });
+}
+
+async function handleDeleteRecurringBill(request, userId, rs) {
+  const body = await request.json();
+  if (!body.id) return error('id required', 400);
+  await rs.delete(userId, body.id);
+  return json({ ok: true });
 }
 
 // ============================================
