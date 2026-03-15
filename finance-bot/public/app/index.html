@@ -3748,7 +3748,7 @@ select.input-field option {
                     <div class="dsk-card-body" id="dskStatsBody"></div>
                 </div>
                 <div class="dsk-card">
-                    <div class="dsk-card-header">Регулярные платежи</div>
+                    <div class="dsk-card-header">Последние операции</div>
                     <div class="dsk-card-body" id="dskTxBody"></div>
                 </div>
                 <div class="dsk-card">
@@ -7568,10 +7568,7 @@ function renderDesktopHeader() {
             <div style="font-family:'Satoshi',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary);">${greet}, ${state.userName || 'User'} 👋</div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr}</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-            <button onclick="openAddModal()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:20px;border:none;background:var(--accent-gradient);color:#fff;font-family:'Switzer',sans-serif;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px var(--accent-blue-glow);transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="14" height="14"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg>Операция</button>
-            <div style="display:flex;gap:6px;align-items:center;">${pills}</div>
-        </div>
+        <div style="display:flex;gap:6px;align-items:center;">${pills}</div>
     </div>`;
 }
 
@@ -7612,7 +7609,10 @@ function renderDesktopDashboard() {
     if (balBody) balBody.innerHTML = `
         <div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;gap:8px;">
             <div>
-                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">${monthNames[now.getMonth()]} ${now.getFullYear()}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                    <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">${monthNames[now.getMonth()]} ${now.getFullYear()}</div>
+                    <button onclick="openAddModal()" style="display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;border:1px solid var(--accent-blue);background:var(--accent-blue-soft);color:var(--accent-blue);font-family:'Switzer',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="11" height="11"><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg>Добавить</button>
+                </div>
                 <div style="font-family:'DM Mono',monospace;font-size:30px;font-weight:700;color:${balColor};line-height:1.1;">${balance >= 0 ? '+' : ''}${balance.toFixed(2)}<span style="font-size:14px;color:var(--text-muted);font-weight:400;margin-left:6px;">${curr}</span></div>
                 ${forecast && forecast.projected > 0 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">→ ~<span style="color:var(--accent-amber);font-family:'DM Mono',monospace;font-weight:600;">${forecast.projected.toFixed(0)} ${curr}</span> к концу месяца</div>` : ''}
             </div>
@@ -7639,7 +7639,29 @@ function renderDesktopDashboard() {
                     <div style="height:100%;width:${progressW}%;background:${pct > 90 ? 'var(--danger)' : pct > 70 ? 'var(--warning)' : 'var(--accent-gradient)'};border-radius:3px;transition:width 0.6s ease;"></div>
                 </div>
             </div>
+            <div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Ближайшие платежи</div>
+                <div id="dskUpcomingStrip" style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:11px;color:var(--text-muted);opacity:0.5;">загрузка...</div></div>
+            </div>
         </div>`;
+
+    // ── Upcoming recurring payments strip (inside Card 1) ─────────────────
+    apiFetch('/api/recurring').then(data => {
+        const strip = document.getElementById('dskUpcomingStrip');
+        if (!strip) return;
+        const payments = data ? data.payments.slice(0, 4) : [];
+        if (!payments.length) { strip.innerHTML = `<div style="font-size:11px;color:var(--text-muted);opacity:0.5;">не обнаружено</div>`; return; }
+        strip.innerHTML = payments.map(p => {
+            const urg = p.days_until <= 3 ? 'var(--danger)' : p.days_until <= 7 ? 'var(--accent-amber)' : 'var(--text-muted)';
+            const lbl = p.days_until === 0 ? 'сегодня' : p.days_until === 1 ? 'завтра' : `${p.days_until} дн.`;
+            return `<div style="display:flex;align-items:center;gap:7px;">
+                <span style="font-size:13px;">${p.emoji}</span>
+                <span style="flex:1;font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
+                <span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--danger);">-${Number(p.amount).toFixed(0)}</span>
+                <span style="font-size:10px;font-weight:600;color:${urg};min-width:42px;text-align:right;">${lbl}</span>
+            </div>`;
+        }).join('');
+    });
 
     // ── Card 2: Categories + donut — big donut LEFT, rows RIGHT ───────────
     const cats = state.statsData ? (state.statsData.expense_categories || []) : [];
@@ -7694,35 +7716,32 @@ function renderDesktopDashboard() {
         }
     }
 
-    // ── Card 3: Recurring payments ─────────────────────────────────────────
+    // ── Card 3: Recent transactions ────────────────────────────────────────
     const txBody = document.getElementById('dskTxBody');
     if (txBody) {
-        txBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;"><div style="width:20px;height:20px;border:2px solid var(--accent-blue);border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div>`;
-        apiFetch('/api/recurring').then(data => {
-            const payments = data ? data.payments : [];
-            if (!payments.length) {
-                txBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;"><div style="font-size:36px;">🗓</div><div style="font-size:13px;color:var(--text-muted);">Регулярных платежей не обнаружено</div></div>`;
-                return;
-            }
-            const rows = payments.map(p => {
-                const urgency = p.days_until <= 3 ? 'var(--danger)' : p.days_until <= 7 ? 'var(--accent-amber)' : 'var(--text-muted)';
-                const urgencyBg = p.days_until <= 3 ? 'rgba(239,68,68,0.08)' : p.days_until <= 7 ? 'rgba(245,158,11,0.08)' : 'transparent';
-                const daysLabel = p.days_until === 0 ? 'сегодня' : p.days_until === 1 ? 'завтра' : `через ${p.days_until} дн.`;
-                const dayNum = p.day_of_month;
-                return `<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:var(--radius-md);background:${urgencyBg};margin-bottom:2px;transition:background 0.15s;">
-                    <div style="width:36px;height:36px;border-radius:10px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;">${p.emoji}</div>
+        if (recent.length === 0) {
+            txBody.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;"><div style="font-size:36px;">📋</div><div style="font-size:13px;color:var(--text-muted);">Нет операций за месяц</div></div>`;
+        } else {
+            const rows = recent.slice(0, 8).map(tx => {
+                const isIncome = tx.type === 'income';
+                const amt = Math.abs(Number(tx.amount) || 0);
+                const txDate = tx.date ? new Date(tx.date.length === 10 ? tx.date + 'T12:00:00' : tx.date) : null;
+                const timeStr = txDate ? txDate.toLocaleDateString('ru', { day: 'numeric', month: 'short' }) : '';
+                const note = tx.description || tx.note || '';
+                return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-subtle);">
+                    <div style="width:34px;height:34px;border-radius:10px;background:${isIncome ? 'var(--success-soft)' : 'var(--bg-elevated)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">${tx.category_emoji || (isIncome ? '💰' : '🛒')}</div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-                        <div style="font-size:10px;color:var(--text-muted);">каждый ${dayNum}-й · <span style="color:${urgency};font-weight:600;">${daysLabel}</span></div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tx.category_name || 'Другое'}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${note || timeStr}</div>
                     </div>
                     <div style="text-align:right;flex-shrink:0;">
-                        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--danger);">-${Number(p.amount).toFixed(0)}</div>
-                        <div style="font-size:9px;color:${urgency};font-weight:600;">${p.next_date.slice(5).replace('-','/')}</div>
+                        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:${isIncome ? 'var(--success)' : 'var(--danger)'};">${isIncome ? '+' : '-'}${amt.toFixed(2)}</div>
+                        <div style="font-size:10px;color:var(--text-muted);">${timeStr}</div>
                     </div>
                 </div>`;
             }).join('');
-            txBody.innerHTML = rows;
-        });
+            txBody.innerHTML = rows + `<div onclick="switchTab('history')" style="text-align:center;padding:10px 0 2px;font-size:12px;font-weight:600;color:var(--accent-blue);cursor:pointer;">Открыть историю →</div>`;
+        }
     }
 
     // ── Card 4: Profiles ───────────────────────────────────────────────────
